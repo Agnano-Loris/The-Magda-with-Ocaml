@@ -1,0 +1,58 @@
+include "Magdalib/library.magda";
+
+mixin MyMixin of Object =
+  value: Integer;
+   
+  required MyMixin() initializes ()
+  begin
+    
+    // In the current version of Magda cannot be
+    // used constant values inside of the ini modules, so:
+    
+		// These kind of calls cannot be done inside an
+		// ini module due a Magda known bug:
+        // value := 0;
+		// this.MyMixin.setValue(0);
+		// "test".String.print();
+
+		// Working calls should be like these:
+		// value := v;
+		// this.MyMixin.setValue(v);
+		// where (in case of):
+		// required MyMixin(v:Integer) initializes ()
+		
+	  // The only way to set a constant value here is
+	  // like this:
+    this.MyMixin.resetValue();		
+    
+    super[];
+  end;
+  
+  new void setValue(v:Integer) 
+  begin
+    this.MyMixin.value := v;
+ 	end;
+
+  new void resetValue() 
+  begin
+    this.MyMixin.setValue(0);
+ 	end;
+ 	
+  new Integer getValue()
+  begin
+    return this.MyMixin.value;
+  end;
+  
+end;
+
+mixin MainClass of Object =
+  new void mainProgram()
+    obj1: MyMixin;
+  begin
+    obj1 := new MyMixin[];
+    "obj1's value=".String.print();
+    obj1.MyMixin.getValue().Integer.print();
+  end;
+end;
+
+//(new MainClass[]).MainClass.main_matter();

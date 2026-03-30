@@ -1,0 +1,15 @@
+
+mixin DoubledLabel of Label =
+
+  override void Label.PrintLabel ()
+    lineFeed:String;
+  begin
+    lineFeed := "\r\n";
+    lineFeed.String.print();
+    super();
+    super();
+    lineFeed.String.print();
+  end;
+
+end;
+

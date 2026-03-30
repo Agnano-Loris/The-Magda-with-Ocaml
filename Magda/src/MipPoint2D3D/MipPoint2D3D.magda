@@ -1,0 +1,99 @@
+include "Magdalib/library.magda";
+
+mixin Point2D of Object = 
+  x:Integer;
+  y:Integer;
+
+  required Point2D(x:Integer; y:Integer) initializes ()
+  begin
+    // Language workaround; using a dummy init method
+    this.Point2D.SetPoint2D(x, y);
+    // this line is required to call the father init method in this execution time
+    super[];
+  end;
+
+  new void SetPoint2D(x:Integer; y:Integer)
+  begin
+    " Point2D (x,y axis) set called: x=".String.print();
+    x.Integer.print();
+    ",y=".String.print();
+    y.Integer.print();
+    "\r\n".String.print();
+
+    this.Point2D.x := x;
+    this.Point2D.y := y;
+  end;
+ 
+  new Integer GetX()
+  begin
+    return this.Point2D.x;
+  end;
+
+  new Integer GetY()
+  begin
+    return this.Point2D.y;
+  end;
+
+end;
+
+mixin Point3D of Point2D = 
+  z:Integer;
+
+//  required Point3D(z:Integer) initializes ()
+  optional Point3D(z:Integer) initializes ()
+  begin
+    // Language workaround; using a dummy init method
+    this.Point3D.SetPoint3D(z);
+    // this line is required to call the father init method in this execution time
+    super[];
+  end;
+
+  new void SetPoint3D(z:Integer)
+  begin
+    " Point3D (z axis) set called: z=".String.print();
+    z.Integer.print();
+    "\r\n".String.print();
+    
+    this.Point3D.z := z;
+  end;
+
+  new Integer GetZ()
+  begin
+    return this.Point3D.z;
+  end;
+end;
+
+mixin MainClass of Object = 
+  new Object mainProgram()
+    p:Point3D;
+    p2:Point3D;
+  begin 
+    p := new Point2D, Point3D[ Point2D.x := 5, Point2D.y := 10, Point3D.z := 3 ];
+    p2 := new Point2D, Point3D[ Point2D.x := 1, Point2D.y := 2 ];
+
+    "\n Point get position: x=".String.print();
+    p.Point2D.GetX().Integer.print();  //this method comes from Point2D
+    ",".String.print();
+
+    "y=".String.print();
+    p.Point2D.GetY().Integer.print();  //this method comes from Point2D
+    ",".String.print();
+    
+    "z=".String.print();
+    p.Point3D.GetZ().Integer.print();  //while that one from Point3D
+    "\n".String.print();
+
+
+    "\n Point2 get position: x=".String.print();
+    p2.Point2D.GetX().Integer.print();  //this method comes from Point2D
+    ",".String.print();
+
+    "y=".String.print();
+    p2.Point2D.GetY().Integer.print();  //this method comes from Point2D
+    ",".String.print();
+
+
+  end;
+end;
+
+//(new MainClass []).MainClass.main_matter();

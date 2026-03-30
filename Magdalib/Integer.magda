@@ -1,0 +1,84 @@
+let FullInteger = Comparable, Integer;
+
+mixin Integer of Comparable, where  Comparable.t := (Comparable, Integer) =
+
+  new Integer add (other:Integer)
+    res:Integer;
+  begin
+    res := new FullInteger [];
+    % $res$.internalPointer = ((Integer) aSelf.internalPointer) + ((Integer) $other$.internalPointer); %;
+    return res;
+  end;
+
+  new Integer sub (other:Integer)
+    res:Integer;
+  begin
+    res := new FullInteger [];
+    % $res$.internalPointer = ((Integer) aSelf.internalPointer) - ((Integer) $other$.internalPointer); %;
+    return res;
+  end;
+
+  new Integer multiply (other:Integer)
+    res:Integer;
+  begin
+    res := new FullInteger [];
+    % $res$.internalPointer = ((Integer) aSelf.internalPointer) * ((Integer) $other$.internalPointer); %;
+    return res;
+  end;
+
+  new Integer divide (other:Integer)
+    res:Integer;
+  begin
+    res := new FullInteger [];
+    % $res$.internalPointer = ((Integer) aSelf.internalPointer) / ((Integer) $other$.internalPointer); %;
+    return res;
+  end;
+
+  new Object print ()
+  begin
+    % System.out.print((Integer)aSelf.internalPointer); %;
+    return null;
+  end;
+
+  override Boolean Comparable.less(other:Integer)
+    res:Boolean;
+  begin
+    res  := new Boolean[];
+    % $res$.internalPointer = ((Integer)aSelf.internalPointer) < ( (Integer) $other$.internalPointer); %;
+    return res;
+  end;
+
+  override Boolean Comparable.leq(other:Integer)
+    res:Boolean;
+  begin
+    res  := new Boolean[];
+    % $res$.internalPointer = ((Integer)aSelf.internalPointer) <= ( (Integer) $other$.internalPointer); %;
+    return res;
+  end;
+
+  override Boolean Object.equals(other:Object)
+    res:Boolean;
+  begin
+    res := super(other);
+    % $res$.internalPointer = (aSelf.internalPointer.equals($other$.internalPointer)); %;
+    return res;
+  end;
+
+  override Boolean Object.neq(other:Object)
+    res:Boolean;
+  begin
+    res := new Boolean[];
+    % if(aSelf.internalPointer.equals($other$.internalPointer) == false) $res$.internalPointer = (Boolean)true; else $res$.internalPointer = (Boolean)false; %;
+    return res;
+  end;
+
+  new Float toFloat()
+    res:Float;
+  begin
+    res := new FullFloat [];
+    % $res$.internalPointer = (Float)((Integer)aSelf.internalPointer).floatValue(); %;
+    return res;
+  end;
+
+end;
+

@@ -1,0 +1,239 @@
+include "Magdalib/Object.magda";
+include "Magdalib/Boolean.magda";
+include "Magdalib/Integer.magda";
+include "Magdalib/Comparable.magda";
+include "Magdalib/Float.magda";
+include "Magdalib/String.magda";
+include "Magdalib/ByteVector.magda";
+include "Magdalib/Vector.magda";
+include "Magdalib/Byte.magda";
+
+mixin Vec3 of Object =
+
+    x:Float;
+    y:Float;
+    z:Float;
+    
+    required Vec3(x:Float ; y:Float ; z:Float) initializes ()
+        str : String;
+    begin
+
+        this.x := x;
+        this.y := y;
+        this.z := z;        
+            
+        super[];
+        
+        str := "\nIni module di Vec3\n";
+    
+        str.print();
+
+    end;
+
+    new void setX(in:Float)
+    begin
+        this.x := in;
+    end;
+    
+    new void setY(in:Float)
+    begin
+        this.y := in;
+    end;
+    
+    new void setZ(in:Float)
+    begin
+        this.z := in;
+    end;
+
+    new Vec3 add(v:Vec3)
+    begin
+        return (new Vec3[Vec3.x:=this.x + v.x,Vec3.y:=this.y + v.y,Vec3.z:=this.z + v.z]);
+    end;
+    
+    new Vec3 sub(v:Vec3)
+    begin
+        return (new Vec3[Vec3.x:=this.x - v.x,Vec3.y:=this.y - v.y,Vec3.z:=this.z - v.z]);
+    end;
+    
+    new Vec3 multiply(v:Vec3)
+    begin
+        return (new Vec3[Vec3.x:=this.x * v.x,Vec3.y:=this.y * v.y,Vec3.z:=this.z * v.z]);
+    end;
+    
+    new Vec3 divide(v:Vec3)
+    begin
+        return (new Vec3[Vec3.x:=this.x / v.x,Vec3.y:=this.y / v.y,Vec3.z:=this.z / v.z]);
+    end;
+    
+    override Boolean Object.equals(v:Object)
+    begin
+        // Qui devo specificare Vec3 su v perchè per il compiler ovviamente V è un Object e non un Vec3
+        // quindi non ha il field Object, e io effettuo una sorta di Cast a Vec3 specificandolo
+        return this.x.equals(v.Vec3.x).and(this.y.equals(v.Vec3.y).and(this.z.equals(v.Vec3.z))); 
+    end;
+
+    new void print()
+    begin
+
+        "[".print();
+        this.x.print();
+        ",".print();
+        this.y.print();
+        ",".print();
+        this.z.print();
+        "]".print();
+    end;
+
+end;
+
+mixin Mix1 of Object =
+    
+    tt : Integer;
+
+    new void setTT()
+    begin
+        this.tt:=99999;
+    end;    
+
+    new void print()
+    begin
+        "Mix1\n".String.print();
+    end;
+
+    new void printM1(m1:Mix1)
+    begin
+        "Mix1 -- m1\n".String.print();
+    end;
+
+end;
+
+mixin Mix2 of Mix1 =
+    /*
+    new void print()
+    begin
+        "Mix2\n".String.print();
+    end;
+    */
+end;
+
+mixin Mix3 of Mix2 =
+
+    str : String;    
+ 
+    new Mix3 method( m1:Mix1 ; m2:Mix2)
+    begin
+        return (new Mix1,Mix2,Mix3[]);
+    end;
+    /*  
+    new void print()
+    begin
+        "Mix3\n".String.print();
+    end;
+    */
+    override void Mix1.print()
+    begin
+        "Mix3 ov Mix1\n".String.print();
+    end;
+
+    new void prova()
+    begin
+        this.print();
+    end;
+
+    new Float getFloat(f1:Float)
+    begin
+        return 4.12;
+    end;
+
+    new Integer add(in:Mix3)
+    begin
+        return 3;
+    end;
+  
+end;
+   
+mixin MainClass of void = 
+
+    f3 : Float;
+
+    new void mainProgram()
+        
+        k : Mix3;    
+        int : Mix3;        
+
+        f1 : Float;
+        f2 : Float;        
+
+        s1 : String;
+        s2 : String;
+
+        v1 : Vec3;
+        v2 : Vec3;
+        v3 : Vec3;        
+
+        v4 : Vec3;
+
+    begin
+
+        k := new Mix1,Mix2,Mix3[];    
+        
+        k.setTT();
+
+        k.Mix1.tt.print();
+
+        k.Mix1.print();
+        //k.Mix2.print();
+        //k.Mix3.print();       
+
+        "\nf3 MainClass:".print();
+        this.f3 := 1.0;
+        this.f3.print();
+
+        "\nf3 MainClass:".String.print();
+        this.MainClass.f3 := 3.0;
+        this.MainClass.f3.Float.print();
+
+        "\n".print();
+
+        int := k.Mix3.method(new Mix1[], new Mix1,Mix2[]);
+      
+        (new Mix1[]).Mix1.printM1(int);
+
+        this.MainClass.f3 := 1.0;
+
+        (1.0+this.MainClass.f3+1.0).Float.print();        
+
+        f1:=21.73;
+        f2:=891.33;
+
+        (k+k).Integer.print();    
+          
+        (this.MainClass.f3 + k.Mix3.getFloat(f1+f2) + this.MainClass.f3).Float.print();
+
+        v1 := new Vec3[Vec3.x:=1.0,Vec3.y:=2.0,Vec3.z:=2.0];
+        v2 := new Vec3[Vec3.x:=2.0,Vec3.y:=1.0,Vec3.z:=1.0];
+        v3 := new Vec3[Vec3.x:=2.0,Vec3.y:=1.0,Vec3.z:=1.0];
+        "\n\n".String.print();
+        (v1+v2).Vec3.print();
+        "\n".String.print();
+        (v1-v2).Vec3.print();
+        "\n".String.print();
+        (v1*v2).Vec3.print();
+        "\n".String.print();
+        (v1/v2).Vec3.print();
+        
+        "\n".String.print();
+        (v2 = v3).Boolean.print();
+        "\n".String.print();
+        (v1 = v3).Boolean.print();
+        "\n".String.print();
+        (v1 != v3).Boolean.print();
+        
+        "\n".String.print();
+        k.Mix3.prova();
+
+        "\nCiao, funziona\n".print();
+        1.print();
+
+    end;
+end;

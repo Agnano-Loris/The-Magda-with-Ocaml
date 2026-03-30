@@ -1,0 +1,14 @@
+
+mixin FloatVector of Vector =
+
+  new Float get(index:Integer)
+    res:Float;
+    resObj:Object;
+  begin
+    res := 0.0;
+    resObj := this.Vector.get(index);
+    % $res$.internalPointer = (Float)$resObj$.internalPointer; %;
+    return res;
+  end;
+
+end;

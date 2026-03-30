@@ -1,0 +1,10 @@
+
+let FDLabel = Label, FramedLabel, DoubledLabel, FramedDoubledLabel;
+let DFLabel = Label, DoubledLabel, FramedLabel, FramedDoubledLabel;
+
+mixin FramedDoubledLabel of Label, FramedLabel, DoubledLabel =
+
+  // This mixin is only for a definition purposes but not override nothing for this demo.
+
+end;
+

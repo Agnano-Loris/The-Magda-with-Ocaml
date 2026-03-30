@@ -1,0 +1,74 @@
+include "Magdalib/library.magda";
+
+mixin MixinA of Object =
+  val_A_1:Integer;
+
+  required MixinA(a1:Integer) initializes ()
+    // localVar:Integer;
+    // localMixin:MixinB;
+  begin
+    // "LOG MESSAGE\r\n".String.print();    // Cannot compile with other object calls inside
+    // this.MixinA.val_A_1 := 10;           // This line, 'instead of this.MixinA.val_A_1 := a1;', cannot compile
+    // localVar := 10;                      // This line cannot compile
+    // localMixin := new MixinB[];          // This line cannot compile
+
+    // Workaround; using a dummy init method
+    this.MixinA.val_A_1 := this.MixinA.InitDummyMethod(a1);
+
+    super[];
+  end;
+
+  new Integer InitDummyMethod(par:Integer)
+    localVar:Integer;
+    localMixin:MixinB;
+  begin
+    "InitDummyMethod in: ".String.print();
+    par.Integer.print();
+    "\r\n".String.print();
+    localVar := 10 + par;
+    localMixin := new MixinB[];
+    localMixin.MixinB.testMessage();
+    "InitDummyMethod out: ".String.print();
+    localVar.Integer.print();
+    "\r\n".String.print();
+    return localVar;
+  end;
+
+  new Integer getA1()
+  begin
+    return this.MixinA.val_A_1;
+  end;
+
+end;
+
+mixin MixinB of Object =
+
+  new void testMessage()
+  begin
+    "Test Message\r\n".String.print();
+  end;
+
+end;
+
+
+// Main program
+mixin MainClass of Object =
+
+  new Object mainProgram()
+    mA:MixinA;
+    mB:MixinB;
+  begin
+
+    mA := new MixinA[ MixinA.a1 := 1 ];
+    mA.MixinA.getA1().Integer.print();
+    "\r\n".String.print();
+
+    mB := new MixinB[];
+    mB.MixinB.testMessage();
+    "\r\n".String.print();
+
+  end;
+
+end;
+
+//(new MainClass[]).MainClass.mainProgram();

@@ -1,0 +1,11 @@
+include "Magdalib/library.magda";
+include "Mixinlib/mixinHelloWorld.magda";         // the mixin is included by an external file
+
+mixin MainClass of Object =
+  new Object mainProgram()
+    msg:HelloWorld;
+  begin
+    msg := new HelloWorld[];
+    msg.HelloWorld.getMessage().String.print();   // this is a comment
+  end;
+end;

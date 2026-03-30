@@ -1,0 +1,196 @@
+include "Magdalib/library.magda";
+
+mixin Point2D <pvar <= Float> of Object =
+   override void Object.Init()
+   begin
+     super();
+     return null;
+   end;
+
+   new pvar Identity(x:pvar)
+   begin
+      x.Float.print();
+      return x;
+   end;
+
+   abstract Object test();
+
+   new Object print()
+   begin
+     this.Point2D.x.Integer.print();
+     ",".String.print();
+     this.Point2D.y.Integer.print();
+     "\n".String.print();
+     return null;
+   end;
+
+   new Point2D add (other:Point2D)
+     newX:Integer;
+     newY:Integer;
+   begin
+     newX := this.Point2D.x + other.Point2D.x;
+     newY := this.Point2D.y + other.Point2D.y;
+     return new Point2D, Point3D [Point2D.x := newX, Point2D.y := newY];
+   end;
+
+   new Point2D Method1 (par1:Integer; par2: m2)
+    cos:Integer;
+   begin
+     cos := 3;
+     cos.Integer.print();
+     this.Point2D.x := 1;
+     this.Point2D.x := this.Point2D.y + 5;
+     this.Point2D.Method2(par1);
+     par1 := 3;
+     par2 := "ala";
+     return this;
+   end;
+
+   x:Integer;
+   y:Integer;
+
+   required Point2D (x:Integer; y:Integer) initializes()
+   begin
+     this.Point2D.x := x;
+     this.Point2D.y := y;
+     super[];
+   end;
+
+   optional Point2D (another:Point2D) initializes(Point2D.x, Point2D.y)
+   begin
+      super[Point2D.x := another.Point2D.x, Point2D.y := another.Point2D.y];
+   end;
+
+   new Object Method2 (par1:Integer)
+   begin
+     if (par1 = this )
+       par1 := 5;
+     end;
+     this.Point2D.x.Integer.print();
+     "\n".String.print();
+     return this;
+   end;
+end;
+
+mixin Point3D of Point2D=
+  override Object Point2D.test ()
+//  implement Object Point2D.test ()  // secondo la documentazione (§3.7 pag 42) dovrebbe essere così ma non funziona
+  begin
+    return null;
+  end;
+
+  override Point2D Point2D.add (other:Point2D)
+  begin
+    return super(other);
+  end;
+
+  override Point2D Point2D.Method1 (par1:Integer; par2:m2)
+  begin
+    this.Point2D.y :=  this.Point2D.y + 1;
+    super(1,"ala");
+    return this;
+  end;
+end;
+
+mixin FloatPoint2D <pvar <= Float > of Object =
+   override void Object.Init()
+   begin
+     super();
+     return null;
+   end;
+
+   new Object print()
+   begin
+     this.FloatPoint2D.x.Float.print();
+     ",".String.print();
+     this.FloatPoint2D.y.Float.print();
+     "\n".String.print();
+     return null;
+   end;
+
+   x:Float;
+   y:Float;
+
+   required FloatPoint2D (x:Float; y:Float) initializes()
+   begin
+     this.FloatPoint2D.x := x;
+     this.FloatPoint2D.y := y;
+     super[];
+   end;
+
+   optional FloatPoint2D (another:FloatPoint2D) initializes(FloatPoint2D.x, FloatPoint2D.y)
+   begin
+      super[FloatPoint2D.x := another.FloatPoint2D.x, FloatPoint2D.y := another.FloatPoint2D.y];
+   end;
+
+   optional FloatPoint2D (angle:Float; rad:Float) initializes(FloatPoint2D.x, FloatPoint2D.y)
+   begin
+      super[FloatPoint2D.x := angle.Float.sin().Float.multiply( rad ), FloatPoint2D.y := angle.Float.cos().Float.multiply( rad )];
+   end;
+end;
+
+
+mixin Test of Object=
+  ala:Integer;
+
+  new Object test()
+  x:Integer;
+  begin
+    x := 0;
+    while (x <= 10)
+        x.Integer.print();
+        " tak\n".String.print();
+        x := x + 1;
+    end;
+    return null;
+  end;
+end;
+
+mixin MainClass of Object =
+
+  new Object main3()
+   x:FloatPoint2D;
+   y:FloatPoint2D;
+  begin
+    x := new FloatPoint2D [FloatPoint2D.x := 1.0, FloatPoint2D.y := 5.0];
+    x.FloatPoint2D.print();
+    y := new FloatPoint2D [FloatPoint2D.angle := 0.01, FloatPoint2D.rad := 100.0];
+    y.FloatPoint2D.print();
+    return null;
+  end;
+
+  new Object main2()
+   x:Point2D;
+   y:Point2D;
+  begin
+    x := new Point2D, Point3D [Point2D.x := 1, Point2D.y := 5];
+    x.Point2D.print();
+    y := new Point2D, Point3D [Point2D.another := x];
+    y.Point2D.print();
+    return null;
+  end;
+
+  new Object mainProgram()
+  begin
+		(new Point2D, Point3D [Point2D.x := 5, Point2D.y := 6]).Point2D.Method1(2,"3").Point2D.Method2( 5);
+		
+        (new Test []).Test.test();
+		(3 + 3+ 3-2-2-2-2).Integer.print();
+		"\n".String.print();
+		(3.5.Float.add(3.9) ).Float.print();
+		"\n".String.print();
+
+		new Point2D, Point3D, where Point2D.pvar := (Float) [Point2D.x := 1, Point2D.y := 2].Point2D.Identity( 3.2 ).Float.print();
+		new Point2D, Point3D [Point2D.x := 1, Point2D.y := 2].Point2D.add( new Point2D, Point3D [Point2D.x := 5, Point2D.y := 10] ).Point2D.test();
+		
+		3.Integer.print();
+
+        this.main2();
+        this.main3();
+
+    return null;
+  end;
+end;
+
+let m1 = Integer;
+let m2 = String;

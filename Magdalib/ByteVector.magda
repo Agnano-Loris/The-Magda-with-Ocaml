@@ -1,0 +1,14 @@
+
+mixin ByteVector of Vector =
+
+  new Byte get(index:Integer)
+    res:Byte;
+    resObj:Object;
+  begin
+    res := 0x00;
+    resObj := this.Vector.get(index);
+    % $res$.internalPointer = (Byte)$resObj$.internalPointer; %;
+    return res;
+  end;
+
+end;

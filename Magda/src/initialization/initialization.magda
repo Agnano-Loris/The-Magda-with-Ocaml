@@ -1,0 +1,118 @@
+include "Magdalib/library.magda";
+
+/**
+  Mixin that describes a 2D point with X and Y as Integer coordinates.
+ */
+mixin Point2D of Object =
+  xP2:Integer;
+  yP2:Integer;
+
+ /**
+   Init method 'required': this takes 2 Integer parameters as X and
+   Y coordinates and store values in this instance.
+  */
+  required Point2D(x:Integer; y:Integer) initializes ()
+  begin
+    this.Point2D.debugTrace2DInit();  // to show 'when' this method is called
+    this.Point2D.xP2 := x;
+    this.Point2D.yP2 := y;
+    super[];                          // This is mandatory and calls the Object init method
+  end;
+
+  new void debugTrace2DInit()
+  begin
+    " Point2D: Required Init method called \r\n".String.print();
+  end;
+
+  new Integer getX()
+  begin
+    return this.Point2D.xP2;
+  end;
+
+  new Integer getY()
+  begin
+    return this.Point2D.yP2;
+  end;
+end;
+
+/**
+  Mixin that describes a 3D point with X, Y and Z as Integer coordinates.
+ */
+mixin Point3D of Point2D =
+  zP3:Integer;
+
+ /**
+   Init method 'required': this takes 1 Integer parameter as Z coordinate and store
+   value in this instance.
+   Is important to show that is not necessary to get redundantly X and Y coordinates
+   for parent Point2D.
+  */
+  required Point3D(z:Integer) initializes ()
+  begin
+    this.Point3D.debugTrace3DRequiredInit();  // to show 'when' this method is called
+    this.Point3D.zP3 := z;
+    super[];                // This is mandatory and calls the Point2D init method
+  end;
+
+ /**
+   Init method 'optional': this takes 1 Point3D parameter as full 3D point descriptor.
+   Values owned in 'other' are passed to parent Point2D for X and Y initialization
+   and, about Z, to this required init method avoiding redundancy.
+  */
+  optional Point3D (other:Point3D) initializes (Point2D.x, Point2D.y, Point3D.z)
+  begin
+    this.Point3D.debugTrace3DOptionalInit();
+    super[Point2D.x:= other.Point2D.getX(), Point2D.y:= other.Point2D.getY(),
+          Point3D.z := other.Point3D.getZ()];
+  end;
+
+  new void debugTrace3DRequiredInit()
+  begin
+    " Point3D: Required Init method called \r\n".String.print();
+  end;
+
+  new void debugTrace3DOptionalInit()
+  begin
+    " Point3D: Optional Init method called \r\n".String.print();
+  end;
+
+  new Integer getZ()
+  begin
+    return this.Point3D.zP3;
+  end;
+
+end;
+
+/**
+  Mixin of the main program.
+ */
+mixin MainClass of Object =
+  new Object mainProgram()
+    p1:Point3D;
+    p2:Point3D;
+  begin
+
+    "*** Initialization example ***\r\n".String.print();
+
+    // Point p1 is created passing 3 Integer parameters to call directly
+    // required init methods only
+    p1 := new Point2D, Point3D[ Point3D.z := 12, Point2D.x := 10, Point2D.y := 11 ];
+
+    "\r\n".String.print();
+
+    // Point p2 is created passing 1 Point3D parameter, p1 precisely, to
+    // call Point3D optional init method.
+    p2 := new Point2D, Point3D[ Point3D.other := p1 ];
+
+    "\r\nPoint p2 X=".String.print();
+    p2.Point2D.getX().Integer.print();    // this should be 10
+    "\r\nPoint p2 Y=".String.print();
+    p2.Point2D.getY().Integer.print();    // this should be 11
+    "\r\nPoint p2 Z=".String.print();
+    p2.Point3D.getZ().Integer.print();    // this should be 12
+
+    "\r\n\r\n*** END ***\r\n".String.print();
+
+  end;
+end;
+

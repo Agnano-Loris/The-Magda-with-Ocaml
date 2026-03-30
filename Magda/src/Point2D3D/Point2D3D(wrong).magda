@@ -1,0 +1,45 @@
+include "Magdalib/library.magda";
+
+mixin Point2D of Object = 
+  x:Integer;
+  y:Integer;
+
+  new void setCoords2D( ax:Integer; ay:Integer)
+  begin
+    this.Point2D.x := ax;
+    this.Point2D.y := ay;
+  end;
+ 
+  new Integer getX()
+  begin
+    return this.Point2D.x;
+  end;
+end;
+
+mixin Point3D of Point2D = 
+  z:Integer;
+
+  new void setCoords3D( ax:Integer; ay:Integer; az:Integer)
+  begin
+    this.Point2D.setCoords2D(ax, ay); //a call to the method coming from 
+    this.Point3D.z := az;             //another mixin is prefixed with it's name
+  end;
+ 
+  new Integer getZ()
+  begin
+    return this.Point3D.z;
+  end;
+end;
+
+mixin MainClass of Object = 
+  new Object main_matter()
+    x:Point3D;
+  begin 
+    x := new Point3D, Point2D[];
+    x.Point3D.setCoords3D( 10, 11, 12);
+    x.Point2D.getX().Integer.print();  //this method comes from Point2D
+    x.Point3D.getZ().Integer.print();  //while that one from    Point3D
+  end;
+end;
+
+(new MainClass []).MainClass.main_matter();

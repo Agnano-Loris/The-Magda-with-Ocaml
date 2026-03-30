@@ -1,0 +1,80 @@
+
+let EDemoProto = DemoProto, DemoEncryptedProto;
+
+/*
+   This encryption mixin is based on the Caesar cipher algorithm.
+   In cryptography, a Caesar cipher, also known as a Caesar's cipher,
+   the shift cipher, Caesar's code or Caesar shift, is one of the
+   simplest and most widely known encryption techniques.
+   It is a type of substitution cipher in which each letter in the
+   plaintext is replaced by a letter some fixed number of positions
+   down the alphabet.
+   For example, with a shift of 3, A would be replaced by D, B would
+   become E, and so on. The method is named after Julius Caesar, who
+   used it to communicate with his generals.
+   In this mixin is used exactly a key of 3 as used by Julius Caesar.
+*/
+
+mixin DemoEncryptedProto of DemoProto =
+
+  // This method takes a payload and returns an encoded and encrypted buffer
+  override ByteVector DemoProto.Encode(inBuf:ByteVector)
+    encBuf:ByteVector;
+    outBuf:ByteVector;
+    superValue:Byte;
+    typeValue:Byte;
+    msgValue:Byte;
+    i:Integer;
+    j:Integer;
+
+  begin
+    // Acting the encryption (in this demo only the payload is encrypted)
+    encBuf := new Vector, ByteVector[ Vector.size := 0 ];
+    i := 0;
+    j := inBuf.Vector.getLength();
+    while ( i < j )
+      msgValue := inBuf.ByteVector.get(i);
+      msgValue := msgValue.Byte.add(0x03);
+      encBuf.Vector.set(i, msgValue);
+      i := i + 1;
+    end;
+
+    // Acting the encode using parent method
+    outBuf := super(encBuf);
+
+    // Changing the protocol discriminator id
+    superValue := outBuf.ByteVector.get(1);
+    typeValue := superValue.Byte.sub(0x10);
+    typeValue := typeValue.Byte.multiply(0x02);
+    typeValue := typeValue.Byte.add(superValue);
+    outBuf.Vector.set(1, typeValue);              // TYPE BYTE = 0x13 -> ENCRYPTED PROTOCOL
+
+    return outBuf;
+  end;
+
+  // This method takes an encoded and encrypted buffer and returns the payload
+  override ByteVector DemoProto.Decode(inBuf:ByteVector)
+    outBuf:ByteVector;
+    msgValue:Byte;
+    i:Integer;
+    j:Integer;
+
+  begin
+    // Acting the decode using parent method
+    outBuf := super(inBuf);
+
+    // Acting the decryption
+    i := 0;
+    j := outBuf.Vector.getLength();
+    while ( i < j )
+      msgValue := outBuf.ByteVector.get(i);
+      msgValue := msgValue.Byte.sub(0x03);
+      outBuf.Vector.set(i, msgValue);
+      i := i + 1;
+    end;
+
+    return outBuf;
+  end;
+
+end;
+

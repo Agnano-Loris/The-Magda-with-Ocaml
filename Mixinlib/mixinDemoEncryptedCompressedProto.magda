@@ -1,0 +1,11 @@
+
+let ECDemoProto = DemoProto, DemoEncryptedProto, DemoCompressedProto, DemoEncryptedCompressedProto;
+let CEDemoProto = DemoProto, DemoCompressedProto, DemoEncryptedProto, DemoEncryptedCompressedProto;
+
+mixin DemoEncryptedCompressedProto of DemoProto, DemoEncryptedProto, DemoCompressedProto =
+
+  // This mixin is only for a definition purposes but not override nothing for this demo.
+
+end;
+
+

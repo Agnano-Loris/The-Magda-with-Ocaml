@@ -1,0 +1,1116 @@
+options {
+    DEBUG_PARSER = false; 
+    STATIC=false;
+}
+
+PARSER_BEGIN(Parser)
+
+    package Magda.Parser;
+
+    import java.util.HashSet;
+
+    import Magda.PreParser.*;
+    import Magda.PreParser.PreParserStructures.*;
+    import Magda.ProgramTree.LValues.*;
+    import Magda.ProgramTree.Declarations.*;
+    import Magda.ProgramTree.Instructions.*;
+    import Magda.ProgramTree.MixinExpressions.*;
+    import Magda.ProgramTree.Expressions.*;
+    import Magda.ProgramTree.*;
+    import Magda.Compiler.*;
+
+    public class Parser {
+        String FileName;
+        static ProgramContext programContext;
+      
+        static Parser CreateParser( String FileName) throws java.io.FileNotFoundException{ 
+            Parser res = new Parser ( new java.io.FileInputStream (FileName) );
+            res.FileName = FileName;
+            return res;
+        }
+      
+        public static void main(String args[]) throws ParseException {
+            try{
+                programContext = PreParser.CreatePreParser(args[0]).prePars();
+                //System.out.println("/*\n\n" + programContext + "\n\n*/\n");
+            }
+            catch(Exception e){
+                System.out.println(e);
+                return;
+            }           
+ 
+            if(programContext == null){
+                throw new Error ("Error while parsing the program context");
+            }
+            else if(programContext.checkForCycles() == true){
+                throw new Error ("The program contains cyclical mixins");
+            }
+
+            if(!programContext.containsMixin("MainClass")){
+                throw new Error ("This program doesn't contain a MainClass Mixin");
+            }
+            if(!programContext.containsMethod("MainClass","mainProgram")){
+                throw new Error ("The Mixin MainClass doesn't contain a method called mainProgram");
+            }
+            if(!programContext.emptyMainProgramParams()){
+                throw new Error ("The method mainProgram in the Mixin MainClass shouldn't have any parameters!");
+            }
+                     
+            System.out.println("\n/* --------------------------------------------------------------------- */");
+            System.out.println("/* --------------------- Launching magda compiler  --------------------- */");
+            System.out.println("/* --------------------------------------------------------------------- */\n");
+            
+            Parser parser=null;
+            if (args.length >0) {
+                try {
+                    parser = CreateParser( args[0] );
+                } 
+                catch (java.io.FileNotFoundException e) { 
+                    System.err.println("Missing file!");
+                    e.printStackTrace();
+                } 
+            }
+            else
+                parser = new Parser(System.in);
+        
+            CProgram prg = parser.Program();
+            System.out.println("/* --------------------------------------------------------------------- */");
+            System.out.println("/* ---- Program successfully parsed and checked - Generating output ---- */");
+            System.out.println("/* --------------------------------------------------------------------- */\n");
+            
+            //prg.print(System.out);
+            
+            prg.CheckTypes();
+            prg.GenCode(System.out, new CGenCodeHelper() );
+            
+            System.out.println("\n/* --------------------------------------------------------------------- */");
+        }
+
+    }
+
+PARSER_END(Parser)
+
+SKIP :
+{
+  " "
+| "\t"
+| "\n"
+| "\r"
+}
+
+/* ---------------- COMMENTS  ---------------- */
+
+MORE :
+{    
+     "//" : IN_SINGLE_LINE_COMMENT
+  |  "/*" : IN_MULTI_LINE_COMMENT
+}
+
+<IN_SINGLE_LINE_COMMENT> SPECIAL_TOKEN :
+{ 
+    <SINGLE_LINE_COMMENT: "\n" | "\r" | "\r\n" > : DEFAULT
+}
+
+<IN_MULTI_LINE_COMMENT> SPECIAL_TOKEN :
+{  
+    <MULTI_LINE_COMMENT: "*/" > : DEFAULT
+}
+
+<IN_SINGLE_LINE_COMMENT,IN_MULTI_LINE_COMMENT> MORE :
+{
+    < ~[] >
+}
+
+/* ---------------- MAIN TOKENS ----------------*/
+
+TOKEN :
+{
+  <INCLUDE: "include"> 
+| <LET: "let"> // ok
+| <NULL: "null"> // ok
+| <TRUE: "true"> // ok
+| <FALSE: "false"> // ok
+| <SUPER: "super"> // ok
+| <VOID: "void"> // ok
+| <THIS: "this"> // ok
+| <BEGIN: "begin"> 
+| <END: "end"> 
+| <NEW: "new"> // ok
+| <ABSTRACT: "abstract"> // ok 
+| <OVERRIDE: "override"> // ok
+| <REQUIRED: "required"> // ok
+| <OPTIONAL: "optional"> // ok
+| <INITIALIZES: "initializes"> // ok
+| <IF: "if"> // ok
+| <ELSE: "else"> // ok
+| <WHILE: "while"> // ok
+| <MIXIN: "mixin"> // ok
+| <OF: "of"> // ok
+| <WHERE: "where"> // ok
+| <RETURN: "return"> // ok
+| < NATIVEINSTRUCTION: "%" (~["%"] | ("\\%") )* "%" >
+| < ID: ["a"-"z","A"-"Z","_"] ( ["a"-"z","A"-"Z","_","0"-"9"] )* >
+| < STRING_LITERAL: "\""    
+     (   
+         (~["\"","\\","\n","\r"]) | 
+         ("\\" ( ["n","t","b","r","f","\\","'","\""] | 
+         ["0"-"7"] ( ["0"-"7"] )? | 
+         ["0"-"3"] ["0"-"7"] ["0"-"7"] ) )      
+     )*      
+    "\"" > 
+| < BYTE_LITERAL: "0x"(["0"-"9","a"-"f","A"-"F"])+ >
+| < INTEGER_LITERAL: (["0"-"9"])+ >
+| < FLOAT_LITERAL: (["0"-"9"])+ "."(["0"-"9"])+ >
+
+}
+
+
+/* --------------------------------------------------*/
+/* -------------- Here starts Magda Grammar ---------*/
+/* --------------------------------------------------*/
+
+
+
+/* ----------------- LValues -------------------------*/
+
+ILValue Field(String mixinname):
+{ 
+    Token t1, t2; 
+}
+{
+    (
+        LOOKAHEAD(6)
+        <THIS> "." t1=<ID> "." t2= <ID>
+        { 
+            return new CFieldLValue(t1.image, t2.image); 
+        }
+ 
+        |
+
+        <THIS> "." t1=<ID>
+        {
+        
+            HashSet<String> controls = programContext.containsUnambiguousField(mixinname,t1.image);
+            if(controls.size() > 1)
+                throw new Error("Parse Error: <THIS> ambiguous field for mixin of type "+mixinname+"at line:"+t1.beginLine+", possible mixins with such method:"+controls);
+            else if(controls.size() == 0)
+                throw new Error("Parse Error: <THIS> No field named "+t1.image+" for mixin of type "+mixinname+" at line:"+t1.beginLine);
+
+            String[] unambiguousMixin = controls.toArray(new String[0]);
+            return new CFieldLValue(unambiguousMixin[0],t1.image);
+
+        }
+    )
+}
+
+ILValue Variable():
+{ 
+    Token t1;
+}
+{ 
+    t1=<ID>
+    { return new CVariableLValue(t1.image); }
+}
+
+ILValue LValue(String mixinname):
+{
+    ILValue res;
+}
+{  
+    ( 
+        res = Field(mixinname) |
+        res = Variable()
+    )
+    
+    {return res;}
+}
+
+/* ----------------- Instructions -------------------------*/
+
+CInstruction Assignment(String mixinname,String methodname):
+{ 
+    IExpression expr;
+    ILValue lval;
+}
+{ 
+    lval = LValue(mixinname) ":=" expr = Expression(mixinname,methodname)
+    {return new CAssignment(lval, expr);}
+}
+
+CInstruction WhileLoop(String mixinname, String methodname):
+{ 
+    CInstructions instrs;
+    IExpression expr;}
+{ 
+    <WHILE> "(" expr = Expression(mixinname,methodname) ")" instrs = Instructions(mixinname,methodname) <END> 
+    {return new CWhileLoopInstruction(expr, instrs); }
+}
+
+CInstruction IfCond(String mixinname, String methodname):
+{ 
+    IExpression cond; 
+    CInstructions trueInstr;
+    CInstructions falseInstr=  new CInstructions();
+}
+{ 
+    <IF> "(" cond= Expression(mixinname,methodname) ")"
+    trueInstr = Instructions(mixinname,methodname)
+    [<ELSE>   falseInstr = Instructions(mixinname,methodname) ]
+    <END>
+    { return new CIfCondInstruction(cond, trueInstr, falseInstr); }
+}
+
+CInstruction Return(String mixinname,String methodname):
+{
+    IExpression expr;
+}
+{ 
+    <RETURN> expr=Expression(mixinname,methodname)
+    {return new CReturnInstruction(expr);}
+}
+
+CInstruction NativeInstruction():
+{ 
+    Token t;
+}
+{ 
+    t = <NATIVEINSTRUCTION>
+    { return new CNativeInstruction(t.image); } 
+}
+
+IInstruction Instruction(String mixinname, String methodname):
+{ 
+    CInstruction res; 
+    IExpression tmp;
+    Token delim;
+}
+{ 
+    (   
+        LOOKAHEAD(6) res = Assignment(mixinname,methodname) | 
+        LOOKAHEAD(2) tmp = Expression(mixinname,methodname) {res = new CExprInstruction(tmp);}|
+        res = Return(mixinname,methodname) |
+        res = NativeInstruction() |
+        res = WhileLoop(mixinname,methodname) |
+        res = IfCond(mixinname,methodname)
+    )     
+    delim = ";"
+  
+    { 
+        res.PosInProgram = delim.beginLine;
+        res.ProgramFile = FileName;
+        return res; 
+    }
+}
+
+CInstructions Instructions(String mixinname, String methodname):
+{ 
+    CInstructions res= new CInstructions();
+    IInstruction instr;
+}
+{ 
+    ( LOOKAHEAD(2) instr = Instruction(mixinname, methodname) {res.add(instr);})*
+    { return res; }
+}
+
+/* --------------------------- Expressions ------------------------------------- */
+
+CExpressionList ActualParameters(String mixinname,String methodname):
+{  
+    CExpressionList res = new CExpressionList(); 
+    IExpression t;
+}
+{ 
+    "(" 
+    
+    [ 
+        t=Expression (mixinname,methodname) {res.add(t);}
+        ("," t=Expression(mixinname,methodname) {res.add(t);} )* 
+    ]
+          
+    ")"
+   
+    {return res;}
+}
+
+IExpression SuperExpression(String mixinname,String methodname):
+{ 
+    CExpressionList list;
+}
+{ 
+    <SUPER> list = ActualParameters(mixinname,methodname) 
+    { return new CSuperCallExpression(list);}
+}
+
+IExpression DirectMethodCall(String mixinname,String methodname,IExpression Target):
+{
+    Token MethodName;
+    CExpressionList list;
+}
+{
+        "." MethodName = <ID> list = ActualParameters(mixinname,methodname)
+        {
+            
+            HashSet<String> controls = programContext.containsUnambiguousMethod(Target.GetTypeString(),MethodName.image);
+            if(controls.size() > 1)
+                throw new Error("ambiguous method for mixin of type "+Target.GetTypeString()+" "+controls+" at line:"+MethodName.beginLine);
+            else if(controls.size() == 0)
+                throw new Error("No method named "+MethodName.image+" for mixin of type "+Target.GetTypeString()+" at line:"+MethodName.beginLine);
+
+            String[] unambiguousMixin = controls.toArray(new String[0]);
+
+            return new CMethodCallExpression(Target, unambiguousMixin[0], MethodName.image, list,programContext.getMethodReturnType(unambiguousMixin[0],MethodName.image));
+        }
+
+}
+
+IExpression SpecificMethodCallOrSelectAndCall(String mixinname,String methodname,IExpression Target):
+{
+    Token FirstPart,MethodName;
+    CExpressionList list;
+    IExpression secondTarget;
+}
+{
+        "." FirstPart = <ID> "." MethodName = <ID> list = ActualParameters(mixinname,methodname) 
+        { 
+            if(programContext.containsMixin(FirstPart.image)){
+                String typeString = programContext.getMethodReturnType(FirstPart.image,MethodName.image);
+                
+                if(!programContext.containsMixin(FirstPart.image)){
+                    throw new Error("mixin "+FirstPart.image+" has never been declared, error at line:"+FirstPart.beginLine);
+                }
+                if(typeString == null){
+                    throw new Error("No method named "+MethodName.image+" for mixin of type "+FirstPart.image+" at line:"+MethodName.beginLine);
+                }
+                
+                return new CMethodCallExpression(Target, FirstPart.image, MethodName.image, list,typeString);
+            }
+            
+            HashSet<String> controls = programContext.containsUnambiguousField(Target.GetTypeString(),FirstPart.image);
+            if(controls.size() > 1)
+                throw new Error("ambiguous field for mixin of type "+Target.GetTypeString()+" "+controls+" at line:"+MethodName.beginLine);
+            else if(controls.size() == 0)
+                throw new Error("No field named "+FirstPart.image+" for mixin of type "+Target.GetTypeString()+" at line:"+MethodName.beginLine);
+            else{
+                String[] unambiguousMixin = controls.toArray(new String[0]);
+                secondTarget = new CFieldSelectExpression(Target, unambiguousMixin[0], FirstPart.image, programContext.getFieldType(unambiguousMixin[0],FirstPart.image));
+
+
+                controls = programContext.containsUnambiguousMethod(secondTarget.GetTypeString(),MethodName.image);
+                if(controls.size() > 1)
+                    throw new Error("ambiguous method for mixin of type "+Target.GetTypeString()+" "+controls+" at line:"+MethodName.beginLine);
+                else if(controls.size() == 0)
+                    throw new Error("No method named "+MethodName.image+" for mixin of type "+secondTarget.GetTypeString()+"at line:"+MethodName.beginLine);
+                           
+
+                unambiguousMixin = controls.toArray(new String[0]);
+
+                return new CMethodCallExpression(secondTarget, unambiguousMixin[0], MethodName.image, list,programContext.getMethodReturnType(unambiguousMixin[0],MethodName.image));
+            }
+
+        } 
+}
+
+IExpression SpecificSelectOrMethodCall(String mixinname,String methodname,IExpression Target):
+{
+    Token FirstPart,SecondPart,MethodName;
+    CExpressionList list;
+    IExpression secondTarget;
+    
+}
+{
+    "." FirstPart = <ID> "." SecondPart = <ID> "." MethodName = <ID> list = ActualParameters(mixinname,methodname)
+    {
+        if(programContext.containsMixin(FirstPart.image)){ //Specific Selection
+            String typeString = programContext.getFieldType(FirstPart.image,SecondPart.image);
+                
+            if(!programContext.containsMixin(FirstPart.image)){
+                throw new Error("mixin "+FirstPart.image+" has never been declared, error at line:"+FirstPart.beginLine);
+            } 
+            if(typeString == null){
+                throw new Error("No field named "+SecondPart.image+" for mixin of type "+FirstPart.image+" at line:"+FirstPart.beginLine);
+            }
+            
+            secondTarget =  new CFieldSelectExpression(Target, FirstPart.image, SecondPart.image, typeString);
+            
+            HashSet<String> controls = programContext.containsUnambiguousMethod(secondTarget.GetTypeString(),MethodName.image);
+            if(controls.size() > 1)
+                throw new Error("ambiguous method for mixin of type "+Target.GetTypeString()+" "+controls+" at line:"+MethodName.beginLine);
+            else if(controls.size() == 0)
+                throw new Error("No method named "+MethodName.image+" for mixin of type "+secondTarget.GetTypeString()+" at line:"+MethodName.beginLine);
+                       
+            String[] unambiguousMixin = controls.toArray(new String[0]);
+
+            return new CMethodCallExpression(secondTarget, unambiguousMixin[0], MethodName.image, list,programContext.getMethodReturnType(unambiguousMixin[0],MethodName.image));
+
+            
+
+        }
+        else{ //Specific methodCall
+            
+            HashSet<String> controls = programContext.containsUnambiguousField(Target.GetTypeString(),FirstPart.image);
+            if(controls.size() > 1)
+                throw new Error("ambiguous field for mixin of type "+Target.GetTypeString()+" "+controls+" at line:"+MethodName.beginLine);
+            else if(controls.size() == 0)
+                throw new Error("No field named "+FirstPart.image+" for mixin of type "+Target.GetTypeString()+" at line"+MethodName.beginLine);
+            else{
+                String[] unambiguousMixin = controls.toArray(new String[0]);
+                secondTarget = new CFieldSelectExpression(Target, unambiguousMixin[0], FirstPart.image, programContext.getFieldType(unambiguousMixin[0],FirstPart.image));
+
+                String typeString = programContext.getMethodReturnType(SecondPart.image,MethodName.image);
+                
+                if(!programContext.containsMixin(SecondPart.image)){
+                    throw new Error("mixin "+SecondPart.image+" has never been declared, error at line:"+SecondPart.beginLine);
+                }
+                if(typeString == null){
+                    throw new Error("No method named "+MethodName.image+" for mixin of type "+SecondPart.image+" at line:"+MethodName.beginLine);
+                }
+ 
+                return new CMethodCallExpression(secondTarget,SecondPart.image,MethodName.image,list,programContext.getMethodReturnType(SecondPart.image,MethodName.image));
+            }
+        }        
+
+        return null;
+    }
+}
+
+IExpression SpecificSelectAndMethodCall(String mixinname,String methodname,IExpression Target):
+{
+    Token MixinName1,MixinName2,MethodName,FieldName;
+    CExpressionList list;
+    IExpression secondTarget;
+}
+{
+    "." MixinName1 = <ID> "." FieldName = <ID> "." MixinName2 = <ID> "." MethodName = <ID> list = ActualParameters(mixinname,methodname)
+    {
+        
+        String typeString = programContext.getFieldType(MixinName1.image,FieldName.image);
+        
+        if(!programContext.containsMixin(MixinName1.image)){
+            throw new Error("mixin "+MixinName1.image+" has never been declared, error at line:"+MixinName1.beginLine);
+        }
+        if(typeString == null){
+            throw new Error("No field named "+FieldName.image+" for mixin of type "+MixinName1.image+" at line:"+FieldName.beginLine);
+        }
+
+        secondTarget = new CFieldSelectExpression(Target, MixinName1.image, FieldName.image, typeString);
+            
+        typeString = programContext.getMethodReturnType(MixinName2.image,MethodName.image);
+        
+        if(!programContext.containsMixin(MixinName2.image)){
+            throw new Error("mixin "+MixinName2.image+" has never been declared, error at line:"+MixinName2.beginLine);
+        }
+        if(typeString == null){
+            throw new Error("No method named "+MethodName.image+" for mixin of type "+MixinName2.image+" at line:"+MethodName.beginLine);
+        }
+        
+        return new CMethodCallExpression(secondTarget, MixinName2.image, MethodName.image, list,typeString);
+        
+        return null;
+    }
+}
+
+IExpression DirectSelect(String mixinname,String methodname,IExpression Target):
+{
+    Token FieldName;
+}
+{
+    "." FieldName = <ID>
+    {
+
+        HashSet<String> controls = programContext.containsUnambiguousField(Target.GetTypeString(),FieldName.image);
+        if(controls.size() > 1)
+            throw new Error("ambiguous field for mixin of type "+Target.GetTypeString()+" "+controls+" at line:"+FieldName.beginLine);
+        else if(controls.size() == 0)
+            throw new Error("No field named "+FieldName.image+" for mixin of type "+Target.GetTypeString()+" at line:"+FieldName.beginLine);
+
+        String[] unambiguousMixin = controls.toArray(new String[0]);
+        return new CFieldSelectExpression(Target,unambiguousMixin[0],FieldName.image,programContext.getFieldType(unambiguousMixin[0],FieldName.image));
+    }
+}
+
+IExpression SpecificSelect(String mixinname,String methodname,IExpression Target):
+{
+    Token MixinName,FieldName;
+}
+{
+    "." MixinName = <ID> "." FieldName = <ID>
+    {
+        String typeString = programContext.getFieldType(MixinName.image,FieldName.image);
+        return new CFieldSelectExpression(Target, MixinName.image, FieldName.image, typeString);
+    }
+}
+
+IExpression BaseExpression(String mixinname, String methodname):
+{ 
+    IExpression res; 
+    Token t;
+}
+{ 
+    (
+        <THIS> {res = new CThisExpression(mixinname);}|                                                                          // Mah, in teoria easy
+        res = SuperExpression(mixinname,methodname) |                                                                     // Gesù
+        <TRUE> {res = new CBooleanLiteral(true);} |                                                                              // OK
+        <FALSE> {res = new CBooleanLiteral(false);} |                                                                            // OK
+        t = <BYTE_LITERAL> { res = new CByteLiteral(Byte.parseByte(t.image.substring(2), 16));} |                                // OK
+        t = <INTEGER_LITERAL> { res = new CIntegerLiteral(Integer.parseInt(t.image));} |                                         // OK
+        t = <FLOAT_LITERAL> { res = new CFloatLiteral(Float.parseFloat(t.image));} |                                             // OK
+        t = <STRING_LITERAL>  { res = new CStringLiteral (t.image);}  |                                                          // OK
+        <NULL> { res = new CNullExpression();}|                                                                                  // Cambiare il tipo
+        t = <ID> {res = new CIdentifierExpression(t.image,programContext.getMethodVariableType(mixinname,methodname,t.image));}| // DONE
+        "(" res= Expression(mixinname,methodname) ")" |                                                                   // OK
+        res = ObjectCreation(mixinname,methodname)                                                                        // Cambiare il tipo
+    )  
+    
+    ( 
+        LOOKAHEAD(9) 
+        res = SpecificSelectAndMethodCall(mixinname,methodname,res) |
+        LOOKAHEAD(7) 
+        res = SpecificSelectOrMethodCall(mixinname,methodname,res) |
+        LOOKAHEAD(5) 
+        res = SpecificMethodCallOrSelectAndCall(mixinname,methodname,res) |
+        LOOKAHEAD(4) 
+        res = SpecificSelect(mixinname,methodname,res) |
+        LOOKAHEAD(3) 
+        res = DirectMethodCall(mixinname,methodname,res) |
+        LOOKAHEAD(2) 
+        res = DirectSelect(mixinname,methodname,res)
+        //res = MethodCallSuffix (mixinname,methodname,res) |                                                               // Neanche troppoGesù
+        //res = FieldSelectSuffix(mixinname,res)                                                                            // In teoria easy (?)
+    )*
+  
+    { 
+        return res;
+    }
+}
+
+IExpression BinaryOperatorSuffix(String mixinname,String methodname,IExpression left):
+{ 
+    IExpression right;
+}
+{ 
+    "+" right = BaseExpression(mixinname,methodname) {
+        return new CBinaryExpressionAdd (left, right);
+	} 
+    
+    |
+  
+    "-" right = BaseExpression(mixinname,methodname) {
+		return new CBinaryExpressionSub (left, right);
+    } 
+    
+    |
+  
+    "/" right = BaseExpression(mixinname,methodname) {
+		return new CBinaryExpressionDivide (left, right);
+    } 
+
+    |
+  
+    "*" right = BaseExpression(mixinname,methodname) {
+		return new CBinaryExpressionMultiply (left, right);
+    } 
+    
+    |
+
+    "==" right = BaseExpression(mixinname,methodname) {
+        return new CBinaryExpressionStrongEqual (left, right);
+    } 
+
+    |
+
+    "=" right = BaseExpression(mixinname,methodname) {
+        return new CBinaryExpressionEqual (left, right);
+    } 
+
+    |
+  
+    "<=" right = BaseExpression(mixinname,methodname) {
+        return new CBinaryExpressionLeq (left, right);
+    } 
+    
+    |
+  
+    "<" right = BaseExpression(mixinname,methodname) {
+        return new CBinaryExpressionLess (left, right);
+    } 
+
+    |
+
+    ">=" right = BaseExpression(mixinname,methodname) {
+        return new CBinaryExpressionLeq (right, left);
+    } 
+    
+    |
+  
+    ">" right = BaseExpression(mixinname,methodname) {
+        return new CBinaryExpressionLess (right, left);
+    } 
+
+    |
+
+    "!=" right = BaseExpression(mixinname,methodname) {
+        return new CBinaryExpressionNeq (right, left);
+    }
+ 
+}
+
+/* 
+
+In caso di ObjectCreation potrei prendere un branch diverso che non prende neanche in considerazione la versione abbreviata dell'invocazione
+di manipolazione di field e metodi in forma abbreviata, e non mi permetta neanche di applicare somme nel caso in cui ci fosse la creazione di un
+oggetto, a quel punto probabilmente dovrei effettuare anche un controllo in caso di lettura di un ObjectCreation nel caso di un ramo right di una
+operazione binaria!
+
+*/
+IExpression Expression(String mixinname, String methodname):
+{ 
+    IExpression res;
+}
+{ 
+    res = BaseExpression(mixinname,methodname)
+    ( 
+        res=BinaryOperatorSuffix(mixinname,methodname,res)
+    )*
+    {return res; }
+}
+
+CInitializationOfParam ActualInitializationOfOneParam(String mixinname,String methodname):
+{ 
+    Token MixinName, ParName; 
+    IExpression expr; 
+}
+{ 
+    MixinName= <ID> "." ParName= <ID> ":=" expr =Expression(mixinname,methodname)
+    {return new CInitializationOfParam(MixinName.image, ParName.image, expr);}
+}
+
+CInitializationOfParams ActualInitializationOfParams(String mixinname, String methodname):
+{ 
+    CInitializationOfParams res = new CInitializationOfParams();
+    CInitializationOfParam tmp;
+}
+{  
+    [
+        tmp = ActualInitializationOfOneParam(mixinname,methodname) 
+        { res.add (tmp);}
+        (
+            "," tmp = ActualInitializationOfOneParam(mixinname,methodname) 
+            {res.add(tmp);}
+        )*
+    ] 
+   
+    { return res;}
+}
+
+IExpression ObjectCreation(String mixinname,String methodname):
+{ 
+    IMixinExpression expr; 
+    CInitializationOfParams initialization;
+}
+{ 
+    <NEW> expr = MixinExpression() "[" initialization = ActualInitializationOfParams(mixinname,methodname) "]"
+    { 
+        return new CObjectCreation(expr, initialization); }
+}
+
+/* --------------------------- GLOBAL DECLARATIONS ------------------------------------- */
+
+IDeclaration Declaration():
+{ 
+    IDeclaration res;
+}
+{ 
+    ( 
+        res =MixinDeclaration() |
+        res =LetDeclaration()
+    ) ";"
+  
+    {return res;}
+}
+
+
+IMixinExpression MixinExpressionOrVoid():
+{ 
+    IMixinExpression res; 
+}
+{  
+    <VOID> { return new CMixinExpressionVoid(); }
+   
+    |
+
+    res = MixinExpression() {return res; }
+   
+}
+
+
+IMixinExpression MixinExpressionHOApplication():
+{ 
+    Token t1, t2;
+    IMixinExpression value;
+}
+{ 
+    <WHERE> t1=<ID> "." t2=<ID> ":=" "(" value= MixinExpression() ")"
+    {return new CMixinExpressionApplication(t1.image, t2.image, value);}
+}
+
+IMixinExpression MixinExpressionID():
+{ 
+    Token Name;
+}
+{  
+    Name=<ID> {return new CMixinExpressionIdentifier( Name.image);}
+}
+
+IMixinExpression MixinExpression():
+{ 
+    IMixinExpression res, temp; 
+}
+{ 
+    "(" res = MixinExpression() ")" 
+
+    |
+
+    res = MixinExpressionID()
+  
+    (","  
+        ( 
+            temp = MixinExpressionID()   | 
+            temp  = MixinExpressionHOApplication() |
+            "(" temp = MixinExpression() ")" 
+        )      
+        { res = new CMixinExpressionConcatenation(res, temp); }
+    )*
+  
+    { return res;}
+} 
+
+/*  ---------------- CLASS MEMBERS ---------------- */
+
+CFieldDeclaration FieldDeclaration():
+{ 
+    Token name;
+    IMixinExpression Type;
+}
+{ 
+    name =<ID> ":" Type = MixinExpression() 
+    {return new CFieldDeclaration(name.image, Type);} 
+}
+
+CSourceInitializationParameter InputInitializationParameter(String MixinName):
+{ 
+    Token ParamName; 
+    IMixinExpression Type;
+}
+{ 
+    ParamName =<ID> ":" Type = MixinExpression()
+    { return new CSourceInitializationParameter(  MixinName, ParamName.image, Type ); }
+}
+
+CSourceInitializationParameters  InputInitializationParameters(String MixinName):
+{ 
+    CSourceInitializationParameter par;
+    CSourceInitializationParameters list = new CSourceInitializationParameters();
+}
+{ 
+    "(" 
+    [ par = InputInitializationParameter(MixinName) { list.add (par); }
+        (";" par = InputInitializationParameter(MixinName) { list.add (par); }
+        )* 
+    ]
+    ")"
+    { return list; }
+}
+
+CSourceInitializationParameter OutputInitializationParameter():
+{ 
+    Token MixinName, ParamName; 
+}
+{ 
+    MixinName =<ID> "." ParamName =<ID>
+    { return new CSourceInitializationParameter(  MixinName.image, ParamName.image, null ); }
+}
+
+
+CSourceInitializationParameters  OutputInitializationParameters():
+{ 
+    CSourceInitializationParameter par;
+    CSourceInitializationParameters list = new CSourceInitializationParameters();
+}
+{ 
+    "(" 
+        [ par = OutputInitializationParameter() { list.add (par); }
+            ("," par = OutputInitializationParameter() { list.add (par); }
+            )*
+        ]
+    ")"
+    { return list; }
+}
+
+
+
+
+CParameterDeclaration ParameterDecl():
+{ 
+    Token Name; IMixinExpression Type; 
+}
+{ 
+    Name = <ID> ":" Type =MixinExpression()
+    { return new CParameterDeclaration(Name.image, Type); }
+}
+
+
+CParameterDeclarations ParametersDecl():
+{  
+    CParameterDeclarations res = new CParameterDeclarations(); 
+    CParameterDeclaration decl; 
+}
+{ 
+    "(" 
+        [ decl = ParameterDecl() 
+            { res.add(decl); }
+            (";" decl = ParameterDecl()
+                { res.add(decl); }
+            )*
+        ]
+    ")"
+    {return res;}
+}
+
+
+
+CVariableDeclarations localVariablesDeclaration():
+{ 
+    Token Name;
+    IMixinExpression type;
+    CVariableDeclarations res = new CVariableDeclarations();
+}
+{ 
+    ( 
+        Name = <ID> ":" type= MixinExpression() ";"
+        { res.add ( new CVariableDeclaration (Name.image, type) ); }
+    )*
+    { return res;}
+}
+
+CIniModuleSuperInstruction ModuleSuperCall(String mixinname,String methodname):
+{ 
+    CInitializationOfParams params;
+}
+{ 
+    <SUPER> "[" params=ActualInitializationOfParams(mixinname,methodname) "]" ";" {return new CIniModuleSuperInstruction(params);}
+}
+
+CIniModuleBody IniModuleBody(String mixinname,String methodname):
+{ 
+    CVariableDeclarations vars;
+    CInstructions instrs, instrs2;
+    CInstruction instr;
+}
+{ 
+    ( 
+        vars = localVariablesDeclaration() 
+    )
+  
+    <BEGIN>
+        instrs  = Instructions(mixinname,methodname)
+        instr   = ModuleSuperCall(mixinname,methodname)
+        instrs2 = Instructions(mixinname,methodname)
+    <END>
+    
+    { 
+        instrs.add(instr);
+        instrs.addAll( instrs2 );
+        return new CIniModuleBody (vars, instrs);
+    }
+}
+
+
+CIniModuleDeclaration IniModuleDeclaration(String mixinname):
+{ 
+    Token MixinName;
+    CSourceInitializationParameters input, output;
+    CIniModuleBody Body;
+
+    String methodname; 
+ 
+    int LineNo = getToken(1).beginLine;
+    boolean isRequired;
+}
+{ 
+    ( <REQUIRED> {isRequired=true;} | <OPTIONAL> {isRequired=false;} ) MixinName = <ID> 
+    input = InputInitializationParameters(MixinName.image){methodname = programContext.getIniModuleName(mixinname,input.getParamNames());}<INITIALIZES> 
+    output = OutputInitializationParameters()
+
+    Body = IniModuleBody(mixinname,methodname)
+
+    { return new CIniModuleDeclaration(isRequired, MixinName.image, input, output, Body, LineNo, FileName);}
+ 
+}
+
+
+/* --------------------------- METHOD DECLARATIONS ------------------------------------- */
+
+CMethodBody MethodBody(String mixinname, String methodname):
+{ 
+    CVariableDeclarations vars;
+    CInstructions instrs;}
+{ 
+    ( vars = localVariablesDeclaration() )
+    <BEGIN>
+        instrs = Instructions(mixinname,methodname)
+    <END>
+    { return new CMethodBody (vars, instrs);}
+}
+
+INewMethodDeclaration NewMethodDeclaration(String mixinname):
+{ 
+    IMixinExpression ResType; 
+    Token name; 
+    CMethodBody body;
+    CParameterDeclarations pars;
+    int linePos = getToken(1).beginLine;
+}
+{  
+    ( 
+        <ABSTRACT> ResType= MixinExpressionOrVoid() name = <ID> pars=ParametersDecl() 
+        {return CAbstractMethodDeclaration.createCAbstractMethodDeclaration(ResType, name.image, pars, linePos, FileName); }
+        
+        |
+
+        <NEW> ResType= MixinExpressionOrVoid() name=<ID> pars= ParametersDecl() body= MethodBody(mixinname, name.image) 
+        {return  CNewMethodDeclaration.createCNewMethodDeclaration(ResType, name.image, pars, body, linePos, FileName); }
+    )
+}
+
+COverrideMethodDeclaration OverrideMethodDeclaration(String mixinname):
+{ 
+    IMixinExpression ResType; 
+    Token Mixinname, name; 
+    CMethodBody body;
+    CParameterDeclarations pars;
+    int LineNo = getToken(1).beginLine;
+}
+{ 
+    <OVERRIDE> ResType=MixinExpressionOrVoid() Mixinname= <ID> "." name=<ID>  pars=ParametersDecl()  body= MethodBody(mixinname,Mixinname.image+"."+name.image) 
+    {return COverrideMethodDeclaration.createCOverrideMethodDeclaration(ResType, Mixinname.image, name.image, pars, body, LineNo, FileName); }
+  
+}
+
+CPolymorphismParam PolymorphismParam():
+{ 
+    Token t1;
+    IMixinExpression expr;
+}
+{  
+    t1= <ID> "<=" expr = MixinExpression()
+    {return new CPolymorphismParam(t1.image, expr);}
+}
+
+CPolymorphismParams PolymorphismParams():
+{ 
+    CPolymorphismParams res = new CPolymorphismParams();
+    CPolymorphismParam par;
+}
+{ 
+    par = PolymorphismParam()  {res.add(par); }
+    (";" par = PolymorphismParam() {res.add(par);} )*
+    {return res;}
+}
+
+
+IDeclaration MixinDeclaration():
+{  
+    IMixinExpression expr; 
+    Token mixinname;
+    
+    CFieldDeclaration fld;
+    COverrideMethodDeclaration mtd;
+    INewMethodDeclaration newmtd;
+    CParameterDeclaration paramDecl;
+    CIniModuleDeclaration iniModule;
+
+    CFieldDeclarations flds = new CFieldDeclarations();
+    CMethodDeclarations mtds = new CMethodDeclarations();
+    CNewMethodDeclarations newmtds = new CNewMethodDeclarations();
+    CParameterDeclarations paramDecls = new CParameterDeclarations();
+    CPolymorphismParams polyPars =  new CPolymorphismParams();
+    CIniModuleDeclarations iniModules = new CIniModuleDeclarations();
+}
+{ 
+    <MIXIN> mixinname= <ID> ["<" polyPars = PolymorphismParams() ">"] <OF>  expr = MixinExpressionOrVoid()  "="
+        ( 
+            ( 
+                iniModule = IniModuleDeclaration(mixinname.image) {iniModules.add(iniModule);}
+                
+                |                
+
+                fld = FieldDeclaration() {flds.add(fld);}
+                
+                |
+
+                mtd = OverrideMethodDeclaration(mixinname.image) {mtds.add(mtd);}
+          
+                |
+        
+                newmtd = NewMethodDeclaration(mixinname.image) {newmtds.add(newmtd);}
+           
+           ) ";"
+        ) *
+    <END> 
+    
+    { return CMixinDeclaration.createCMixinDeclaration(mixinname.image, expr, flds, newmtds, mtds, iniModules, polyPars); }
+}
+
+/* ---------------------  ANOTHER global declarations -------- */
+
+CLetDeclaration LetDeclaration():
+{ 
+    Token name;
+    IMixinExpression expr;
+}
+{ 
+    <LET> name = <ID> "=" expr = MixinExpression() 
+    {return new CLetDeclaration( name.image, expr);}
+}
+
+CGlobalDeclarations IncludedDeclarations():
+{ 
+    Token t;
+    String fname=" --unknown--";
+}
+{ 
+    <INCLUDE> t=<STRING_LITERAL>";"
+    { 
+        try{ 
+            fname=t.image.substring(1,t.image.length()-1);
+            return CreateParser( fname ).GlobalDeclarations();
+        } 
+        catch (Exception exc){ 
+            throw new Error ("Error in file "+fname+ ":"+exc.toString());
+        };
+    }
+}
+
+CGlobalDeclarations GlobalDeclarations():
+{ 
+    CGlobalDeclarations result = new CGlobalDeclarations();
+    CGlobalDeclarations decls = null;
+    IDeclaration decl;
+}
+{ 
+    ( 
+        decl= Declaration() {result.add(decl);} |
+        decls = IncludedDeclarations() {result.addAll(decls);}
+    ) *
+  
+    { return result;}
+}
+
+CProgram Program():
+{ 
+    CGlobalDeclarations decls ;
+}
+{   
+    decls = GlobalDeclarations() <EOF>
+    {return new CProgram(decls/*, instrs*/);}
+}

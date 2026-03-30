@@ -1,0 +1,141 @@
+Here we will briefly discuss how the code works in a more generic and rough way, so that by reading this you will be able to
+better understand the specific comments inside the program files!
+
+The main method is located in the Parser
+
+The Parser creates and runs a PreParser, this reads the program and return a ProgramContext, a data structure that can be
+interrogated to get informations about the type of the different methods, fileds and variables and to check the presence of
+ambiguities. This will be useful for the Parser, it will enable us to ease the syntax and use symbols such as +,-,/ and *
+in our program in a complete manner (before the introduction of the PreParser these symbols could be used only with
+Integers).
+
+Now that we have our ProgramContext we check for the prosence of cycles insiede the mixins, we can't have any loops, then 
+we check if the magda program has a starting point, so if it contains a mixin called MainClass inside of which there should 
+be a method called mainMethod, this method can't have any arguments (for now).
+After these controls we can start parsing the program and generating the ProgramTree, this tree will be used for 
+type-checking and then code generation, but we will discuss it in a different paragraph
+
+To better understand how the Parser will operate it can be beneficial to know how a Magda program is structured
+
+
+    +--Program------------------+
+    |                           |
+    | +--Mixin----------------+ |
+    | |                       | |
+    | | [Fields]              | |
+    | |                       | |
+    | | +--Method-----------+ | |
+    | | |                   | | |
+    | | | [Variables]       | | |
+    | | |                   | | |
+    | | | +--Instructios--+ | | |
+    | | | |               | | | |
+    | | | +---------------+ | | |
+    | | |                   | | |
+    | | +-------------------+ | |
+    | |                       | |
+    | | +--Method-----------+ | |
+    | | |                   | | |
+    | | | [Variables]       | | |
+    | | |                   | | |
+    | | | +--Instructios--+ | | |
+    | | | |               | | | |
+    | | | +---------------+ | | |
+    | | |                   | | |
+    | | +-------------------+ | |
+    | |                       | |
+    | |         . . .         | |
+    | |                       | |
+    | +-----------------------+ |
+    |                           |
+    |           . . .           |
+    |                           |
+    +---------------------------+
+
+So basically we will have a list of mixins, a mixin contains fileds, methods, and sometimes iniModules (which are similar to methods),
+the fields are an object inner values, for example a Point2D mixin could contain 2 Floats, one for the x coordintate and one for the y,
+these will be fields.
+Methods can be new or can be overriding other methods inherited from other mixins, inside a Method we have a variable list followed by
+the instructions, an iniModule is very similar to a method in the sense that it's structured in the same way, it will look like this:
+
+    +--iniModule--------+
+    |                   |
+    | [Variables]       |
+    |                   |
+    | +--Instructios--+ |
+    | |               | |
+    | +---------------+ |
+    |                   |
+    +-------------------+
+
+The type-checking and the code generation will be done from the outer layer to the inner one.
+
+-----------------------------
+
+Now we can assume that the parsing is complete, the type-checking system leverages the Compiler package, which contains all kind of Environment Object, we
+have to think about the Environments Objects as context that can be used to access Types, variables name, in short, they can be interrogated to get
+the informations we need to ensure that the types are correct.
+
+An argument can be made on the possible expansion of the ProgramContext, so that it's more complete, the ProgramContext is inherently faster than the
+Environment infrastructure that is List based, while the ProgramContext is HashMap based. Moreover, the ProgramContext is generated with a first Parser pass
+so it could be used to evaluate types at parse-time (this option is to be considered).
+
+So, why did I create the ProgramContext if there already was the Environment infrastructure? Because I didn't like it, it's a lot more convoluted and
+obscure to understand, since every class implements some interaction with the Environment, this renders the queries to the Environment very confusing.
+
+On top of that the operations with symbols and the unambiguos method calls required some parse time information, which couldn't be provided with the
+Environment infrastructure.
+
+A good idea for the future could be removing the Environments in favor of the ProgramContext!
+
+-----------------------------
+
+Now that we Parsed and type-checked with the Environments we pass to the actual Code generation, basically every class in the ProgramTree package has 
+a GenCode method, this method uses a Java.io.PrintStream and a CGenCodeHelper object to generate the java code that can be compiled and executed.
+
+Before we start we have to acknowledge one thing, the Java.io.PrintStream that is currently used by the compiler is System.out, which is... unusual,
+but, why doesn't it write on the terminal?
+
+    java Magda.Parser.Parser $@.magda > Magda/src/$@/obj/MagdaProgram.java
+
+Because the build system makes shure to redirect the output of the program to a file named MagdaProgram instead of the terminal.
+
+So, if you are the type of person that debugs with prints, remember to add a comment to your print, for example
+
+    System.out.println("debug statement"); // NO
+    System.out.println("//debug statement"); // YES
+
+Ok, now that this is out of the way let's talk about the actual code generation.
+
+The path of generation follows the one of the type checking, it's from the outside in, the generated code uses the mtj package to function, which is a
+translations of the Magda concepts in java classes 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

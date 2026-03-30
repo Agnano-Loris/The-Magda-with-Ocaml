@@ -1,0 +1,96 @@
+include "Magdalib/library.magda";
+include "Mixinlib/mixinLabel.magda";
+include "Mixinlib/mixinFramedLabel.magda";
+include "Mixinlib/mixinDoubledLabel.magda";
+include "Mixinlib/mixinFramedDoubledLabel.magda";
+
+
+// This example want to tests the "Pattern decorator" application in addition with
+// a multi-inheritance structure:
+//
+//               Label
+//              /     \
+//   FramedLabel       DoubledLabel
+//              \     /
+//         FramedDoubledLabel(or DoubledFramedLabel)
+//
+// Actually Magda output is only textual but in a graphical environment,
+// Label can be a "Window", FramedLabel can be a "Window with border",
+// DoubledLabel can be a "Window with scroll bars".
+// Thanks to modularity "Window with border" + "Window with scroll bars"
+// can be created without writing additional code like in this simple
+// example.
+
+
+// Main program
+mixin MainClass of Object =
+
+  new Object mainProgram()
+    mainLabel:Label;
+    mainFramedLabel:FramedLabel;
+    mainDoubledLabel:DoubledLabel;
+    multiInherit1:Label;
+    multiInherit2:Label;
+    mainFramedDoubledLabel:FramedDoubledLabel;
+    mainDoubledFramedLabel:FramedDoubledLabel;
+  begin
+
+  mainLabel := new Label[];
+  mainFramedLabel := new Label, FramedLabel[];
+  mainDoubledLabel := new Label, DoubledLabel[];
+
+  // Local composition of the needed mixed object; is important the order of the
+  // mixins involved in the declaration.
+  // The declaration order defines the desired dependencies order when method redefinition
+  // conflict occurs.
+  multiInherit1 := new Label, FramedLabel, DoubledLabel[];
+  multiInherit2 := new Label, DoubledLabel, FramedLabel[];
+
+  // Composition using external mixin declaration; it's always possible to define the
+  // internal order of equal level mixins in the hierarchy
+  // mainFramedDoubledLabel := new Label, FramedLabel, DoubledLabel, FramedDoubledLabel[];
+  // mainDoubledFramedLabel := new Label, DoubledLabel, FramedLabel, FramedDoubledLabel[];
+
+  // More compressed sintax (supported by "let" literal) is:
+  mainFramedDoubledLabel := new FDLabel[];
+  mainDoubledFramedLabel := new DFLabel[];
+
+  "Label:\r\n".String.print();
+  mainLabel.Label.SetLabelText("This is a label");
+  mainLabel.Label.PrintLabel();
+  "\r\n".String.print();
+
+  "FramedLabel:\r\n".String.print();
+  mainFramedLabel.Label.SetLabelText("This is a FRAMED label");
+  mainFramedLabel.Label.PrintLabel();
+  "\r\n".String.print();
+
+  "DoubledLabel:\r\n".String.print();
+  mainDoubledLabel.Label.SetLabelText("This is a DOUBLED label");
+  mainDoubledLabel.Label.PrintLabel();
+  "\r\n".String.print();
+
+  "multiInherit1(Frame + Double):\r\n".String.print();
+  multiInherit1.Label.SetLabelText("This is a FRAMED and so DOUBLED label");
+  multiInherit1.Label.PrintLabel();
+  "\r\n".String.print();
+
+  "multiInherit2(Double + Frame):\r\n".String.print();
+  multiInherit2.Label.SetLabelText("This is a DOUBLED and so FRAMED label");
+  multiInherit2.Label.PrintLabel();
+  "\r\n".String.print();
+
+  "FramedDoubledLabel(Frame + Double):\r\n".String.print();
+  mainFramedDoubledLabel.Label.SetLabelText("This is a FRAMED and so DOUBLED label");
+  mainFramedDoubledLabel.Label.PrintLabel();
+  "\r\n".String.print();
+
+  "FramedDoubledLabel(Double + Frame):\r\n".String.print();
+  mainDoubledFramedLabel.Label.SetLabelText("This is a DOUBLED and so FRAMED label");
+  mainDoubledFramedLabel.Label.PrintLabel();
+  "\r\n".String.print();
+
+  end;
+end;
+
+//(new MainClass[]).MainClass.mainProgram();

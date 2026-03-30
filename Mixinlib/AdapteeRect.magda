@@ -1,0 +1,67 @@
+
+/*
+  Assume that's a third-party written mixin and we want to reuse it without changes
+  because, as an instance, we don't have the sources.
+  Assume also that this mixin expose a method to draw a rettangle on the screen
+  with these parameters: x, y are the coordinates of the upper left corner of
+  the figure and w, h are width and height of the figure.
+  Again assume that this mixin expose a method to set the color of the rectangle
+  whit these parameters: c, m, y, k that are Cyan, Magenta, Yellow, Key black for
+  four inks color.
+*/
+
+mixin AdapteeRect of Object =
+
+  c:Float;
+  m:Float;
+  y:Float;
+  k:Float;
+
+  required AdapteeRect() initializes ()
+  begin
+    this.AdapteeRect.InitDummyMethod();
+    super[];
+  end;
+
+  new void InitDummyMethod()
+  begin
+    this.AdapteeRect.c := 0.0;
+    this.AdapteeRect.m := 0.0;
+    this.AdapteeRect.y := 0.0;
+    this.AdapteeRect.k := 0.0;
+  end;
+
+  new void draw(x:Integer; y:Integer; w:Integer; h:Integer)
+  begin
+    "This is a rectangle starting from: ".String.print();
+    "X=".String.print();
+    x.Integer.print();
+    " Y=".String.print();
+    y.Integer.print();
+    "\r\n".String.print();
+    "The rectangle size is: ".String.print();
+    "WIDTH=".String.print();
+    w.Integer.print();
+    " HEIGHT=".String.print();
+    h.Integer.print();
+    "\r\n".String.print();
+    "The rectangle color is: CMYK=".String.print();
+    this.AdapteeRect.c.Float.print();
+    ", ".String.print();
+    this.AdapteeRect.m.Float.print();
+    ", ".String.print();
+    this.AdapteeRect.y.Float.print();
+    ", ".String.print();
+    this.AdapteeRect.k.Float.print();
+    "\r\n".String.print();
+  end;
+
+  new void setColor(c:Float; m:Float; y:Float; k:Float)
+  begin
+    this.AdapteeRect.c := c;
+    this.AdapteeRect.m := m;
+    this.AdapteeRect.y := y;
+    this.AdapteeRect.k := k;
+  end;
+
+end;

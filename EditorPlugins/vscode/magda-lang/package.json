@@ -1,0 +1,25 @@
+{
+  "name": "magda-lang",
+  "displayName": "Magda Lang",
+  "description": "Syntax highlighting for Magda Lang",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.98.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "contributes": {
+    "languages": [{
+      "id": "magda",
+      "aliases": ["Magda", "magda"],
+      "extensions": [".magda"],
+      "configuration": "./language-configuration.json"
+    }],
+    "grammars": [{
+      "language": "magda",
+      "scopeName": "source.magda",
+      "path": "./syntaxes/magda.tmLanguage.json"
+    }]
+  }
+}

@@ -1,0 +1,3 @@
+Copyright (C) 2011 Jarek Kusmierek, Mauro Mulatero, Marco Naddeo, Pietro Cavicchioli, Loris Agnano, Mattia Bocale, Francesco De Matteis
+  Licensed to to the public under the Academic Free License version 3.0
+  For further information see http://sourceforge.net/projects/magdalanguage/

@@ -1,0 +1,27 @@
+
+Last update on: 07/02/2014
+
+
+-----------------------------------------------------------------------------
+
+Copyright (C) 2011 Jarek Kusmierek, Mauro Mulatero, Marco Naddeo
+  Licensed to to the public under the Academic Free License version 3.0
+  For further information see http://sourceforge.net/projects/magdalanguage/
+
+-----------------------------------------------------------------------------
+
+
+Known issues and limitation of the current version of Magda
+
+1) Cannot be used constant values inside of the ini modules, see the example 
+   source code IniExample.magda for further informations.
+
+2) The conventional arithmetic and comparison symbols (eg +, *, <, ...) 
+   are fully supported only with the mixin Integer, while for all other 
+   mixins is generally necessary to invoke explicit methods (eg, add(), 
+   multiply(), less(), ...). 
+   More precisely is actually available the support of these symbols
+   also with the mixin Boolean, Byte, Float and String in binary expressions 
+   but only when at least one of the terms is a constant 
+   (eg. floatVariable = 5.7 + floatVariable).
+

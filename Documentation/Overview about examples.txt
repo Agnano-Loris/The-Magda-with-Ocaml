@@ -1,0 +1,57 @@
+
+Last update on: 11/02/2014
+
+
+-----------------------------------------------------------------------------
+
+Copyright (C) 2011 Jarek Kusmierek, Mauro Mulatero, Marco Naddeo
+  Licensed to to the public under the Academic Free License version 3.0
+  For further information see http://sourceforge.net/projects/magdalanguage/
+
+-----------------------------------------------------------------------------
+
+
+Examples for Magda basics:
+- HelloWorld.magda to HelloWorld5.magda
+- ControlAndBoolExample.magda
+
+Examples for Initialization Protocol:
+- IniExample.magda
+- SimpleInit.magda
+- IniExample.magda
+- initialization.magda
+- MipPoint2D3D.magda
+- MIPTest.magda
+
+Examples for the Diamond Problem solution:
+- MIPTest.magda
+- TestDiamondProtoClient.magda
+- TestDiamondProtoServer.magda
+- TestLabel.magda
+
+Examples for modularity in a definition of a "2D/3D Point": 
+- MipPoint2D3D.magda
+- Point2D3D.magda
+- initialization.magda
+- Example.magda
+
+Examples for virtual methods:
+- VirtualMethods.magda
+
+Examples for software engineering Design Patterns:
+- AdapterClientProgram.magda (pattern Adapter)
+- TestLabel.magda            (pattern Decorator)
+
+Advanced examples for modularity on real use case:
+- TestDiamondProtoClient.magda
+- TestDiamondProtoServer.magda
+
+Application for testing Magda's library mixin implementations:
+- MagdaTest.magda
+- Test*.magda
+
+
+NOTE:
+* Some examples includes mixins contained in the user library folder Mixinlib
+* All examples includes some mixins contained in the Magda library folder Magdalib 
+

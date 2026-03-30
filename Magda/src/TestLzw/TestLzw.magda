@@ -1,0 +1,142 @@
+include "Magdalib/library.magda";
+
+
+// Main program
+mixin MainClass of Object =
+
+  new Object mainProgram()
+    cd:Lzw;
+    inStr:String;
+    compressed:ByteVector;
+    decompressed:String;
+    len:Integer;
+    inVec:ByteVector;
+    outVec:ByteVector;
+
+  begin
+
+  "Magda language LZH compressor/decompressor test:\r\n\r\n".String.print();
+  cd := new Lzw[];
+
+  inStr := "TOBEORNOTTOBEORTOBEORNOT";
+  "USING: ".String.print(); inStr.String.print(); " (Len=".String.print();
+  len := inStr.String.length(); len.Integer.print(); ")\r\n".String.print();
+  compressed := cd.Lzw.compressString(inStr);
+  "COM: ".String.print(); compressed.Vector.print(); " (Len=".String.print();
+  len := compressed.Vector.getLength(); len.Integer.print(); ")\r\n".String.print();
+  decompressed := cd.Lzw.decompressString(compressed);
+  "DEC: ".String.print(); decompressed.String.print(); " (Len=".String.print();
+  len := decompressed.String.length(); len.Integer.print(); ")\r\n".String.print();
+
+  "---------------\r\n".String.print();
+
+  inStr := "tobeornottobeortobeornot";
+  "USING: ".String.print(); inStr.String.print(); " (Len=".String.print();
+  len := inStr.String.length(); len.Integer.print(); ")\r\n".String.print();
+  compressed := cd.Lzw.compressString(inStr);
+  "COM: ".String.print(); compressed.Vector.print(); " (Len=".String.print();
+  len := compressed.Vector.getLength(); len.Integer.print(); ")\r\n".String.print();
+  decompressed := cd.Lzw.decompressString(compressed);
+  "DEC: ".String.print(); decompressed.String.print(); " (Len=".String.print();
+  len := decompressed.String.length(); len.Integer.print(); ")\r\n".String.print();
+
+  "---------------\r\n".String.print();
+
+  inStr := "prova";
+  "USING: ".String.print(); inStr.String.print(); " (Len=".String.print();
+  len := inStr.String.length(); len.Integer.print(); ")\r\n".String.print();
+  compressed := cd.Lzw.compressString(inStr);
+  "COM: ".String.print(); compressed.Vector.print(); " (Len=".String.print();
+  len := compressed.Vector.getLength(); len.Integer.print(); ")\r\n".String.print();
+  decompressed := cd.Lzw.decompressString(compressed);
+  "DEC: ".String.print(); decompressed.String.print(); " (Len=".String.print();
+  len := decompressed.String.length(); len.Integer.print(); ")\r\n".String.print();
+
+  "---------------\r\n".String.print();
+
+  inStr := "pippo";
+  "USING: ".String.print(); inStr.String.print(); " (Len=".String.print();
+  len := inStr.String.length(); len.Integer.print(); ")\r\n".String.print();
+  compressed := cd.Lzw.compressString(inStr);
+  "COM: ".String.print(); compressed.Vector.print(); " (Len=".String.print();
+  len := compressed.Vector.getLength(); len.Integer.print(); ")\r\n".String.print();
+  decompressed := cd.Lzw.decompressString(compressed);
+  "DEC: ".String.print(); decompressed.String.print(); " (Len=".String.print();
+  len := decompressed.String.length(); len.Integer.print(); ")\r\n".String.print();
+
+  "---------------\r\n".String.print();
+
+  inStr := "pippppoooooo";
+  "USING: ".String.print(); inStr.String.print(); " (Len=".String.print();
+  len := inStr.String.length(); len.Integer.print(); ")\r\n".String.print();
+  compressed := cd.Lzw.compressString(inStr);
+  "COM: ".String.print(); compressed.Vector.print(); " (Len=".String.print();
+  len := compressed.Vector.getLength(); len.Integer.print(); ")\r\n".String.print();
+  decompressed := cd.Lzw.decompressString(compressed);
+  "DEC: ".String.print(); decompressed.String.print(); " (Len=".String.print();
+  len := decompressed.String.length(); len.Integer.print(); ")\r\n".String.print();
+
+  "---------------\r\n".String.print();
+
+  inStr := "pippppoooooo123123123";
+  "USING: ".String.print(); inStr.String.print(); " (Len=".String.print();
+  len := inStr.String.length(); len.Integer.print(); ")\r\n".String.print();
+  compressed := cd.Lzw.compressString(inStr);
+  "COM: ".String.print(); compressed.Vector.print(); " (Len=".String.print();
+  len := compressed.Vector.getLength(); len.Integer.print(); ")\r\n".String.print();
+  decompressed := cd.Lzw.decompressString(compressed);
+  "DEC: ".String.print(); decompressed.String.print(); " (Len=".String.print();
+  len := decompressed.String.length(); len.Integer.print(); ")\r\n".String.print();
+
+  "---------------\r\n".String.print();
+
+  inStr := "abmyzABMYZ01589";
+  "USING: ".String.print(); inStr.String.print(); " (Len=".String.print();
+  len := inStr.String.length(); len.Integer.print(); ")\r\n".String.print();
+  compressed := cd.Lzw.compressString(inStr);
+  "COM: ".String.print(); compressed.Vector.print(); " (Len=".String.print();
+  len := compressed.Vector.getLength(); len.Integer.print(); ")\r\n".String.print();
+  decompressed := cd.Lzw.decompressString(compressed);
+  "DEC: ".String.print(); decompressed.String.print(); " (Len=".String.print();
+  len := decompressed.String.length(); len.Integer.print(); ")\r\n".String.print();
+
+  "---------------\r\n".String.print();
+
+  inStr := "aaabbbmmmyyyzzzAAABBBMMMYYYZZZ000111555888999";
+  "USING: ".String.print(); inStr.String.print(); " (Len=".String.print();
+  len := inStr.String.length(); len.Integer.print(); ")\r\n".String.print();
+  compressed := cd.Lzw.compressString(inStr);
+  "COM: ".String.print(); compressed.Vector.print(); " (Len=".String.print();
+  len := compressed.Vector.getLength(); len.Integer.print(); ")\r\n".String.print();
+  decompressed := cd.Lzw.decompressString(compressed);
+  "DEC: ".String.print(); decompressed.String.print(); " (Len=".String.print();
+  len := decompressed.String.length(); len.Integer.print(); ")\r\n".String.print();
+
+  "---------------\r\n".String.print();
+
+  inVec := new Vector, ByteVector[ Vector.size := 0 ];
+  inVec.Vector.set(0, 0x30);
+  inVec.Vector.set(1, 0x30);
+  inVec.Vector.set(2, 0x30);
+  inVec.Vector.set(3, 0x31);
+  inVec.Vector.set(4, 0x31);
+  inVec.Vector.set(5, 0x31);
+  inVec.Vector.set(6, 0x32);
+  inVec.Vector.set(7, 0x32);
+  inVec.Vector.set(8, 0x32);
+
+  "USING: ".String.print(); inVec.Vector.print(); " (Len=".String.print();
+  len := inVec.Vector.getLength(); len.Integer.print(); ")\r\n".String.print();
+  compressed := cd.Lzw.compress(inVec);
+  "COM: ".String.print(); compressed.Vector.print(); " (Len=".String.print();
+  len := compressed.Vector.getLength(); len.Integer.print(); ")\r\n".String.print();
+  outVec := cd.Lzw.decompress(compressed);
+  "DEC: ".String.print(); outVec.Vector.print(); " (Len=".String.print();
+  len := outVec.Vector.getLength(); len.Integer.print(); ")\r\n".String.print();
+
+  "---------------\r\n".String.print();
+
+  "LZH mixin test DONE.\r\n\r\n".String.print();
+
+  end;
+end;

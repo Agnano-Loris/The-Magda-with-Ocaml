@@ -1,0 +1,854 @@
+options {
+    DEBUG_PARSER = false; 
+    STATIC=false;
+}
+
+PARSER_BEGIN(PreParser)
+
+    package Magda.PreParser;
+
+    import Magda.PreParser.PreParserStructures.*;
+
+    import Magda.ProgramTree.LValues.*;
+    import Magda.ProgramTree.Declarations.*;
+    import Magda.ProgramTree.Instructions.*;
+    import Magda.ProgramTree.MixinExpressions.*;
+    import Magda.ProgramTree.Expressions.*;
+    import Magda.ProgramTree.*;
+    import Magda.Compiler.*;
+    import java.util.ArrayList;
+
+    public class PreParser {
+        String FileName;
+
+        public static PreParser CreatePreParser( String FileName) throws java.io.FileNotFoundException{ 
+            PreParser res = new PreParser ( new java.io.FileInputStream (FileName) );
+            res.FileName = FileName;
+
+            return res;
+        }
+      
+        public ProgramContext prePars() throws ParseException {
+            return Program();
+        }
+
+    }
+
+PARSER_END(PreParser)
+
+SKIP :
+{
+  " "
+| "\t"
+| "\n"
+| "\r"
+}
+
+/* ---------------- COMMENTS  ---------------- */
+
+MORE :
+{    
+     "//" : IN_SINGLE_LINE_COMMENT
+  |  "/*" : IN_MULTI_LINE_COMMENT
+}
+
+<IN_SINGLE_LINE_COMMENT> SPECIAL_TOKEN :
+{ 
+    <SINGLE_LINE_COMMENT: "\n" | "\r" | "\r\n" > : DEFAULT
+}
+
+<IN_MULTI_LINE_COMMENT> SPECIAL_TOKEN :
+{  
+    <MULTI_LINE_COMMENT: "*/" > : DEFAULT
+}
+
+<IN_SINGLE_LINE_COMMENT,IN_MULTI_LINE_COMMENT> MORE :
+{
+    < ~[] >
+}
+
+/* ---------------- MAIN TOKENS ----------------*/
+
+TOKEN :
+{
+  <INCLUDE: "include">
+| <LET: "let">
+| <NULL: "null">
+| <TRUE: "true">
+| <FALSE: "false">
+| <SUPER: "super">
+| <VOID: "void">
+| <THIS: "this">
+| <BEGIN: "begin">
+| <END: "end">
+| <NEW: "new"> 
+| <ABSTRACT: "abstract"> 
+| <OVERRIDE: "override">
+| <REQUIRED: "required">
+| <OPTIONAL: "optional">
+| <INITIALIZES: "initializes">
+| <IF: "if">
+| <ELSE: "else">
+| <WHILE: "while">
+| <MIXIN: "mixin">
+| <OF: "of">
+| <WHERE: "where">
+| <RETURN: "return">
+| < NATIVEINSTRUCTION: "%" (~["%"] | ("\\%") )* "%" >
+| < ID: ["a"-"z","A"-"Z","_"] ( ["a"-"z","A"-"Z","_","0"-"9"] )* >
+| < STRING_LITERAL: "\""    
+     (   
+         (~["\"","\\","\n","\r"]) | 
+         ("\\" ( ["n","t","b","r","f","\\","'","\""] | 
+         ["0"-"7"] ( ["0"-"7"] )? | 
+         ["0"-"3"] ["0"-"7"] ["0"-"7"] ) )      
+     )*      
+    "\"" > 
+| < BYTE_LITERAL: "0x"(["0"-"9","a"-"f","A"-"F"])+ >
+| < INTEGER_LITERAL: (["0"-"9"])+ >
+| < FLOAT_LITERAL: (["0"-"9"])+ "."(["0"-"9"])+ >
+
+}
+
+
+/* --------------------------------------------------*/
+/* -------------- Here starts Magda Grammar ---------*/
+/* --------------------------------------------------*/
+
+
+
+/* ----------------- LValues -------------------------*/
+void Field():
+{ 
+}
+{
+    (
+        LOOKAHEAD(6)
+        <THIS> "." <ID> "." <ID>
+ 
+        |
+
+        <THIS> "." <ID>
+    )
+}
+
+void Variable():
+{ 
+}
+{ 
+    <ID>
+}
+
+void LValue():
+{
+}
+{  
+    ( 
+        Field() |
+        Variable()
+    )
+}
+
+/* ----------------- Instructions -------------------------*/
+void Assignment():
+{ 
+}
+{ 
+    LValue() ":=" Expression()
+}
+
+
+void WhileLoop():
+{ 
+}
+{ 
+    <WHILE> "(" Expression() ")" Instructions() <END> 
+}
+
+
+void IfCond():
+{ 
+}
+{ 
+    <IF> "(" Expression() ")"
+    Instructions()
+    [<ELSE> Instructions() ]
+    <END>
+}
+
+void Return():
+{
+}
+{ 
+    <RETURN> Expression()
+}
+
+void NativeInstruction():
+{ 
+}
+{ 
+    <NATIVEINSTRUCTION>
+}
+
+void Instruction():
+{ 
+}
+{ 
+    (   
+        LOOKAHEAD(6) Assignment() | 
+        LOOKAHEAD(2) Expression() |
+        Return() |
+        NativeInstruction() |
+        WhileLoop() |
+        IfCond()
+    )     
+    ";"
+  
+}
+
+void Instructions():
+{ 
+}
+{ 
+    ( LOOKAHEAD(2) Instruction())*
+}
+
+/* --------------------------- Expressions ------------------------------------- */
+
+void ActualParameters():
+{  
+}
+{ 
+    "(" 
+    
+    [ 
+        Expression ()
+        ("," Expression() )* 
+    ]
+          
+    ")"
+}
+
+
+void SuperExpression():
+{ 
+}
+{ 
+    <SUPER> ActualParameters() 
+}
+
+void MethodCallSuffix ():
+{ 
+}
+{
+    (  
+        LOOKAHEAD(3)
+        
+        "." <ID> "." <ID> ActualParameters() 
+        
+        |
+        
+        "." <ID> ActualParameters()
+    )
+    //{
+    //    return ret;
+    //}
+}
+
+void FieldSelectSuffix():
+{ 
+}
+{
+    ( 
+        LOOKAHEAD(3)    
+
+        "." <ID> "." <ID> 
+
+        |
+        
+        "." <ID>
+    )
+}
+
+void BaseExpression():
+{ 
+}
+{ 
+    (
+        <THIS> |
+        SuperExpression() |
+        <TRUE> |
+        <FALSE> |
+        <BYTE_LITERAL> |
+        <INTEGER_LITERAL> |
+        <FLOAT_LITERAL> |
+        <STRING_LITERAL> |
+        <NULL> |
+        <ID> |
+        "(" Expression() ")" |
+        ObjectCreation() 
+    )  
+    
+    ( 
+        LOOKAHEAD(6) 
+        MethodCallSuffix ()|
+        FieldSelectSuffix ()
+    )*
+  
+}
+
+
+void BinaryOperatorSuffix():
+{ 
+}
+{ 
+    "+" BaseExpression()     
+    |
+  
+    "-" BaseExpression()     
+    |
+  
+    "/" BaseExpression() 
+    |
+  
+    "*" BaseExpression()     
+    |
+
+    "==" BaseExpression() 
+    |
+
+    "=" BaseExpression() 
+    |
+  
+    "<=" BaseExpression()     
+    |
+  
+    "<" BaseExpression() 
+    |
+
+    ">=" BaseExpression()     
+    |
+  
+    ">" BaseExpression() 
+    |
+
+    "!=" BaseExpression()  
+}
+
+void Expression():
+{ 
+}
+{ 
+    BaseExpression()
+    ( 
+        BinaryOperatorSuffix()
+    )*
+}
+
+
+void ActualInitializationOfOneParam():
+{ 
+}
+{ 
+    <ID> "." <ID> ":=" Expression()
+}
+
+void ActualInitializationOfParams():
+{ 
+}
+{  
+    [
+        ActualInitializationOfOneParam() 
+        (
+            "," ActualInitializationOfOneParam() 
+        )*
+    ] 
+   
+}
+
+void ObjectCreation():
+{ 
+}
+{ 
+    <NEW> MixinExpression() "[" ActualInitializationOfParams() "]"
+}
+
+/* --------------------------- GLOBAL DECLARATIONS ------------------------------------- */
+void Declaration(ProgramContext progCont):
+{ 
+    IDeclaration res;
+}
+{ 
+    ( 
+        MixinDeclaration(progCont) |
+        LetDeclaration()
+    ) ";"
+  
+    {return;}
+}
+
+void MixinExpressionOrVoid():
+{ 
+}
+{  
+    <VOID>
+   
+    |
+
+    MixinExpression()
+   
+}
+
+void LinkedMixins(MixinContext mixCont):
+{ 
+    IMixinExpression res; 
+}
+{  
+    <VOID> 
+        {
+            mixCont.addLinkedMixin("void");    
+            return; 
+        }
+   
+    |
+
+    MixinExpressionContext(mixCont) {return; }
+   
+}
+
+String MixinExpressionOrVoidContext():
+{ 
+    Token res; 
+}
+{  
+    <VOID> { return "void"; }
+   
+    |
+
+    res = <ID> {return res.image; }
+   
+}
+
+
+void MixinExpressionHOApplication():
+{ 
+}
+{ 
+    <WHERE> <ID> "." <ID> ":=" "(" MixinExpression() ")"
+}
+
+void MixinExpressionHOApplicationContext():
+{ 
+}
+{ 
+    <WHERE> <ID> "." <ID> ":=" "(" MixinExpression() ")"
+    {return;}
+}
+
+void MixinExpressionID():
+{ 
+}
+{  
+    <ID>
+}
+
+String MixinExpressionIDContext():
+{ 
+    Token Name;
+}
+{  
+    Name=<ID> {return Name.image;}
+}
+
+void MixinExpression():
+{ 
+}
+{ 
+    "(" MixinExpression() ")" 
+
+    |
+
+    MixinExpressionID()
+  
+    (","  
+        ( 
+            MixinExpressionID()   | 
+            MixinExpressionHOApplication() |
+            "(" MixinExpression() ")" 
+        )      
+    )*
+  
+    { return;}
+} 
+
+void MixinExpressionContext(MixinContext mixCont):
+{ 
+    String ret; 
+}
+{ 
+    "(" MixinExpressionContext(mixCont) ")" 
+
+    |
+
+    ret = MixinExpressionIDContext()
+    {
+        mixCont.addLinkedMixin(ret);
+        ret = null;
+    } 
+ 
+    (","  
+        ( 
+            ret = MixinExpressionIDContext() | 
+            MixinExpressionHOApplicationContext() |
+            "(" MixinExpressionContext(mixCont) ")" 
+        )      
+        {
+            if(ret!=null){
+                mixCont.addLinkedMixin(ret);
+                ret = null;
+            }
+        }
+    )*
+  
+    {
+        return;
+    }
+} 
+
+/*  ---------------- CLASS MEMBERS ---------------- */
+
+void FieldDeclaration(MixinContext mixCont):
+{ 
+    Token name,Type;
+}
+{ 
+    name =<ID> ":" Type = <ID> //MixinExpression() 
+    {
+        mixCont.addField(name.image,Type.image);
+        return;
+    } 
+}
+
+String InputInitializationParameter():
+{ 
+    Token ParamName1,ParamName2; 
+}
+{ 
+    ParamName1 =<ID> ":" ParamName2 = <ID>
+    { return ParamName1.image+":"+ParamName2.image; }
+}
+
+ArrayList<String> InputInitializationParameters():
+{ 
+    String par;
+    ArrayList<String> list = new ArrayList<String>();
+}
+{ 
+    "(" 
+    [ par = InputInitializationParameter() { list.add (par); }
+        (";" par = InputInitializationParameter() { list.add (par); }
+        )* 
+    ]
+    ")"
+    { return list; }
+}
+
+void OutputInitializationParameter():
+{ 
+}
+{ 
+    <ID> "." <ID>
+}
+
+
+void OutputInitializationParameters():
+{ 
+}
+{ 
+    "(" 
+        [ OutputInitializationParameter() 
+            ("," OutputInitializationParameter() 
+            )*
+        ]
+    ")"
+    { return; }
+}
+
+
+
+
+void ParameterDecl(MethodContext methCont):
+{ 
+    Token Name,Type; 
+}
+{ 
+    Name = <ID> ":" Type = <ID>
+    { 
+        methCont.addParam(Name.image,Type.image);
+        return; 
+    }
+}
+
+
+void ParametersDecl(MethodContext methCont):
+{  
+}
+{ 
+    "(" 
+        [ ParameterDecl(methCont) 
+            { }
+            (";" ParameterDecl(methCont)
+                { }
+            )*
+        ]
+    ")"
+    {return;}
+}
+
+void localVariablesDeclaration(MethodContext methCont):
+{ 
+    Token Name,type;
+}
+{ 
+    ( 
+        Name = <ID> ":" type= <ID> ";"
+        {
+            methCont.addVariable(Name.image, type.image);
+
+        }
+    )*
+    { 
+        return;
+    }
+}
+
+void ModuleSuperCall():
+{ 
+}
+{ 
+    <SUPER> "[" ActualInitializationOfParams() "]" ";"
+}
+
+void IniModuleBody(MethodContext methCont):
+{ 
+}
+{ 
+    ( 
+        localVariablesDeclaration(methCont) 
+    )
+  
+    <BEGIN>
+        Instructions()
+        ModuleSuperCall()
+        Instructions()
+    <END>
+}
+
+
+void IniModuleDeclaration(MixinContext mixCont,String mixinname):
+{ 
+    Token MixinName;
+    ArrayList<String> input;
+
+    int LineNo = getToken(1).beginLine;
+    boolean isRequired;
+    
+    MethodContext methCont = new MethodContext();
+}
+{ 
+    ( <REQUIRED> {isRequired=true;} | <OPTIONAL> {isRequired=false;} ) MixinName = <ID> 
+    input = InputInitializationParameters() { 
+    
+        ArrayList<String> inputVarName = new ArrayList<String>();
+        ArrayList<String> inputVarType = new ArrayList<String>();
+        
+        String[] spl = new String[2];
+        for(String s : input){
+            spl = s.split(":");
+            inputVarName.add(spl[0]);
+            inputVarType.add(spl[1]);
+        }
+        
+        String err = mixCont.addIniModule(inputVarName,methCont);
+        if(err != null){
+            throw new Error("Input parameter "+ mixinname+"."+err+ " is declared in two different modules -> Line:"+LineNo);
+        }
+        
+        for(int i=0;i<inputVarName.size();i++)
+            methCont.addParam(inputVarName.get(i),inputVarType.get(i));
+        
+        methCont.setResType(mixinname); 
+
+    } <INITIALIZES> 
+    OutputInitializationParameters()
+
+    IniModuleBody(methCont)
+
+    { return; }
+ 
+}
+
+
+/* --------------------------- METHOD DECLARATIONS ------------------------------------- */
+
+void MethodBody(MethodContext methCont):
+{ 
+} 
+{ 
+    ( localVariablesDeclaration(methCont) )
+    <BEGIN>
+        Instructions()
+    <END>
+    { return;}
+}
+
+void NewMethodDeclaration(MixinContext mixCont):
+{ 
+    String ResType; 
+    Token name; 
+    
+    MethodContext methCont = new MethodContext();
+}
+{  
+    ( 
+        <ABSTRACT> ResType=MixinExpressionOrVoidContext()  name = <ID> ParametersDecl(methCont) 
+        {
+            methCont.setResType(ResType);
+         
+            mixCont.addMethod(name.image,methCont); 
+            
+            return; 
+        }
+        
+        |
+
+        <NEW> ResType=MixinExpressionOrVoidContext() name = <ID> ParametersDecl(methCont) MethodBody(methCont) 
+        {
+            methCont.setResType(ResType);
+         
+            mixCont.addMethod(name.image,methCont); 
+            
+            return; 
+        }
+    )
+}
+
+void OverrideMethodDeclaration(MixinContext mixCont):
+{ 
+    String ResType; 
+    Token Mixinname, name; 
+
+    MethodContext methCont = new MethodContext();
+}
+{ 
+    <OVERRIDE> ResType=MixinExpressionOrVoidContext() Mixinname= <ID> "." name=<ID>  ParametersDecl(methCont)  MethodBody(methCont) 
+    {
+        methCont.setResType(ResType);
+         
+        mixCont.addMethod(Mixinname.image+"."+name.image,methCont); 
+        return; 
+    }
+  
+}
+
+void PolymorphismParam():
+{ 
+}
+{  
+    <ID> "<=" MixinExpression()
+}
+
+void PolymorphismParams():
+{ 
+}
+{ 
+    PolymorphismParam()
+    (";" PolymorphismParam())*
+}
+
+
+void MixinDeclaration(ProgramContext progCont):
+{  
+    Token mixinname;
+
+    MixinContext res = new MixinContext();
+}
+{ 
+    <MIXIN> mixinname= <ID> ["<" PolymorphismParams() ">"] <OF>  LinkedMixins(res)  "="
+        ( 
+            ( 
+                FieldDeclaration(res) { }
+                
+                |
+
+                OverrideMethodDeclaration(res) { }
+          
+                |
+        
+                NewMethodDeclaration(res) { }
+                
+                |
+           
+                IniModuleDeclaration(res,mixinname.image) { }
+           ) ";"
+        ) *
+    <END> 
+    
+    {
+        progCont.addMixin(mixinname.image,res);
+ 
+        return; 
+    }
+}
+
+/* ---------------------  ANOTHER global declarations -------- */
+
+void LetDeclaration():
+{ 
+}
+{ 
+    <LET> <ID> "=" MixinExpression() 
+}
+
+ProgramContext IncludedDeclarations():
+{ 
+    Token t;
+    String fname=" --unknown--";
+}
+{ 
+    <INCLUDE> t=<STRING_LITERAL>";"
+    { 
+        try{ 
+            fname=t.image.substring(1,t.image.length()-1);
+            return CreatePreParser(fname).prePars();
+        } 
+        catch (Exception exc){ 
+            throw new Error ("Error in file "+fname+ ":"+exc.toString());
+        };
+    }
+}
+
+ProgramContext GlobalDeclarations():
+{
+    ProgramContext result = new ProgramContext();
+    ProgramContext decls = null;
+}
+{ 
+    ( 
+        Declaration(result) { } |
+        decls = IncludedDeclarations() {result.addAll(decls);}
+    ) *
+  
+    { return result;}
+}
+
+ProgramContext Program():
+{ 
+    ProgramContext decls ;
+}
+{   
+    decls = GlobalDeclarations()
+    {
+        return decls;
+    }
+}

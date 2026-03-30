@@ -1,0 +1,88 @@
+include "Magdalib/library.magda";
+
+mixin MainClass of Object = 
+  new Object mainProgram()
+  	x:Integer;
+  	f:Float;
+  	b:Byte;
+    bin:Boolean;
+  begin
+		
+    "Loop with x < 3 comparison\n".String.print();
+    x := 0;
+    while (x < 3)
+        x.Integer.print();
+		    " ".String.print();
+        x := x + 1;
+    end;
+
+    "\nLoop with x <= 3 comparison\n".String.print();
+    x := 0;
+    while (x <= 3)
+        x.Integer.print();
+		    " ".String.print();
+        x := x + 1;
+    end;
+
+    "\nLoop with x > 0 comparison\n".String.print();
+    x := 3;
+    while (x > 0)
+        x.Integer.print();
+		    " ".String.print();
+        x := x - 1;
+    end;
+
+    "\nLoop with x >= 1 comparison\n".String.print();
+    x := 3;
+    while (x >= 1)
+        x.Integer.print();
+		    " ".String.print();
+        x := x - 1;
+    end;
+
+    f := 5.0;
+		if ( f <= 10.0 )
+			  "\nCheck if with <= float comparison\n".String.print();
+		end;
+		if ( f != 10.0 )
+			  "\nCheck if with != float comparison\n".String.print();
+		end;
+		
+    "\nLoop with != float comparison\n".String.print();
+    while (f != 7.0)
+        f.Float.print();
+        f := f + 1.0;								
+		    " ".String.print();
+    end;
+
+    b := 0x10;
+		if ( b <= 0x20 )
+			  "\nCheck if with <= byte comparison\n".String.print();
+		end;
+		if ( b != 0x20 )
+			  "\nCheck if with != byte comparison\n".String.print();
+		end;
+
+    "\nLoop with != byte comparison\n".String.print();
+    while (b != 0x12)
+        b.Byte.print();
+        b := b + 0x01;								
+		    " ".String.print();
+    end;
+
+		bin := false;
+		if ( bin != true )
+			  "\nCheck if with != boolean comparison\n".String.print();
+    end;
+		if ( bin = false )
+			  "\nCheck if with = boolean comparison\n".String.print();
+    end;
+
+    "\nLoop with != boolean comparison\n".String.print();
+		while (bin != true)
+        bin.Boolean.print();
+				bin := true;
+    end;
+
+  end;
+end;

@@ -1,0 +1,11 @@
+include "Magdalib/Object.magda";
+include "Magdalib/Boolean.magda";
+
+mixin MainClass of void =
+
+    new void mainProgram()
+    begin
+        true.print(); 
+    end;
+
+end;

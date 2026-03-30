@@ -1,0 +1,62 @@
+
+include "Magdalib/library.magda";
+
+mixin test of Object =
+
+  // negation implemented using if condition
+  new Boolean Not(a:Boolean)
+  begin
+    if ( a )
+      return false;
+    else
+      return true;
+    end;
+  end;
+
+  new Boolean Xor(a:Boolean; b:Boolean)
+  begin
+    if ( a )
+      return this.test.Not(b);    // NOTE: to refer internal methods is necessary to specify always "this." before calling the method
+    else
+      return b;
+    end;
+  end;
+
+  new Object SomeMethodWithLoop ()
+    x:Boolean;
+    i:Integer;
+  begin
+    x := true;
+    i := 0;
+    while ( x )
+      i := i + 1;
+      if ( i = 10 )
+        x := false;
+      end;
+    end;
+  end;
+
+end;
+
+mixin MainClass of Object =
+
+  new Object mainProgram()
+    t:test;
+    b:Boolean;
+  begin
+    t := new test[];
+
+    b := t.test.Not(false);
+    b.Boolean.print();
+
+    "\r\n".String.print();
+
+    b := t.test.Xor(true, true);
+    b.Boolean.print();
+
+    t.test.SomeMethodWithLoop();
+
+  end;
+
+end;
+

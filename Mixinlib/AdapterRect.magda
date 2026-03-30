@@ -1,0 +1,73 @@
+
+/*
+  This is the "adapter" mixin that makes compatible the interface of
+  the AdapteeRect mixin with the new environment (client program).
+*/
+
+include "Mixinlib/AdapteeRect.magda";
+
+mixin AdapterRect of AdapteeRect =
+
+  new void draw(x1:Integer; y1:Integer; x2:Integer; y2:Integer)
+  begin
+    this.AdapteeRect.draw(x1, y1, x2-x1, y2-y1);
+  end;
+
+  new void setColor(r:Integer; g:Integer; b:Integer)
+    c:Float;
+    m:Float;
+    y:Float;
+    k:Float;
+    u:Float;
+    v:Float;
+    varK:Float;
+  begin
+
+    //RGB values from 0 to 255
+    //CMY results from 0 to 1
+    c := r.Integer.toFloat();
+    m := g.Integer.toFloat();
+    y := b.Integer.toFloat();
+
+    u := 1.0;
+    v := 255.0;
+    c := c.Float.divide(v);
+    m := m.Float.divide(v);
+    y := y.Float.divide(v);
+    c := u.Float.sub(c);
+    m := u.Float.sub(m);
+    y := u.Float.sub(y);
+
+
+    //CMYK and CMY values from 0 to 1
+    varK := 1.0;
+    if ( c.Comparable.less(varK) )
+      varK := c;
+    end;
+    if ( m.Comparable.less(varK) )
+      varK := m;
+    end;
+    if ( y.Comparable.less(varK) )
+      varK := y;
+    end;
+    if ( varK.Object.equals(1.0) )
+      c := 0.0;
+      m := 0.0;
+      y := 0.0;
+    else
+      u := u.Float.sub(varK);
+      c := c.Float.sub(varK);
+      c := c.Float.divide(u);
+      m := m.Float.sub(varK);
+      m := m.Float.divide(u);
+      y := y.Float.sub(varK);
+      y := y.Float.divide(u);
+    end;
+
+    k := varK;
+
+    this.AdapteeRect.setColor(c, m, y, k);
+
+  end;
+
+end;

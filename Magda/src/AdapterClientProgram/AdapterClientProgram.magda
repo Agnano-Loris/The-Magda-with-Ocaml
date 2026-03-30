@@ -1,0 +1,35 @@
+
+/*
+  This is our client program as part of a new designed system
+  that's requires to draw a rectangle but with a different interface.
+  Assume that in the new designed environment we have these informations:
+  - x1,y1 as upper left corner coordinates and x2,y2 as lower right corner coordinates
+  - color in RGB notation
+  These parameters are not compatible with AdapteeRect mixin interface, so we
+  develop an adapterRect mixin in order to make usable adapteeRect in our new client
+  environment.
+*/
+
+include "Magdalib/library.magda";
+include "Mixinlib/AdapterRect.magda";
+
+mixin MainClass of Object =
+
+  new Object mainProgram()
+    rect:AdapterRect;
+  begin
+    rect := new AdapteeRect, AdapterRect[];
+
+    // Setting the color in RGB notation
+    rect.AdapterRect.setColor(200, 10, 50);
+
+    // Call drawing with coord of upper left corner and lower right corner
+    rect.AdapterRect.draw(10, 20, 110, 220);
+
+  end;
+
+end;
+
+//(new ClientProgram[]).ClientProgram.mainProgram();
+
+

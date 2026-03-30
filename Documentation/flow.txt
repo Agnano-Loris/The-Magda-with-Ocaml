@@ -1,0 +1,359 @@
+include "Magdalib/Object.magda";
+include "Magdalib/Boolean.magda";
+include "Magdalib/Integer.magda";
+include "Magdalib/Comparable.magda";
+include "Magdalib/Float.magda";
+
+mixin MainClass of Object = 
+    
+    new void mainProgram()
+    
+        k : Integer;   
+
+    begin
+
+        k := 1;    
+        k := k+k;
+    
+        k.Integer.print();
+
+    end;
+end;
+
+(new MainClass[]).MainClass.mainProgram();
+
+//////////////////////////////////////////////////////////
+
+Creo un CProgram, che è il punto iniziale, il CProgram prende in argomento 2 campi, un CGlobalDeclaration e un CInstructions,
+Questi sono rispettivamente una lista di IDeclaration e di IInstruction, per capirci le IDeclaration sono tutte le dichiarazioni di
+strutture complesse, infatti le IDeclarations spessissimo contengono al loro interno delle IInstruction, CInstructions invece
+contiene le Istruzioni allo stato brado, quindi nel caso di Cavi.magda, parliamo solamente dell'invecazione del main.
+
+In questo caso non ci focalizzeremo su CInstructions, perchè tanto le IInstruction le incotreremo anche dentro alle IDeclaration.
+
+CGlobalDeclarations viene inizializzato, per riempire la lista viene prima chiamato il metodo del parser IncludedDeclarations(), che andrà
+ad analizzare e parsare i file contenuti nella Include, però dato che la procedura è la stessa ci focalizzeremo sull'altra chiamata del parser, ovvero
+Declaration()
+
+Declaration si occupa di 2 cose, e infatti chiama 2 metodi, il primo è LetDeclaration(), questo va a parsare tutto ciò che riguarda i Let, che in
+Magda sono come delle define che ci permettono di creare dei compound mixin permettendoci di abbreviare i nomi e non dover mettere lunghissime liste
+separate dalla ",".
+Ora non entreremo nel dettaglio delle LetDeclaration dato che non ce ne sono.
+La seconda chiamata effettuata da Declaration è al metodo MixinDeclaration, in questo caso entreremo più nel dettaglio.
+
+Ora ricapitoliamo
+
+    CProgram
+        CGlobalDeclaration
+            Lista:
+                ...
+                ... tutte le dichiarazioni di import*
+                ...
+                Qui andrò a mettere la MixinDeclaration
+                    
+        CInstructions
+            Lista:
+                ...
+                ... La dichiarazione del main
+                ... 
+
+
+La chiamata a MixinDeclaration andrà alla fine a ritornare un oggetto di tipo CMixinDeclaration, in questo caso il Mixin che vado a dichiarare è un Mixin
+di Object chiamato MainClass, quindi otterrò questo:
+
+    CProgram
+        CGlobalDeclaration
+            Lista:
+                ...
+                ... tutte le dichiarazioni di import*
+                ...
+                CMixinDeclaration --> MainClass                   
+ 
+        CInstructions
+            Lista:
+                ...
+                ... L'invocazione del main
+                ... 
+
+Per creare una CMixinDeclaration ho bisogno di parecchi argomenti di costruzione, andiamo a vederli uno ad uno:
+    String aMixinName                     --> il nome del mixin, in quesot caso "MainClass"
+
+    IMixinExpression aBaseMixinExpression --> Questo è un oggetto che implementa l'interfaccia IMixinExpression, quindi in realtà può essere di svariati
+                                              tipi di oggetti, andiamo a vedere quali possono essere brevemente:
+                                                CMixinExpressionVoid -> quindi una reference al tipo void
+                                                CMixinExpressionIdentifier -> quindi una reference a un tipo, nel nostro caso sarà questo l'oggetto
+                                                                              che useremo e faremo una reference all'oggetto Object che il nostro mixin
+                                                                              va a estendere! volendo avremmo potuto mettere anche void
+                                                CMixinExpressionConcatenation -> una concatenazione di Mixin, che alla fine si comporta come una sorta di
+                                                                                 albero binario, lo utilizzeremo quando avremo l'estensione di più di un
+                                                                                 mixin in una sola volta 
+
+    CFieldDeclarations aFlds              --> Questa è una lista di CFieldDeclaration, ovvero dichiarazioni globali all'interno del mixin, in questo 
+                                              caso non ne abbiamo, quindi la lista sarà vuota.
+
+    CNewMethodDeclarations aNewMethods    --> questa è una lista di oggetti INewMethodDeclaration, questi saranno i metodi new dichiarati all'interno del
+                                              mixin, in questo caso abbiamo un metodo, chiamato mainProgram(), quindi dopo esploreremo di più questa 
+                                              strada
+
+    CMethodDeclarations aOverridenMethods --> questa è una lista di oggetti COverrideMethodDeclaration, questi saranno i metodi override dichiarati 
+                                              all'interno del mixin, in questo caso la lista è vuota, quindi non esploreremo l'argomento in questo file
+    CIniModuleDeclarations aIniModules    --> questa è una lista di oggetti CIniModuleDeclaration, in questo caso non ce ne sono, quindi non andremo a 
+                                              fondo, esploreremo gli iniModules in trattazioni future
+
+    CPolymorphismParams apolyPars         --> Devo ancora capire bene a cosa serva, ma nel caso del nostro mixin è una lista vuota! 
+
+    CProgram
+        CGlobalDeclaration
+            Lista [
+                ...
+                ... tutte le dichiarazioni di import*
+                ...
+                CMixinDeclaration --> MainClass
+                    String MixinName                     --> "MainClass"
+                    IMixinExpression BaseMixinExpression --> CMixinExpressionIdentifier
+                                                               String MixinName --> "Object" 
+                    CFieldDeclarations Flds              --> Lista [
+                                                             ]  
+                    CNewMethodDeclarations NewMethods    --> Lista [
+                                                                CNewMethodDeclaration --> mainProgram()
+                                                             ]
+                    CMethodDeclarations OverridenMethods --> Lista[
+                                                             ]
+                    CIniModuleDeclarations IniModules    --> Lista[
+                                                             ]
+                    CPolymorphismParams apolyPars        --> Lista[
+                                                             ]
+            ]
+
+        CInstructions
+            Lista [
+                ...
+                ... L'invocazione del main
+                ... 
+            ]
+
+L'albero riassuntivo è già più articolato, ora potrebbe avere senso esplorare la creazione di un nuovo metodo, il Parser invoca il metodo 
+NewMethodDeclaration(), andiamo a vedere cosa fa:
+Questo metodo ci ritornerà un oggetto di tipo CNewMethodDeclaration, perciò andiamo ad analizzare gli argomenti che ci servono per crearlo e
+vediamo cosa contengono e cosa si comportano
+    IMixinExpression aResType    --> Questo campo determina il tipo di return del nostro metodo, questo è un semplcie esempio di flow e quindi vogliamo
+                                     semplificarci la vita, per questa ragione per ora non ci addentreremo nei tipi di return più complessi, ma andremo
+                                     anzi ad utilizzare il più semplice, ovvero il tipo void, per questa ragione istanzieremo un oggetto di tipo:
+                                     CMixinExpressionVoid, questo sarà ritorato da una chiamata al metodo del parser MixinExpressionOrVoid()  
+
+    String aMethodName           --> Questo campo indica il nome del metodo, nel nostro caso "mainProgram", questo è semplicemente preso dal Token
+
+    CParameterDeclarations aPars --> Questa è una lista di dichiarazioni di parametri, nel nostro caso risulterà essere una lista vuota dato che non ci
+                                     sono parametri, non entreremo nel dettaglio del parsing dei parametri per ora
+
+    CMethodBody aBody            --> Questo è un oggetto di tipo CMethodBody, dopo andremo ad esplorare meglio la sua composizione, per ora teniamo a
+                                     mente che questo oggetto ci verrà restituito da una chiamata del metodo del Parser MethodBody()
+
+    int aPosInCode               --> Questo è un int che ci dice a che riga si trova la dichiarazione di un dato metodo, lo estraggo dal Token, nel
+                                     nostro caso varrà 9
+
+    String aProgramFile          --> Questa è una semplcie String che ci dice in quale file si trova il metodo, nel nostro caso "Cavi.magda"
+
+per riassumere:
+
+    CProgram
+        CGlobalDeclaration
+            Lista [
+                ...
+                ... tutte le dichiarazioni di import*
+                ...
+                CMixinDeclaration --> MainClass
+                    String MixinName                     --> "MainClass"
+                    IMixinExpression BaseMixinExpression --> CMixinExpressionIdentifier
+                                                               String MixinName --> "Object" 
+                    CFieldDeclarations Flds              --> Lista [
+                                                             ]  
+                    CNewMethodDeclarations NewMethods    --> Lista [
+                                                                CNewMethodDeclaration --> mainProgram()
+                                                                    IMixinExpression ResType    --> CMixinExpressionVoid
+                                                                    String MethodName           --> "mainProgram"
+                                                                    CParameterDeclarations Pars --> Lista [
+                                                                                                    ]
+                                                                    CMethodBody Body            --> body del metodo
+                                                                        ...
+                                                             ]
+                    CMethodDeclarations OverridenMethods --> Lista[
+                                                             ]
+                    CIniModuleDeclarations IniModules    --> Lista[
+                                                             ]
+                    CPolymorphismParams apolyPars        --> Lista[
+                                                             ]
+            ]
+
+        CInstructions
+            Lista [
+                ...
+                ... L'invocazione del main
+                ... 
+            ]
+
+La chiamata al metodo del Parser MethodBody come detto prima ci andrà a costruire un oggetto di tipo CMethodBody, perciò andiamo a vedere di quali
+argomenti ha bisogno:
+    CVariableDeclarations aDecls --> Questa è una lista di dichiarazioni di variabili locali al metodo, questa lista sarà ritornata dal metodo del Parser
+                                     localVariablesDeclaration(), nel nostro caso conterrà una variabile di tipo Integer chiamata k, quindi tra poco
+                                     vedremo come si comporta
+    
+    CInstructions aInstrs        --> Questa è una lista di istruzioni, anche in questo caso avremo delle istruzioni, ovvero 2 assegnazioni, una delle
+                                     quali prevede una somma e l'invocazione di un metodo (una print), perciò dopo aver analizzato la dichiaraizone delle
+                                     variabili andremo a vedere come si comporta l'invocazione del metodo Instructions() del Parser
+
+localVariablesDeclaration() come metodo è relativamente semplice, crea una lista di tipo CVariablesDeclarations che riempie di oggetti 
+CVariableDeclaration, questi oggetti hanno un constructor molto semplice che richiede solamente il nome della variabile e il tipo, nel caso del nostro
+programma quindi solo "k" e un IMixinExpression che andrà ad indicarmi l'Integer in questo caso
+
+Instructions() come metodo di parsing continua a fare LOOKAHEAD finchè trova istruzioni e riempie una lista di vari tipi di istruzioni, il nostro
+metodo fortunatamente è abbastanza semplice, quindi ora andremo a vedere come si comporta!
+per fare i LOOKAHEAD chiamo il metodo Instruction(), che mi definisce tutti i vari tipi di istruzioni, nel nostro caso avremo un'assign pura di un
+Integer a una variabile, quindi k:=1 e un'assign con somma, quindi k:=k+k, quindi andiamo a vedere la concatenazione di chiamate.
+prima di tutto chiamo il metodo del parser Assignment(), questa chiamata mi ritorna un oggetto di tipo CAssignment, questo tipo di oggetto nel
+constructor accetta un ILValue a sinistra e un IExpression a destra, quindi andremo a chiamare il metodo del parser LValue() per ottenere la parte di
+sinistra, quindi andiamo a vedere come si comporta LValue()
+
+LValue() può a sua volta fare delle chiamate rispettivamente ai metodi Field() e Variable(), Field ritorna una CFieldLValue, che per ora non ci servirà,
+però può essere utile ricordare come possono essere chiamati i field di un Mixin, quindi se avessimo un filed nel nostro mixin dovremmo chiamarlo con
+this.MainClass.nomeField ... .
+Più interessante in questo caso è la chiamata a Variable, che usiamo per far riferimento alle variabili locali del metodo, Variable() ci restituirà un
+oggetto di tipo CVariableLValue che prende in argomento il nome della variabile a cui stiamo facendo riferimento, quindi nel nostro caso "k".
+
+Dato che abbiamo 2 assignment questo step sarà lo stesso in entrambi i casi
+   
+Ora possiamo andare ad analizzare la parte di destra dell'Assignment(), che sarà una chiamata al metodo del parser Expression(), questo metodo ha 2
+chiamate al suo interno, una obbligatoria e una opzionale, quella obbligatoria è a BaseExpression(), questa chiamata viene utilizzata per le assegnazioni
+basiche o per le operazioni che coinvolgono this, super, creazione di oggetti o invocazione dei metodi, in questi casi BaseExpression() proseguirà
+chiamando altri metodi.
+A questo punto Expression() una volta chiamato BaseExpression() potrà chiamare BinaryOperatorSuffix(IExpression left) dove come argomento passerà ciò che
+ha parsato chiamando BaseExpression(), ora sapendo questo valutiamo i nostri 2 casi, quindi dopo andremo ad analizzare meglio BinaryOperatorSuffix!
+1. trovo semplicemente un Integer, ovvero 1, quindi per la parte di sinistra andrò a creare semplicemente un oggetto CIntegerLiteral che ritornerò
+   e basta
+
+2. trovo un ID, ovvero "k", quindi dovrò ritornare un oggetto di tipo CIdentifierExpression a cui passerò come argomento la stringa "k", a questo punto
+   non ho finito i termini della mia espressione, quindi dopo aver parsato k dovrò chiamare il metodo BinaryOperatorSuffix a cui passerò quello che ho
+   appena parsato, quindi passerò come argomento il mio CIdentifierExpression, qui dentro valuterò il simbolo che trovo, quindi nel mio caso "+"
+   e andrò nell'if corrispondente, a questo punto dovrò valutare la prossima parte dell'espressione, quindi chiamerò di nuovo BaseExpression, che mi
+   restituirà un altro CIdentifierExpression contenente la stringa "k".
+   da questo if ritornerò un oggetto di tipo CBinaryExpressionAdd che prende come argomenti nel constructor la parte di sinistra e la parte di destra,
+   perciò prenderà in argomento i miei due CIdentifierExpression contenenti "k", tuttavia ci sono 2 strade differenti, infatti chiama il metodo
+   GetTypeString() sulla parte di destra, se questo ritorna una stringa diversa da "Integer" allora farò new 'CBinaryExpressionAdd (left, right)',
+   altrimenti utilizzerò new CBinaryExpressionAdd (right, left), per qualche ragione CIdentifierExpression ha un metodo GetTypeString() che ritorna
+   sempre Integer
+
+CBinaryExpressionAdd ha bisogno di ulteriori spiegazioni:
+il constructor prende due IExpression come argomenti, però non ha un vero e proprio constructor, infatti chiamerà immediatamente il super, perciò
+dovremo vedere il constructor del suo genitore, ovvero CBinaryExpression, valutiamo bene il nostro caso.
+
+Al mio CBinaryExpressionAdd io passo 2 CIdentifierExpression
+    
+    public CBinaryExpressionAdd (IExpression aMethodTarget, IExpression param){
+        super( aMethodTarget, param.GetTypeString(), "add", param);
+    }
+
+questo è il constructor, noi sappiamo che quegli IExpression nel nostro caso sono dei CIdentifierExpression, che come return di GetTypeString() ritornano
+sempre "Integer", quindi possiamo semplificare la chiamata del super per ora con
+        
+        super( aMethodTarget, "Integer", "add", param);
+
+A questo punto potremmo andare a vedere come si comporta il constructor di CBinaryExpression
+
+	public CBinaryExpression (IExpression aMethodTarget, String aMixinName, String aMethodName, IExpression param){ 
+        super( aMethodTarget, aMixinName, aMethodName, toList(param) );
+	}
+
+Ed eccolo qui, questo constructor chiama a sua volta il super, che in questo caso è un riferimento alla classe CMethodCallExpression, come possiamo
+notare CMethodCallExpression vuole una lista come quarto parametro, quindi chiameremo il metodo statico toList che ci restituirà una lista contenente un
+solo elemento, ovvero il nostro parametro, copio qui sotto il metodo
+
+    static CExpressionList toList(IExpression a){  
+        CExpressionList lst = new CExpressionList();
+	    lst.add(a);
+	    return lst;
+	}
+
+Dato che CBinaryOperationAdd e CBinaryOperation non hanno nè metodi nè parametri di classe dichiarerò nel mio schema una CBinaryOperationAdd esplicitando
+però gli argomenti di CMethodCallExpression, andiamo a vederli un attimino meglio a questo punto e vediamo cosa conterranno
+    IExpression MethodTarget --> CIdentifierExpression
+                                    String Name = "k" 
+    String MixinName --> "Integer"
+    String MethodName --> "add"
+    CExpressionList Params --> Lista [
+                                    CIdentifierExpression
+                                        String Name = "k"
+                               ]
+
+Lo schema qui sotto è piuttosto grande, quindi si consiglia uno zoom-out per vederlo tutto in una sola volta
+
+CProgram
+|   CGlobalDeclaration
+|   |   Lista [
+|   |       ...
+|   |       ... tutte le dichiarazioni di import*
+|   |       ...
+|   | 
+|   |       ,
+|   |
+|   |       CMixinDeclaration --> MainClass
+|   |       |   String MixinName --> "MainClass"
+|   |       |   IMixinExpression BaseMixinExpression --> CMixinExpressionIdentifier
+|   |       |                                               String MixinName --> "Object" 
+|   |       |   CFieldDeclarations Flds --> Lista [
+|   |       |                               ]  
+|   |       |   CNewMethodDeclarations NewMethods --> Lista [
+|   |       |                                           CNewMethodDeclaration --> mainProgram()
+|   |       |                                           |   IMixinExpression ResType --> CMixinExpressionVoid
+|   |       |                                           |   String MethodName --> "mainProgram"
+|   |       |                                           |   CParameterDeclarations Pars --> Lista [
+|   |       |                                           |                                   ]
+|   |       |                                           |   CMethodBody Body --> body del metodo
+|   |       |                                           |   |   CVariableDeclarations Decls --> Lista [
+|   |       |                                           |   |   |                                   CVariableDeclaration
+|   |       |                                           |   |   |                                   |   String VarName --> "k"
+|   |       |                                           |   |   |                                   |   CMixinExpressionIdentifier Type
+|   |       |                                           |   |   |                                   |   |   String MixinName --> "Integer" 
+|   |       |                                           |   |   |                               ]
+|   |       |                                           |   |   CInstructions Instrs --> Lista [
+|   |       |                                           |   |   |                           CAssignment
+|   |       |                                           |   |   |                           |   ILValue LVal --> CVariableValue
+|   |       |                                           |   |   |                           |   |                |  String VarName --> "k"
+|   |       |                                           |   |   |                           |   IExpression Expr --> CIntegerLiteral
+|   |       |                                           |   |   |                           |   |                    |  int Value --> 1
+|   |       |                                           |   |   |                           ,
+|   |       |                                           |   |   |
+|   |       |                                           |   |   |                           CAssignment
+|   |       |                                           |   |   |                           |   ILValue LVal --> CVariableValue
+|   |       |                                           |   |   |                           |   |                |  String VarName --> "k"
+|   |       |                                           |   |   |                           |   IExpression Expr --> CBinaryExpressionAdd (CMethodCallExpression)
+|   |       |                                           |   |   |                           |   |                    |  IExpression MethodTarget --> CIdentifierExpression
+|   |       |                                           |   |   |                           |   |                    |                               |  String Name --> "k"
+|   |       |                                           |   |   |                           |   |                    |  String MixinName --> "Integer" 
+|   |       |                                           |   |   |                           |   |                    |  String MethodName --> "add"
+|   |       |                                           |   |   |                           |   |                    |  CExpressionList Params --> Lista [
+|   |       |                                           |   |   |                           |   |                    |                                  CIdentifierExpression
+|   |       |                                           |   |   |                           |   |                    |                                  |   String Name --> "k"
+|   |       |                                           |   |   |                           |   |                    |                             ]
+|   |       |                                           |   |   |                        ]
+|   |       |                                         ]
+|   |       |   CMethodDeclarations OverridenMethods --> Lista[
+|   |       |                                            ]
+|   |       |   CIniModuleDeclarations IniModules    --> Lista[
+|   |       |                                            ]
+|   |       |   CPolymorphismParams apolyPars        --> Lista[
+|   |                                                    ]
+|   |   ]
+|
+|   CInstructions
+|   |   Lista [
+|   |       ...
+|   |       ... L'invocazione del main
+|   |       ... 
+|   |   ]
+
+
+
+
+* per fare una import viene creato un nuovo parser a cui viene dato in pasto il file importato, a quel punto dal nuovo parser si estraggono le sue
+  CGlobalDeclarations, essendo CGlobalDeclarations di tipo List si può effettuare la addAll, quindi aggiungo tutte le IDeclarations del parser-di-import
+  al CGlobalDeclarations del mio parser principale

@@ -1,0 +1,34 @@
+include "Magdalib/library.magda";
+
+
+// Main program
+mixin MainClass of Object =
+
+  new Object mainProgram()
+    numeroIntero:Integer;
+    testo:String;
+
+    input:UserInput;
+
+  begin
+
+  "Magda user input test:\r\n\r\n".String.print();
+
+  input := new UserInput[];
+
+  "Type an INTEGER VALUE: ".String.print();
+  numeroIntero := input.UserInput.GetInt();
+  "Typed value is: ".String.print();
+  numeroIntero.Integer.print();
+  "\r\n\r\n".String.print();
+
+  "Type a TEXT LINE: ".String.print();
+  testo := input.UserInput.GetString();
+  "Typed text is: ".String.print();
+  testo.String.print();
+  "\r\n\r\n".String.print();
+
+  "Magda user input test DONE.\r\n\r\n".String.print();
+
+  end;
+end;

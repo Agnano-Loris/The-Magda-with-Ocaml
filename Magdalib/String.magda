@@ -1,0 +1,53 @@
+mixin String of Object =
+  override Boolean Object.equals(other:Object)
+    res:Boolean;
+  begin
+    res := super(other);
+    % $res$.internalPointer = (aSelf.internalPointer.equals($other$.internalPointer)); %;
+    return res;
+  end;
+
+  new String add(other:String)
+    res:String;
+  begin
+    res := new String [];
+    % $res$.internalPointer = ((String) aSelf.internalPointer) + ((String)$other$.internalPointer); %;
+    return res;
+  end;
+
+  new void print()
+  begin
+    % System.out.print((String)aSelf.internalPointer); %;
+  end;
+
+  new Integer length()          
+    len:Integer;
+  begin
+    len := 0;
+    % int res = ((String)aSelf.internalPointer).length(); Integer intObj = res; $len$.internalPointer = intObj; %;
+    return len;
+  end;
+
+  new ByteVector getBytes()     
+    len:Integer;
+    res:ByteVector;
+    b:Byte;
+    i:Integer;
+  begin
+    b := new FullByte [];
+    len := 0;
+    % int l = ((String)aSelf.internalPointer).length(); Integer intObj = l; $len$.internalPointer = intObj; %;
+    % byte[] asBytes = ((String)aSelf.internalPointer).getBytes(); %;
+    res := new Vector, ByteVector[ Vector.size := len ];
+    i := 0;
+    while( i < len )
+      % Byte value = (Byte)asBytes[((Integer)$i$.internalPointer).intValue()]; %;
+      % $b$.internalPointer = value; %;
+      res.Vector.set(i, b);
+      i := i + 1;
+    end;
+    return res;
+  end;
+
+end;
+

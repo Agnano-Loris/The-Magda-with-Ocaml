@@ -1,0 +1,59 @@
+
+let CDemoProto = DemoProto, DemoCompressedProto;
+
+/*
+   This compression mixin is based on the LZW algorithm.
+   LZW (Lempel/Ziv/Welch) is a universal lossless data compression algorithm created
+   by Abraham Lempel, Jacob Ziv, and Terry Welch.
+   It was published by Welch in 1984. This algorithm is simple to implement, and has
+   the potential for very high throughput in hardware implementations.
+*/
+
+mixin DemoCompressedProto of DemoProto =
+
+  // This method takes a payload and returns an encoded and compressed buffer
+  override ByteVector DemoProto.Encode(inBuf:ByteVector)
+    compBuf:ByteVector;
+    outBuf:ByteVector;
+    superValue:Byte;
+    typeValue:Byte;
+    cd:Lzw;
+
+  begin
+    // Acting the compression (in this demo only the payload is compressed)
+    cd := new Lzw[];
+    compBuf := cd.Lzw.compress(inBuf);
+
+    // Acting the encode using parent method
+    outBuf := super(compBuf);
+
+    // Changing the protocol discriminator id
+    superValue := outBuf.ByteVector.get(1);
+    typeValue := superValue.Byte.sub(0x10);
+    typeValue := typeValue.Byte.multiply(0x03);
+    typeValue := typeValue.Byte.add(superValue);
+    typeValue := typeValue.Byte.add(0x01);
+    outBuf.Vector.set(1, typeValue);              // TYPE BYTE = 0x15 -> COMPRESSED PROTOCOL
+
+    return outBuf;
+  end;
+
+  // This method takes an encoded and compressed buffer and returns the payload
+  override ByteVector DemoProto.Decode(inBuf:ByteVector)
+    compBuf:ByteVector;
+    outBuf:ByteVector;
+    cd:Lzw;
+
+  begin
+    // Acting the decode using parent method
+    compBuf := super(inBuf);
+
+    // Acting the decompression
+    cd := new Lzw[];
+    outBuf := cd.Lzw.decompress(compBuf);
+
+    return outBuf;
+  end;
+
+end;
+

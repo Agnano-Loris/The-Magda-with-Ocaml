@@ -1,0 +1,151 @@
+include "Magdalib/library.magda";
+include "Mixinlib/mixinDemoProto.magda";
+include "Mixinlib/mixinDemoEncryptedProto.magda";
+include "Mixinlib/mixinDemoCompressedProto.magda";
+include "Mixinlib/mixinDemoEncryptedCompressedProto.magda";
+
+
+// The hierarchy of dependencies, in this example, tests the resolution of
+// the diamond problem on a simple demo comunication protocol application:
+//
+//
+//                   DemoProto
+//                    /     \
+//   DemoEncryptedProto     DemoCompressedProto
+//                    \     /
+//         DemoEncryptedCompressedProto(or DemoCompressedEncryptedProto)
+//
+//   ECDemoProto -> DemoEncryptedCompressedProto
+//   CEDemoProto -> DemoCompressedEncryptedProto
+
+
+
+// Main program (CLIENT SIDE DEMO)
+mixin MainClass of Object =
+
+  new Object mainProgram()
+    menuSelection:Integer;        // user input selection value
+    user:UserInput;               // user input mixin to get data to be sent
+    client:Socket;                // socket mixin to act the real phisical comunication
+    textMessage:String;           // string message typed by the user
+    dataBuffer:ByteVector;        // data buffer to store data to send
+    byteValue:Byte;               // dummy variable to store single data value
+    s:Sleep;                      // "sleep" object useful to slow down and make readable the actions to the user
+    i:Integer;                    // simple dummy iterator
+    test:Boolean;
+    dp:DemoProto;                       // Demo Protocol Mixin
+    dpe:DemoEncryptedProto;             // Demo Protocol Encrypted Mixin
+    dpc:DemoCompressedProto;            // Demo Protocol Compressed Mixin
+    dpec:DemoEncryptedCompressedProto;  // Demo Protocol Encrypted and Compressed Mixin
+
+  begin
+
+    "\r\n\r\n*** Diamond comunication protocol: TEST CLIENT SIDE ***\r\n\r\n".String.print();
+
+
+    // INIT utility mixins, menu and connection
+
+    s := new Sleep[];                                       // creating "sleep" mixin
+    user := new UserInput[];                                // creating user input mixin
+
+    // TEST SELECTION MENU
+    "*********************************************\r\n".String.print();
+    "***          TEST SELECTION MENU          ***\r\n".String.print();
+    "*********************************************\r\n".String.print();
+    " 1 -> Simple demo protocol\r\n".String.print();
+    " 2 -> Encrypted demo protocol\r\n".String.print();
+    " 3 -> Compressed demo protocol\r\n".String.print();
+    " 4 -> Compressed and then Encrypted demo protocol\r\n".String.print();
+    " 5 -> Encrypted and then Compressed demo protocol\r\n".String.print();
+    " ----\r\n".String.print();
+    " 0 -> QUIT\r\n".String.print();
+    " -------------------------------------------\r\n".String.print();
+    " > ".String.print();
+    menuSelection := user.UserInput.GetInt();
+    "\r\n\r\n".String.print();
+    //////////////////////
+
+    test := menuSelection.Comparable.leq(5);                  // ...
+    if ( test.Boolean.and( (menuSelection >= 1) ) )           // ... to check if 1 <= menuSelection <= 5
+
+      client := new Socket[];                                 // creating and opening a client socket connection
+      client.Socket.CreateNewConnection(9999);                // connection only available on local host
+
+      "Client sent connection request...\r\n".String.print(); // at this point a connection to server as estabished
+      s.Sleep.DoSleep(500);
+
+
+      // TEST BODY
+
+      // 1) Get a message from user to send to the server process
+      "1) Type a TEXT MESSAGE to send to the other process: \r\n".String.print();
+      "   > ".String.print();
+      textMessage := user.UserInput.GetString();
+      "   Typed message is: ".String.print();
+      textMessage.String.print();
+      "\r\n\r\n".String.print();
+
+      // 2) Convert text message to byte array
+      "2) Convert text message to byte array \r\n".String.print();
+      dataBuffer := textMessage.String.getBytes();
+      i := 0;
+      "   DATA BUFFER: ".String.print();
+      while ( i < dataBuffer.Vector.getLength() )
+        byteValue := dataBuffer.ByteVector.get(i);
+        byteValue.Byte.print();
+        ", ".String.print();
+        i := i + 1;
+      end;
+      "\r\n\r\n".String.print();
+
+      // 3) Encoding message
+      if ( menuSelection = 1 )
+        "3) Encoding message (SIMPLE)\r\n\r\n".String.print();
+        dp := new DemoProto[];
+        dataBuffer := dp.DemoProto.Encode(dataBuffer);
+      else if ( menuSelection = 2 )
+        "3) Encoding message (ENCRYPTED)\r\n\r\n".String.print();
+        dpe := new EDemoProto[];
+        dataBuffer := dpe.DemoProto.Encode(dataBuffer);
+      else if ( menuSelection = 3 )
+        "3) Encoding message (COMPRESSED)\r\n\r\n".String.print();
+        dpc := new CDemoProto[];
+        dataBuffer := dpc.DemoProto.Encode(dataBuffer);
+      else if ( menuSelection = 4 )
+        "3) Encoding message (COMPRESSED + ENCRYPTED)\r\n\r\n".String.print();
+        dpec := new ECDemoProto[];
+        dataBuffer := dpec.DemoProto.Encode(dataBuffer);
+      else if ( menuSelection = 5 )
+        "3) Encoding message (ENCRYPTED + COMPRESSED)\r\n\r\n".String.print();
+        dpec := new CEDemoProto[];
+        dataBuffer := dpec.DemoProto.Encode(dataBuffer);
+      end; end; end; end; end;                          // ... is necessary one "end;" for every opened "if"...
+
+      // 4) Send byte array to server
+      "4) Send bytes to server \r\n".String.print();
+      i := 0;
+      while ( i < dataBuffer.Vector.getLength() )
+        byteValue := dataBuffer.ByteVector.get(i);
+        "   TX: ".String.print();
+        byteValue.Byte.print();
+        client.Socket.WriteByte(byteValue);
+        "\r\n".String.print();
+        i := i + 1;
+      end;
+
+      ////////////
+
+
+      // Test DONE: closing connection
+
+      "\r\nTest done closing connection on client side...\r\n".String.print();
+      s.Sleep.DoSleep(1000);
+      client.Socket.CloseClientConnection();
+      "Client closed.\r\n\r\n".String.print();
+
+    end;
+
+  end;
+end;
+
+//(new MainClass[]).MainClass.mainProgram();

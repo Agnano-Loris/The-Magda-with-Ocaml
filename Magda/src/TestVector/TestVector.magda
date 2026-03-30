@@ -1,0 +1,154 @@
+include "Magdalib/library.magda";
+
+
+// Main program
+mixin MainClass of Object =
+
+  new Object mainProgram()
+    i:Integer;
+
+    boolVect:BooleanVector;
+    boolReadedValue:Boolean;
+
+    byteVect:ByteVector;
+    byteReadedValue:Byte;
+
+    intVect:IntegerVector;
+    intReadedValue:Integer;
+
+    floatVect:FloatVector;
+    floatReadedValue:Float;
+
+    stringVect:StringVector;
+    stringReadedValue:String;
+
+  begin
+
+  "Magda language vectorized types test:\r\n\r\n".String.print();
+
+  // Testing the BooleanVector mixin
+  "Testing the BooleanVector mixin: \r\n".String.print();
+
+  boolVect := new Vector, BooleanVector[ Vector.size := 3 ];
+  boolReadedValue := false;
+
+  //                index,  value
+  boolVect.Vector.set(0,    true);
+  boolVect.Vector.set(1,    false);
+  boolVect.Vector.set(2,    true);
+
+  i := 0;
+  while ( i < boolVect.Vector.getLength() )
+    boolReadedValue := boolVect.BooleanVector.get(i);
+    boolReadedValue.Boolean.print();
+    "\r\n".String.print();
+    i := i + 1;
+  end;
+
+  "BooleanVector mixin DONE.\r\n\r\n".String.print();
+  //////////////////////////////////
+
+  // Testing the ByteVector mixin
+  "Testing the ByteVector mixin: \r\n".String.print();
+
+  byteVect := new Vector, ByteVector[ Vector.size := 3 ];
+  byteReadedValue := 0x00;
+
+  //                index,  value
+  byteVect.Vector.set(0,    0x15);
+  byteVect.Vector.set(1,    0x1f);
+  byteVect.Vector.set(2,    0x3c);
+
+  i := 0;
+  while ( i < byteVect.Vector.getLength() )
+    byteReadedValue := byteVect.ByteVector.get(i);
+    byteReadedValue.Byte.print();
+    "\r\n".String.print();
+    i := i + 1;
+  end;
+
+  "Testing the ByteVector mixin (second byte changed): \r\n".String.print();
+  byteVect.Vector.set(1,    0x2f);
+  i := 0;
+  while ( i < byteVect.Vector.getLength() )
+    byteReadedValue := byteVect.ByteVector.get(i);
+    byteReadedValue.Byte.print();
+    "\r\n".String.print();
+    i := i + 1;
+  end;
+
+  "ByteVector print: ".String.print();
+  byteVect.Vector.print();
+  "\r\n".String.print();
+
+  "ByteVector mixin DONE.\r\n\r\n".String.print();
+  //////////////////////////////////
+
+  // Testing the IntegerVector mixin
+  "Testing the IntegerVector mixin: \r\n".String.print();
+
+  intVect := new Vector, IntegerVector[ Vector.size := 3 ];
+  intReadedValue := 0;
+
+  //                index,  value
+  intVect.Vector.set(0,    123);
+  intVect.Vector.set(1,    456);
+  intVect.Vector.set(2,    789);
+
+  i := 0;
+  while ( i < intVect.Vector.getLength() )
+    intReadedValue := intVect.IntegerVector.get(i);
+    intReadedValue.Integer.print();
+    "\r\n".String.print();
+    i := i + 1;
+  end;
+
+  "IntegerVector mixin DONE.\r\n\r\n".String.print();
+  //////////////////////////////////
+
+  // Testing the FloatVector mixin
+  "Testing the FloatVector mixin: \r\n".String.print();
+
+  floatVect := new Vector, FloatVector[ Vector.size := 3 ];
+  floatReadedValue := 0.0;
+
+  //                 index,    value
+  floatVect.Vector.set(0,    3.1415926);
+  floatVect.Vector.set(1,    2.71828183);
+  floatVect.Vector.set(2,    0.5);
+
+  i := 0;
+  while ( i < floatVect.Vector.getLength() )
+    floatReadedValue := floatVect.FloatVector.get(i);
+    floatReadedValue.Float.print();
+    "\r\n".String.print();
+    i := i + 1;
+  end;
+
+  "FloatVector mixin DONE.\r\n\r\n".String.print();
+  //////////////////////////////////
+
+  // Testing the StringVector mixin
+  "Testing the StringVector mixin: \r\n".String.print();
+
+  stringVect := new Vector, StringVector[ Vector.size := 3 ];
+  stringReadedValue := "-";
+
+  //                 index,      value
+  stringVect.Vector.set(0,  "First element" );
+  stringVect.Vector.set(1,  "Second element" );
+  stringVect.Vector.set(2,  "Third element" );
+
+  i := 0;
+  while ( i < stringVect.Vector.getLength() )
+    stringReadedValue := stringVect.StringVector.get(i);
+    stringReadedValue.String.print();
+    "\r\n".String.print();
+    i := i + 1;
+  end;
+
+  "StringVector mixin DONE.\r\n\r\n".String.print();
+  //////////////////////////////////
+
+  end;
+end;

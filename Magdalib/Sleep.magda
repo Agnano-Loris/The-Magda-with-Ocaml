@@ -1,0 +1,12 @@
+mixin Sleep of Object =
+
+  new void DoSleep(ms:Integer)
+  begin
+    % try { %;
+    % int milliSeconds = ((Integer)$ms$.internalPointer).intValue(); %;
+    % java.lang.Thread.sleep(milliSeconds); %;
+    % } catch(java.lang.InterruptedException e) { System.out.println("DoSleep: java.lang.InterruptedException!"); } %;
+  end;
+
+end;
+

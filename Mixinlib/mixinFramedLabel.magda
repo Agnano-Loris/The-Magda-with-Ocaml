@@ -1,0 +1,27 @@
+
+mixin FramedLabel of Label =
+
+  override void Label.PrintLabel ()
+    lineFeed:String;
+    lenText:Integer;
+    i:Integer;
+  begin
+    lenText := this.Label.labelText.String.length();
+    lineFeed := "\r\n";
+    i := 0;
+    while(i < (lenText+4))
+      "*".String.print();
+      i := i + 1;
+    end;
+    lineFeed.String.print();
+    super();
+    i := 0;
+    while(i < (lenText+4))
+      "*".String.print();
+      i := i + 1;
+    end;
+    lineFeed.String.print();
+  end;
+
+end;
+

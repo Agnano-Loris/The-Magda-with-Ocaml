@@ -1,0 +1,51 @@
+include "Magdalib/library.magda";
+include "Mixinlib/mixinHelloWorld.magda";   // the mixin is included by an external file
+
+mixin HelloWorldAbs of Object =
+
+  // I want to declare and abstract method, as an interface, available for a "future" implementation.
+  abstract String getAbstract ();
+
+end;
+
+mixin HelloWorldExt1 of HelloWorld, HelloWorldAbs =
+
+  // I want to overwrite the getMessage method of ancestor mixin HelloWorld;
+  // Magda language needs to specify the complete hierarchy of overvitten method to avoid ambiguity.
+  override String HelloWorld.getMessage ()
+  begin
+    return "\r\nHello(OVERRIDE) from Magda Extension1 world!\r\n";
+  end;
+
+  // The mixin HelloWorld is extended with the new method getMessageExt1
+  new String getMessageExt1 ()
+  begin
+    return "\r\nHello(NEW) from Magda Extension1 world!\r\n";
+  end;
+
+  // This is the implementation getAbstract of the mixin HelloWorldAbs
+//  implement String HelloWorldAbs.getAbstract ()   // NOTE: in Jarek thesis is written (§3.7 pag 42) that's available the "implement" literal for this purpose,
+  override String HelloWorldAbs.getAbstract ()      // but the real literal that's must be used, and confirmed by Jarek, is still "override" to avoid ambiguity in Magda's parser.
+  begin
+    return "\r\nHello(ABSTRACT) from Magda Extension1 world!\r\n";
+  end;
+
+end;
+
+mixin MainClass of Object =
+  new Object mainProgram()
+    msg:HelloWorldExt1;
+  begin
+
+    // msg is declared as a mixin type HelloWorldExt1;
+    // In order to allocate a new instance I must declare the complete list of ancestors of HelloWorldExt1.
+    // Is very important the declaration order: this will affect the mixins initialization order.
+    msg := new HelloWorld, HelloWorldAbs, HelloWorldExt1[];
+
+    msg.HelloWorld.getMessage().String.print();
+    msg.HelloWorldExt1.getMessageExt1().String.print();
+    msg.HelloWorldAbs.getAbstract().String.print();
+
+  end;
+end;
+

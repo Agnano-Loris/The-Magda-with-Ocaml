@@ -1,0 +1,14 @@
+
+mixin StringVector of Vector =
+
+  new String get(index:Integer)
+    res:String;
+    resObj:Object;
+  begin
+    res := new String [];
+    resObj := this.Vector.get(index);
+    % $res$.internalPointer = (String)$resObj$.internalPointer; %;
+    return res;
+  end;
+
+end;

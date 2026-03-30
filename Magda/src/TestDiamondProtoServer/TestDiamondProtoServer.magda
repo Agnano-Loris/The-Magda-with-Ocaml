@@ -1,0 +1,160 @@
+include "Magdalib/library.magda";
+include "Mixinlib/mixinDemoProto.magda";
+include "Mixinlib/mixinDemoEncryptedProto.magda";
+include "Mixinlib/mixinDemoCompressedProto.magda";
+include "Mixinlib/mixinDemoEncryptedCompressedProto.magda";
+
+
+// The hierarchy of dependencies, in this example, tests the resolution of
+// the diamond problem on a simple demo comunication protocol application:
+//
+//
+//                   DemoProto
+//                    /     \
+//   DemoEncryptedProto     DemoCompressedProto
+//                    \     /
+//         DemoEncryptedCompressedProto(or DemoCompressedEncryptedProto)
+//
+//   ECDemoProto -> DemoEncryptedCompressedProto
+//   CEDemoProto -> DemoCompressedEncryptedProto
+
+
+
+// Main program (SERVER SIDE DEMO)
+mixin MainClass of Object =
+
+  new Object mainProgram()
+    server:ServerSocket;          // socket mixin to act the real phisical comunication
+    rxTempBuffer:ByteVector;      // temporary buffer to store data during collecting procedure
+    dataBuffer:ByteVector;        // data buffer to store data received
+    byteValue:Byte;               // dummy variable to store single data value
+    s:Sleep;                      // "sleep" object useful to slow down and make readable the actions to the user
+    i:Integer;                    // simple dummy iterator
+    receivedDataLen:Integer;      // variable that contains the total len of received bytes
+    protoType:Byte;               // variable to store the proto discriminator value used by the sender
+    dp:DemoProto;                       // Demo Protocol Mixin
+    dpe:DemoEncryptedProto;             // Demo Protocol Encrypted Mixin
+    dpc:DemoCompressedProto;            // Demo Protocol Compressed Mixin
+    dpec:DemoEncryptedCompressedProto;  // Demo Protocol Encrypted and Compressed Mixin
+
+  begin
+
+    "\r\n\r\n*** Diamond comunication protocol: TEST SERVER SIDE ***\r\n\r\n".String.print();
+
+
+    // INIT utility mixins and connection
+
+    s := new Sleep[];                                 // creating "sleep" mixin
+
+    server := new ServerSocket[];                     // creating and opening a server socket connection
+    server.ServerSocket.CreateNewServer(9999);        // connection only available on local host
+
+    "Server created.\r\nWaiting connection request...\r\n".String.print();
+    server.ServerSocket.WaitConnectionRequest();
+
+    "Connection from client got\r\n\r\n".String.print();            // at this point a connection from client as arrived
+    rxTempBuffer := new Vector, ByteVector[ Vector.size := 100 ];
+    s.Sleep.DoSleep(250);
+
+
+    // TEST BODY
+
+    dp := new DemoProto[];
+
+    // 1) Receiving data bytes (waiting for START frame byte)
+    "1) Receiving BYTE data (waiting for START frame byte) \r\n".String.print();
+    byteValue := 0x00;
+    while ( dp.DemoProto.CheckStartByte(byteValue).Object.equals(false) )
+      "   RX: ".String.print();
+      byteValue := server.ServerSocket.ReadByte();
+      byteValue.Byte.print();
+      "\r\n".String.print();
+    end;
+    "\r\n".String.print();
+
+    // 2) Receiving data bytes (collect data and waiting for STOP frame byte)
+    "2) Receiving BYTE data (collect data and waiting for STOP frame byte) \r\n".String.print();
+    i := 0;
+    rxTempBuffer.Vector.set(i, byteValue);
+    i := i + 1;
+    while ( dp.DemoProto.CheckStopByte(byteValue).Object.equals(false) )
+      "   RX: ".String.print();
+      byteValue := server.ServerSocket.ReadByte();
+      byteValue.Byte.print();
+      "\r\n".String.print();
+      rxTempBuffer.Vector.set(i, byteValue);
+      i := i + 1;
+    end;
+    receivedDataLen := i - 1;                         // number of bytes received from the client
+    dataBuffer := new Vector, ByteVector[ Vector.size := receivedDataLen ];
+    i := 0;
+    while(i < receivedDataLen )                       // coping received data into dataBuffer of correct size
+      dataBuffer.Vector.set(i, rxTempBuffer.Vector.get(i));
+      i := i + 1;
+    end;
+    "\r\n".String.print();
+
+    // 3) Decoding message and take the payload
+    //    For demo autoadaptation purposes this process understand what kind of
+    //    protocol is being used from the sender getting before the byte protocol
+    //    discriminator and checking it in following lines.
+    protoType := dp.DemoProto.GetProtoTypeByte(dataBuffer);
+    if ( protoType.Object.equals(0x11) )
+      "3) Decoding message (SIMPLE) and take the payload \r\n\r\n".String.print();
+      dataBuffer := dp.DemoProto.Decode(dataBuffer);
+    else if ( protoType.Object.equals(0x13) )
+      "3) Decoding message (ENCRYPTED) and take the payload \r\n\r\n".String.print();
+      dpe := new EDemoProto[];
+      dataBuffer := dpe.DemoProto.Decode(dataBuffer);
+    else if ( protoType.Object.equals(0x15) )
+      "3) Decoding message (COMPRESSED) and take the payload \r\n\r\n".String.print();
+      dpc := new CDemoProto[];
+      dataBuffer := dpc.DemoProto.Decode(dataBuffer);
+    else if ( protoType.Object.equals(0x1D) )
+      "3) Decoding message (COMPRESSED + ENCRYPTED) and take the payload \r\n\r\n".String.print();
+      dpec := new ECDemoProto[];
+      dataBuffer := dpec.DemoProto.Decode(dataBuffer);
+    else if ( protoType.Object.equals(0x1F) )
+      "3) Decoding message (ENCRYPTED + COMPRESSED) and take the payload \r\n\r\n".String.print();
+      dpec := new CEDemoProto[];
+      dataBuffer := dpec.DemoProto.Decode(dataBuffer);
+    end; end; end; end; end;                          // ... is necessary one "end;" for every opened "if"...
+
+    // 4) Print out the received byte payload
+    "4) Print out the received byte payload \r\n".String.print();
+    i := 0;
+    "   DATA BUFFER: ".String.print();
+    while ( i < dataBuffer.Vector.getLength() )
+      byteValue := dataBuffer.ByteVector.get(i);
+      byteValue.Byte.print();
+      ", ".String.print();
+      i := i + 1;
+    end;
+    "\r\n\r\n".String.print();
+
+    // 5) Print out the received text message
+    "5) Print out the received text message \r\n".String.print();
+    "   ".String.print();
+    i := 0;
+    while ( i < dataBuffer.Vector.getLength() )
+      byteValue := dataBuffer.ByteVector.get(i);
+      byteValue.Byte.printChar();
+      i := i + 1;
+    end;
+    "\r\n\r\n".String.print();
+
+    ////////////
+
+
+    // Test DONE: closing connection
+
+    "\r\nTest done closing connection on server side...\r\n".String.print();
+    s.Sleep.DoSleep(1000);
+    server.ServerSocket.CloseClientConnection();
+    server.ServerSocket.CloseServer();
+    "Server closed.\r\n\r\n".String.print();
+
+  end;
+end;
+
+//(new MainClass[]).MainClass.mainProgram();

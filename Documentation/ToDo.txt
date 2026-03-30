@@ -1,0 +1,818 @@
+1. Somma tra Float e String con valori costanti da entrambe le parti   //FATTO
+
+2. Valori costanti negli iniModules                                    //FATTO
+
+3. Mixin Exeption (Keyword throws (?))                                 //DA FARE
+
+4. Rimozione di tutti i warning di compilazione del compiler           //FATTO
+
+5. Rimozione di tutti i warning di compilazione dei programmi generati //FATTO
+
+6. Sostituzione dei Vector con ArrayList nel codice del compiler       //FATTO
+
+7. Rendere più sintatticamente digestibile l'output MagdaProgram.java  //FATTO
+
+8. Verificare il funzionamento del plugin di Eclipse                   //NON PIù NECESSARIO 
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+9. Boolean, Integer, Float, Byte come Mixin nativi anzichè come libreria                                          //NON UNA BUONA IDEA
+
+10. Gli iniModules sono un po' incasinati                                                                         //DA FARE MA GIà MEGLIO
+
+11. Forzare la specificazione del Mixin solo in caso di ambiguità con un opportuno errore in fase di compilazione //FATTO
+
+12. Porting su OCaml pericoloso visto il grosso appoggio che Magda fa su Java                                     //FARE RICERCA PER PARLARNE NELLA TESI
+
+13. Implementazione con le Lambda espressioni dei CMagdaMethod                                                    //FATTO
+
+14. Implementazione con le Lambda espressioni dei Mixin, Metodi Override e IniModules                             //FATTO
+
+15. Documentare tutto il codice del progretto per i programmatori futuri                                          //DA FARE
+
+
+
+Nell'immediato:
+
+3, 7, 15, fare bug fixin per le richieste al ProgramContext non andate a buon fine
+
+Capotoli utili della tesi di Jarek:
+    
+    Capitoli 3,4,5,(6!,7!,8,9,10,11),12
+
+Note:
+    l'asterisco (*1) è trattato nel Log2
+    
+    il punto 8 è abbastanza obsoleto visto che il plugin andava perlopiù a risolvere il problema dell'ambiguità che ho risolto facendo il punto 11 della
+    lista, per quanto riguarda lo sviluppo e gli IDE ho comunque fatto qualcosina, ovvero 2 plugin molto rudimentali, uno per VsCode (e con le opportune
+    modifiche anche per tutti gli IDE che utilizzino TextMate per quanto riguarda l'editor) e uno per vim per avere l'highlight della sintassi per i file
+    con estensione '.magda'
+
+    Ritengo che i punti 13 e 14 non aggiungano effettivamente niente a livello di comprensione o performance (o almeno, nel modo in cui l'ho fatto), ma
+    mi hanno permesso di ridurre drasticamente l'output del compiler, infatti utilizzando le lambda espressioni ho eliminato completamente le classi
+    anonime. Ora se compilo un programma non ottengo più un centinaio di .class come output del compiler, ma solo uno!
+
+INIZIO DEI LOG
+
+/*----------------------------------------------------------------------------------------------------*/
+
+Log1 17/03/2025
+
+Rimossi un po' di Warning dalla compilazione, Tolto Vector, inserito ArrayList, e tolto un po' di warning relativi al serialUID
+da 31 warning a 26
+
+/*----------------------------------------------------------------------------------------------------*/
+
+Log2 18/03/2025
+
+Rimossi tutti i Warning relativi ai problemi di serializzazione!
+Da 26 warning siamo passati a 6 (tutti this-escape)
+
+la classe CMixinDeclaration non ha più un constructor public hp adottato lo stile static-factory per l'inizializzazione,
+così da rimuovere il this-escape ma mantenere la logica di creazione stabilita nella vecchia versione
+Ora per creare un'istanza di CMixinDeclaration bisognerà utilizzare CMixinDeclaration.createCMixinDeclaration(. . .)
+Da 6 warning a 5
+
+la classe COverrideMethodDeclaration non ha più ho un constructor public adottato lo stile static-factory per l'inizializzazione,
+così da rimuovere il this-escape ma mantenere la logica di creazione stabilita nella vecchia versione
+Ora per creare un'istanza di COverrideMethodDeclaration bisognerà utilizzare COverrideMethodDeclaration.createCOverrideMethodDeclaration(. . .)
+Da 5 warning a 4
+
+la classe CTypes non ha più un constructor public ho adottato lo stile static-factory per l'inizializzazione,
+così da rimuovere il this-escape ma mantenere la logica di creazione stabilita nella vecchia versione
+Ora per creare un'istanza di CType bisognerà utilizzare CType.createCType(. . .)
+Ho create 3 factory come mirror dei 3 vecchi costructor public
+Da 4 warning a 2
+
+Ho rimosso l'istruzione aPars.setMethod(this) dal constructor della classe astratta CInterfaceMethodDeclaration per evitare this-escape
+tuttavia è un'operazione importante, quindi bisogna ricordarsi di chiamarla nelle classi che estendono CInterfaceMethodDeclaration.
+In questo caso per le classi CNewMethodDeclaration e CAbstractMethodDeclaration ho messo il constructor a private per creare una
+static-factory, così posso creare gli ogetti facendo uso del constructor della classe astratta CInterfaceMethodDeclaration e poter chiamare
+aPars.setMethod(...) senza incorrere in this-exception
+
+la classe CNewMethodDeclaration non ha più un constructor public ho adottato lo stile static-factory per l'inizializzazione,
+così da rimuovere il this-escape ma mantenere la logica di creazione stabilita nella vecchia versione
+Ora per creare un'istanza di CType bisognerà utilizzare CNewMethodDeclaration.createCNewMethodDeclaration(. . .)
+
+la classe CAbstractMethodDeclaration non ha più un constructor public ho adottato lo stile static-factory per l'inizializzazione,
+così da rimuovere il this-escape ma mantenere la logica di creazione stabilita nella vecchia versione
+Ora per creare un'istanza di CType bisognerà utilizzare CAbstractMethodDeclaration.createCAbstractMethodDeclaration(. . .)
+
+Da 2 warning a 1
+
+L'ultimo warning è generato da javacc, ci sarebbe un fix facile, ovvero porre la classe ParserTokenManager nella directory del Parser a final,
+non c'è un modo per forzare javacc a farlo, perciò si può o modificare manualmente o scrivere uno script che faccia questa aggiunta prima di
+compilare l'intero progetto. Questa modifica la lascerò eventualmente per il futuro! (*1)
+
+
+/*----------------------------------------------------------------------------------------------------*/
+
+Log3 20/03/2025
+
+Rimossi tutti i warning di compilazione dei programmi Magda di Test presenti nel progetto.
+In particolare questi erano dovuti a cast ridondanti, tipi raw utilizzati nei Vector, piccoli warning del genere, sono riuscito a rimuoverli quasi tutti
+in maniera naturale risolvendoli, altri purtroppo non sono particolarmente risolvibili, in particolare in Vector e in Lzw, questi sono dovuti al
+fatto che mi salvo dei Vector nel contesto globale aSelf del mixin, ma aSelf è un oggetto, e quindi sono costretto a fare un cast unsafe
+da Object a Vector, il tutto è corretto ma genera un warning, questi ultimi non sono di facile risoluzione, ma essendo pochi li ho soppressi.
+In futuro si potrebbe provare a riscrivere le librerie di Vector, ma fare un safe cast farebbe perdere un sacco di performace a Vector, che è una
+classe decisamente troppo essenziale per essere lenta.
+
+/*----------------------------------------------------------------------------------------------------*/
+
+Log4 21/03/2025 - 24/03/2025
+
+Trasformata la abstract class CMagdaMethod in un'interfaccia, così da poter implementare i metodi come lambda-espressione invece di usare una
+classe anonima, questo ha ridotto significativamente i .class generati dal compiler, l'obiettivo potrebbe essere 1 solo output.
+La riduzione è comunque stata molto significativa, ad esempio nell'HelloWorld di base siamo passati da 110 file .class generati a solo 37, meno della
+metà.
+Imbastito un file uxf (e relativo pdf esportato) di uno schema UML dell'intero compiler, i package rappresentati sono quelli non generati da javacc,
+quindi i package Compiler, mtj e ProgramTree (quest'ultimo con tutti i sotto-package presenti, Declarations, Instructions, Expressions, LValues e 
+MixinExpressions)
+
+/*----------------------------------------------------------------------------------------------------*/
+
+Log5 26/03/2025 - 03/04/2025
+
+Negli ultimi giorni ho fatto un grosso lungo lavoro di comprensione che mi ha permesso di capire il grosso della struttura del compiler, quindi ho
+potuto iniziare a risolvere i vecchi problemi e ho creato una base per quelli nuovi, il tutto preservando il veccio codice così da poter "staccare"
+le mie modifiche se non andassero bene senza modificare troppo il codice.
+
+Esattamente cosa ho risolto? Beh, nella vecchia versione di Magda non si potevano sommare tra di loro 2 variabili che non fossero 2 int, però
+si poteva sommare una variabile con una costante, per fare degli esempi:
+
+    1 + 1             --> OK
+    1.0 + 1.0         --> OK
+    "hello" + "wolrd" --> OK
+    x + 1             --> OK
+    x + 1.0           --> OK
+    "a" + x           --> OK
+    x + y             --> OK solo se x e y sono di tipo "Integer" altrimenti NO
+    this.Mix.x + y    --> OK solo se this.Mix.x e y sono di tipo "Integer" altrimenti NO
+    x + y.Mix.fun()   --> OK solo se x è di tipo "Integer" e la funzione fun() ritorna un "Integer", altrimenti NO
+
+C'è un motivo per cui non funziona, ed è anche relativamente semplice da capire, il compiler non ha la minima idea del tipo di variabili, field, metodi,
+nulla, non ha realmente idea di nulla, perchè trova solo degli ID, a prima vista non capivo, perchè in teoria il compiler fa un controllo dei tipi dopo
+aver parsato e solo quando ha finito genera il codice, quindi vediamo step by step cosa accade.
+
+    il compiler legge:
+
+        x + y
+
+    assumiamo che x ed y siano 2 istanze di Float
+    il parser crea 2 oggetti CIdentifierExpression sulla base di x ed y, la classe CIdentifierExpression implementa IExpression e quindi avrà un metodo
+    chiamato GetTypeString() che ci ritorna il presunto tipo di x e y
+
+    A Questo punto il parser genera una CBinaryExpressionAdd che prende come argomento i due CIdentifierExpression dichiarati sopra.
+    Semplificando i passaggi vado a dire che voglio applicare il metodo "add" alle variabili x ed y, che sono degli oggetti di tipo...
+    
+    Integer!?
+
+    Ebbene si, il metodo GetTypeString() ritorna la stringa "Integer" di default, ma d'altra parte non c'era un modo effettivo nella vecchia di versione
+    per dedurre in fase di parsing il tipo.
+    In seguito in fase di type-checking avrei ricevuto un errore, in quanto secondo il nostro compiler starei cercando di sommare 2 Float con il metodo
+    di add della classe Integer.
+
+    Guadando l'interfaccia GetType ci si potrebbe chiedere se al posto di utilizzare il *pericoloso* GetTypeString() non potremmo usare il più
+    rassicurante GetType(), purtroppo GetType() ha bisogno di un oggetto di tipo CInstrEnvironment che viene generato solamente in fase di type
+    checking.
+
+Ora ragioniamo sulle possibili difficoltà e sulla strategia che ho adottato per risolvere il problema:
+    Innanzitutto che informazioni mi servono? 
+        Mi sarebbe utile sapere i tipi delle mie IExpression, in particolare le variabili, i field e i return dei metodi
+    Perchè?
+        Così da poter sapere in fase di Parsing di che tipo sono le variabili,field e method-call così da poter applicare i metodi giusti al posto
+        giusto
+    Come posso fare?
+        Una struttura abbastanza ibrida tra una HashMap e un albero da poter consultare in fase di Parsing
+    Quando devo creare questa struttura?
+        Necessariamente prima del Parsing, purtroppo non posso farlo allo stesso momento, perchè potrei stai analizzando un metodo in un Mixin che fa
+        riferimento ad un altro metodo in un altro mixin che non ho ancora parsato
+
+Visto ciò che ho scritto nel paragrafo precedente ho realizzato un PreParser che viene lanciato prima del Parser e crea una struttura dei tipi del
+programma (ma non delle istruzioni che lo compongono), ecco un pezzo del toString() di questa struttura: 
+
+    Parsed mixins:
+    [Comparable, String, ByteVector, Integer, Float, Mix1, Mix2, MainClass, Mix3, Byte, Vec3, Object, Boolean, Vector]
+
+    Mixin : Comparable
+      [Object]
+        fields:
+        methods:
+            leq : Boolean
+                params:
+                    other : t
+                variables:
+            less : Boolean
+                params:
+                    other : t
+                variables:
+    Mixin : Integer
+      [Comparable]
+        fields:
+        methods:
+            add : Integer
+                params:
+                    other : Integer
+                variables:
+                    res : Integer
+            sub : Integer
+                params:
+                    other : Integer
+                variables:
+                    res : Integer
+            Comparable.less : Boolean
+                params:
+                    other : Integer
+                variables:
+                    res : Boolean
+            print : Object
+                params:
+                variables:
+            Comparable.leq : Boolean
+                params:
+                    other : Integer
+                variables:
+                    res : Boolean
+            toFloat : Float
+                params:
+                variables:
+                    res : Float
+            divide : Integer
+                params:
+                    other : Integer
+                variables:
+                    res : Integer
+            multiply : Integer
+                params:
+                    other : Integer
+                variables:
+                    res : Integer
+            Object.equals : Boolean
+                params:
+                    other : Object
+                variables:
+                    res : Boolean
+            Object.neq : Boolean
+                params:
+                    other : Object
+                variables:
+                    res : Boolean
+
+
+questa struttura viene poi passata al Parser che la utilizza per sapere i tipi degli oggetti così da poter applicare il metodo operazionale corretto.
+
+Collegare la struttura dati al Parser non è stato facilissimo, questo perchè per interrogare la struttura dati ho bisogno di sapere in quale Mixin mi
+trovo e in certi casi (per le variabili) anche in che metodo mi trovo al momento del parsing, perciò ho deciso di propagare questa informazione
+ricorsivamente all'interno del Parser tramite Stringhe, che poi utilizzo come chiavi sostanzialmente per trovare il tipo delle mie variabili/field/
+method-call.
+
+Il problema è risolto!
+
+Vediamo ora 2 effetti collaterali, uno sicuramente utile, e uno potenzialmente non nocivo e soprattutto nel caso facilissimo da risolvere
+Partiamo da quello utile:
+    Avendo una struttura dati del genere sarà relativamente semplice introdurre il disambiguamento di metodi e filed per quanto
+    riguarda le chimate a metodi e le reference ai field, facciamo un piccolissimo esempio pratico
+
+        mixin Mix1 of Object =
+        
+            num:Integer;
+
+            new void print()
+            begin
+
+                this.Mix1.num.Integer.print();
+
+            end;
+
+        end;
+
+    Una scrittura più intuitiva potrebbe essere this.num.print(), Magda ci impone di scrivere this.Mix1.num.Integer.print(), questo perchè 
+    Mix1 potrebbe essere composto da altri mixin che contengono un'altro field chiamato num, e ancora, Integer potrebbe contenere altri
+    mixin che contengono metodi di print().
+    Però se non ci fossero ambiguità in un certo caso? Potrei omettere la specificazione eccessiva e ridurre la verbosità, e questa struttura mi
+    aiuterebbe tantissimo a risolvere questo problema, ma ne parlerò di più in futuro
+
+Ora passiamo all'effetto collaterale non nocivo:
+    Ho introdotto l'operator overloading, come ho già datto toglierlo sarebbe facile, ma in questo momento qualsiasi mixin che implementa i
+    metodi add,sub,multiply e divide nel modo corretta inteso dal type-checker può utilizzare i simboli + - * /
+    In passato ho lavorato con dei vettori e avere l'operator Overloading mi avrebbe fatto comodo, in generale è una feature molto carina e
+    per questo l'ho tenuta, ma si può togliere con 12 righe di codice, quindi molto molto velocemente
+
+
+
+EXTRA:
+
+Lo aggiungo come extra perchè non è minimamente rilevante al funzionamente del Compiler, ma ho creato 2 plugins molto piccoli, rispettivamente uno per 
+VsCode e uno per Vim che introducono l'highlight della sintassi dei file .magda, non è niente di sofisticato, solo dei semplici colori.
+Tuttavia non avevo la minima idea di come si facesse, e quinsi mi ha preso comunque un po' di tempo, per il plugin di VsCode ho letto la documentazione
+e l'ho creato con l'aiuto del package npm "yo code" che ha creato lo scheletro dell'estensione e poi io ho scritto la TextMateGrammar in JSON.
+Per vim invece ho preso il file che introduce l'highlight della sintassi per il linguaggio C e l'ho modificato per i miei bisogni.
+ 
+Funzionano e anche se non sembra aiutano parecchio lo sviluppo e la leggibilità del codice Magda!
+
+/*----------------------------------------------------------------------------------------------------*/
+
+Log6 05/04/2025 - 14/04/2025
+
+*Controllare la non-ciclicità dei Mixin*
+
+    Un ipotetico controllo di ambiguità verrebbe Mandato in loop infinito da una possibile ciclicità dei Mixin, ovviamente la versione precedente del
+    compiler non prevedeva questo genere di dichiarazioni in fase di compilazione, ma io ho bisogno che questo controllo avvenga in fase di Parsing,
+    posso effettuare questo controllo sulla struttura dati che ho creato durante il log precedente, il ProgramContext.
+
+    Se ci sono mixin ciclici non proseguo con il Parsing, vediamo perchè sarebbe un problema!
+
+    es. 
+
+        this.print();
+
+    Ipotizziamo il mio this faccia riferimento ad mixin chiamato MyMixin, vediamo sotto una possibile dichiarazione problematica di MyMixin
+
+    -----
+
+    mixin MyMixin of Mix1,Mix2=
+        ...
+    end;
+
+    mixin Mix1 of Mix2=
+        ...
+    end;
+
+    mixin Mix2 of Mix2=
+        ...
+    end;
+
+    -----
+
+    Ipotizziamo ora che MyMixin non abbia nessun metodo new di nome print, ma Mix1 e Mix2 ce l'abbiano, quindi la chiamata this.print() sarebbe ambigua e
+    andrebbe disambiguata chiamando this.Mix1.print() o this.Mix2.print() (poi all'atto pratico per questioni di compilazione non avrei mai potuto
+    creare un'istanza di MyMixin, però la ciclicità a livello di dichiarazione è lecita).
+
+    In fase di parsing io controllo il tipo di this e verifico se esso contiene una dichiarazione non ambigua di this, e nel caso non ci fosse
+    voglio segnalare quali sono i Mixin specifici che contengono le definizioni non ambigue, però Mix1 e Mix2 continuerebbero a puntare a loro stessi
+    e andrei in LOOP!
+
+
+
+*Controllare la non ambiguità di metodi e field*
+
+    putroppo dovrò creare dei nuovi metodi del parser, specialmente per i this, dovrò passare il mixinname del context in cui mi trovo!
+
+    I requisiti per eseguire il controllo di ambiguità sono: avere un ProgramContext e soprattutto avere un Parser che ci permetta di tradurre
+    correttamente i nuovi costruti che si andranno a formare!
+
+    Vediamo le possibilità che si andranno a creare e i nomi dei metodi creati che sono in grado di effettuare il Parsing nel modo corretto
+
+    -----
+    
+    /-------------------\
+    | I nuovi costrutti |
+    \-------------------/
+
+    1
+    | <Costrutto parsato precedentemente> . MixinName . Field . MixinName . method()
+
+    2
+    | <Costrutto parsato precedentemente> . MixinName . Field . method()
+    | <Costrutto parsato precedentemente> . Field . MixinName . method()
+
+    3
+    | <Costrutto parsato precedentemente> . MixinName . method()
+    | <Costrutto parsato precedentemente> . FieldName . method()
+
+    4
+    | <Costrutto parsato precedentemente> . MixinName . Field
+
+    5
+    | <Costrutto parsato precedentemente> . method() 
+
+    6
+    | <Costrutto parsato precedentemente> . Field
+
+    /----------\
+    | I Metodi |
+    \----------/
+
+    1. SpecificSelectAndMethodCall(...) 
+
+    2. SpecificSelectOrMethodCall(...)
+
+    3. SpecificMethodCallOrSelectAndCall(...)
+
+    4. SpecificSelect(...)
+
+    5. DirectMethodCall(...) 
+
+    6. DirectSelect(...)
+
+    -----
+
+    Quindi ho creato questi nuovi metodi del Parser che sfruttano il ProgramContext per riuscire a dire al compiler i Mixin corretti dei Field e delle
+    chiamate quando non ci sono ambiguità, e segnalano la presenza di ambiguità dando un errore altrimenti!
+
+/*----------------------------------------------------------------------------------------------------*/
+
+Log7 15/04/2025 - 28/04/2025
+
+Dall'ultima ho risolto 2 problemi, uno noto, l'altro è un adattamento di ciò che ho fatto nell'ultimo log, ora vedremo meglio cosa sono andato
+a modificare
+
+*Valori costanti negli IniModules*
+
+    Questo era un bug noto di Magda, prima in un IniModule non era possibile utilizzare valori costanti, facciamo un esempio:
+
+        mixin MyMixin of Object =
+            
+            value: Integer;
+            
+            required MyMixin() initializes ()
+            begin
+                this.MyMixin.resetValue();		
+                
+                super[];
+            end;
+      
+            new void resetValue() 
+            begin
+                this.MyMixin.setValue(0);
+            end;
+  
+            new void setValue(v:Integer) 
+            begin
+                this.MyMixin.value := v;
+ 	        end;
+        end;
+
+    Come possiamo vedere in questo piccolo esempio l'unico modo di assegnare un valore costante era quello di chiamare un metodo esterno al modulo
+    di inizializzazione che andasse a fare una set con il valore costante, non sarebbe neanche stato possibile utilizzare un setter a cui passare
+    il valore costante dall'IniModule, quindi this.MyMixin.setValue(0); non sarebbe stata valida come chiamata.
+
+    Adesso invece si potrebbe tranquillamente utilizzare this.MyMixin.setValue(0), ma anche banalmente:
+        
+        mixin MyMixin of Object =
+            
+            value: Integer;
+            
+            required MyMixin() initializes ()
+            begin
+                this.MyMixin.value := 0;		
+                
+                super[];
+            end;
+        end;
+
+    Questo era anche previsto dalla specifica originale del linguaggio, non era possibile a causa di un "bug" che era appunto segnalato tra i bug noti
+    
+    Qual era il problema?
+
+    A livello di compilazione la generazione del codice di un IniModule viene affidata agli oggetti della classe CIniModuleBody, che vanno a creare una
+    classe anonima di tipo CMagdaIniModule, e fanno una ridichiarazione di Execute, 
+        
+        "new CMagdaIniModule () { public void Execute(CMagdaObject aSelf, CMagdaIniModules ModulesToExecute, CMagdaIniParams IniParams)"
+
+    Prestiamo attenzione al parametro del metodo Execute IniParams, che fa riferimento ai parametri inizializzati dall'IniModule in considerazione,
+    nel caso dell'esempio sarebbe una lista vuota, ma questo non è importante!
+
+    Il problema si verifica quando dichiaro un valore costante, perciò potrebbe essere utile come viene gestita la generazione del codice degli Integer
+    quindi andiamo a prendere il codice della classe CIntegerLiteral
+    
+        public void GenCode (java.io.PrintStream o, CInstrEnvironment env, CGenCodeHelper h, int target){
+            new CObjectCreation(new CMixinExpressionIdentifier("FullInteger"), new CInitializationOfParams()).GenCode(o, env, h, target);
+            //OLD VERSION
+            //o.println ( h.tempAcc(target)+ ".internalPointer = new Integer("+Value+");");
+            //NEW VERSION
+            o.println ( h.tempAcc(target)+ ".internalPointer = (Integer)"+Value+";");
+        }
+
+    Non sembrerebbero esserci problemi qui, però potrebbe essere utile andare a vedere il codice della classe CObjectCreation
+    
+        public void GenCode (java.io.PrintStream o, CInstrEnvironment env, CGenCodeHelper h, int target){  
+            o.print("{ //object creation for: "); MixinExpr.print(o); o.println("");
+            o.println("CMagdaMixinSequence tempList= new CMagdaMixinSequence();");
+            o.println(" tempList.add( CMagdaMixinSequence.globalList.getMixin(\"Object\"));");
+            MixinExpr.GenCodeForMixinExpression (o, env,  h);
+            o.println(h.tempAcc(target)+"= tempList.CreateObject();");
+            o.println("}");
+            String IniParamsSetter="";
+        
+            for (int i=0; i<Init.size(); i++){ 
+                int temp = h.getTemp();
+                Init.get(i).Expr.GenCode(o, env, h, temp);
+   !--->        IniParamsSetter += "IniParams.putParamValue(\""+Init.get(i).MixinName+"\",\""+Init.get(i).ParamName+"\","+h.tempAcc(temp)+");\n";
+            }
+      
+   !--->    o.println("{CMagdaIniParams IniParams = new CMagdaIniParams();");
+            o.print(IniParamsSetter);
+
+            o.println("CMagdaIniModules modules = new CMagdaIniModules();");
+            int modulecount=MixinExpr.GetType(env).GenCodeForActivatedModules(o, env, h, Init);
+            if (modulecount>0){ 
+                o.println("CMagdaIniModule firstModule = modules.remove(0);");
+   !--->        o.println("firstModule.Execute("+h.tempAcc(target)+",modules, IniParams);");
+            }
+            o.println("}");
+
+            /*Init.GenCode(o,  env, h, target);*/
+
+            o.println(h.tempAcc(target)+".executeMethodByName(\"Object\", "+String.valueOf (env.getMixin("Object").getMethodOffset("Init"))+", new CMagdaObject[0]);");
+
+        }
+
+    Ecco il problema, nei punti del codice evidenziati con "!--->" è evidenziato il problema, quando vado a creare un nuovo oggetto, quindi anche un
+    Integer, viene creata una lista chiamata IniParams, che fa riferimento ai parametri di inizializzazione dell'oggetto!
+    
+    Ora che abbiamo individuato il problema dobbiamo anche risolverlo!
+
+    Questo è davvero triviale a questo punto, ci basterà cambiare il nome di uno dei due parametri, nella mia soluzione ho deciso di sostituire il nome
+    "IniParams" all'interno di CObjectCreation con il nome "IniParamsObjectCreation", così da evitare il name clash e l'errore di ridichiarazione.
+    
+    Ovviamente così facendo non si creano problemi altrove, il bug viene semplicemente risolto senza problemi!
+
+    Ecco il codice di Object creation dopo il fix:
+
+
+        public void GenCode (java.io.PrintStream o, CInstrEnvironment env, CGenCodeHelper h, int target){  
+            o.print("{ //object creation for: "); MixinExpr.print(o); o.println("");
+            o.println("CMagdaMixinSequence tempList= new CMagdaMixinSequence();");
+            o.println(" tempList.add( CMagdaMixinSequence.globalList.getMixin(\"Object\"));");
+            MixinExpr.GenCodeForMixinExpression (o, env,  h);
+            o.println(h.tempAcc(target)+"= tempList.CreateObject();");
+            o.println("}");
+            String IniParamsSetter="";
+        
+            for (int i=0; i<Init.size(); i++){ 
+                int temp = h.getTemp();
+                Init.get(i).Expr.GenCode(o, env, h, temp);
+   !--->        IniParamsSetter += "IniParamsObjectCreation.putParamValue(\""+Init.get(i).MixinName+"\",\""+Init.get(i).ParamName+"\","+h.tempAcc(temp)+");\n";
+            }
+      
+   !--->    o.println("{CMagdaIniParams IniParamsObjectCreation = new CMagdaIniParams();");
+            o.print(IniParamsSetter);
+
+            o.println("CMagdaIniModules modules = new CMagdaIniModules();");
+            int modulecount=MixinExpr.GetType(env).GenCodeForActivatedModules(o, env, h, Init);
+            if (modulecount>0){ 
+                o.println("CMagdaIniModule firstModule = modules.remove(0);");
+   !--->        o.println("firstModule.Execute("+h.tempAcc(target)+",modules, IniParamsObjectCreation);");
+            }
+            o.println("}");
+
+            /*Init.GenCode(o,  env, h, target);*/
+
+            o.println(h.tempAcc(target)+".executeMethodByName(\"Object\", "+String.valueOf (env.getMixin("Object").getMethodOffset("Init"))+", new CMagdaObject[0]);");
+
+        }
+
+---
+
+A questo punto rimaneva un problema, nel log precedente ho parlato di come sono andato a disambiguare le chiamate ai metodi e la selezione dei field,
+tuttavia questa feature non era stata implementata per gli IniModules, ma solo per i metodi, questo perchè avevo modificato il PreParser solamente per i
+metodi normali.
+
+---
+
+* Disambiguazione all'interno degli IniModules *
+
+    Quello che voglio ottenere banalmente è poter passare da:
+
+        mixin MyMixin of Object =
+            
+            value: Integer;
+            
+            required MyMixin() initializes ()
+            begin
+   !--->        this.MyMixin.value := 0;		
+                
+                super[];
+            end;
+        end;
+
+    A una scrittura più pulita (in assenza di ambiguità) del tipo
+        
+        mixin MyMixin of Object =
+            
+            value: Integer;
+            
+            required MyMixin() initializes ()
+            begin
+   !--->        this.value := 0;		
+                
+                super[];
+            end;
+        end;
+
+    Visto quello che ho fatto nel log precedente non dovrebbe essere troppo difficile, tuttavia ho un problema, ovvero che i metodi sono unici,
+    non essendo possibile l'overloading in Magda posso identificare i metodi all'interno del mio ProgramContext con una semplice Stringa.
+
+    Tuttavia i metodi di inizializzazione, distinti dal token initialize hanno una sorta di override, infatti possono esserci più IniModules all'interno
+    di un Mixin.
+    Anche se devo ricordarmi che questa forma di override è leggermente limitata dal fatto che non posso avere parametri con lo stesso nome in due
+    IniModule diversi, questo perchè avrei problemi con la ObjectCreation dato che devo specificare il nome dei parametri che voglio inizializzare
+
+    Tornando al problema iniziale, devo trovare un modo per identificare gli IniModules specifici, anche se non posso fare affidamento sul nome,
+    e idealmente vorrei aggiungere gli IniModules all'interno del ProgramContext come se fossero dei metodi normali, così da non dover cambiare troppo
+    il ProgramContext e così da poter riutilizzare le funzioni del Parser che ho fatto in passato, dato che il Body di un IniModule viene trattato dal
+    Parser allo stesso modo del Body di un Metodo qualsiasi.
+
+    Per differenziare i vari IniModules di un Mixin posso andare a guardare i Parametri sotto forma di ArrayList<String> contenente i nomi dei parametri.
+    
+    Quindi ora devo aggiungere gli IniModules come se fossero metodi all'interno del mio ProgramContext, quindi dal ProgramContext passo al MixinContext
+    e voglio poter aggiungere il metodo al mio methodsContext, che ricordiamo essere un:
+
+        private HashMap<String,MethodContext> methodsContext = new HashMap<String,MethodContext>();
+
+    essendo una HashMap che assegna al nome del metodo il suo contesto posso notare subito un problema, i nomi dei moduli di inizializzaizone devono
+    essere unici, ma come posso fare se sono in overloading???
+
+    Ho creato una variabile counter all'interno del MixinContext:
+    
+        private int counter = 0;
+    
+    questo mi permetterà di numerare gli IniModules con il criterio "initialize n", questo mi permetterà di non andare in contrasto con i nomi dei
+    metodi normali, dato che sarebbe un errore sintattico (e quindi impossibile) dichiarare un metodo con uno spazio nel nome.
+
+    Ora il ProgramContext ha tutte le informazioni necessarie, anche se mi manca un ultimo pezzo del puzzle per poter andare avanti, devo poter
+    recuperare le informazioni che mi servono dal Parser, così da poter utilizzare le info contestuali per poter risolvere i problemi di ambiguità
+    all'interno degli IniModules
+
+    Per fare questo ho aggiunto al ProgramContext un metodo costruito in questo modo
+
+        public String getIniModuleName(String mixinName, ArrayList<String> params){
+            return programContext.get(mixinName).getIniModuleName(params);
+        }
+
+    Che andrà a chiamare l'omonimo metodo all'interno del MixinContext, all'interno del MixinContext ho inserito una HashMap che ad un ArrayList<String>
+    (che conterrà i nomi degli argomenti dell'IniModule che voglio selezionare) associa il nome dell'IniModule, quindi all'interno del MixinContext avrò
+
+        private HashMap<ArrayList<String>,String> iniModulesNameSpace = new HashMap<ArrayList<String>,String>();
+    
+        public String getIniModuleName(ArrayList<String> params){
+            return iniModulesNameSpace.get(params);
+        }
+
+    A questo punto dal Parser potrò ricavarmi un ArrayList<String> contente i nomi dei parametri, e potrò interrogare il ProgramContext per avere il nome
+    dell'IniModule, ad esempio "initialize 1", a questo punto per il body del mio IniModule potrò interrogare il ProgramContext ogni volta che voglio,
+    dato che avrò il nome del mixin in cui mi trovo e il nome del "metodo" (IniModule) in cui mi trovo.
+
+    Così facendo posso utilizzare gli stessi metodi contestuali del Parser per le istruzioni contenute nei metodi normali anche per gli IniModules
+
+    A questo punto la definizione del mixin contente un IniModule formato in questo modo:
+
+        mixin MyMixin of Object =
+            
+            value: Integer;
+            
+            required MyMixin() initializes ()
+            begin
+                this.value := 0;		
+                
+                super[];
+            end;
+        end;
+
+    è valida (ovviamente mantendo valide anche le vecchie definizioni)
+
+--
+
+Grazie a questi sviluppi gli IniModules risultano essere più facili da utilizzare e beneficiano delle modifiche al compiler fatte in precedenza.
+Ora il linguaggio è più piacevole da usare perchè gode di un'ergonomia formata meglio.
+
+
+/*----------------------------------------------------------------------------------------------------*/
+
+Log8 30/04/2025 - 01/05/2025
+
+In questi 2 giorni ho apportato 2 modifiche, una definibile strutturale, l'altra è più una questione di pulizia, vediamole entrambe
+
+* Pulizia *
+
+    Ho eliminato le classi anonime dal programma java risultante come output del compiler, l'avevo già fatto in passato rendendo i CMagdaMethod
+    un'interfaccia invece che una classe astratta, ho applicato questa modifica anche al body degli IniMoudles.
+
+    è stato più difficile invece modificare i metodi Overloaded e i Mixin, perchè contenenti variabili, per farlo ho applicato un paradigma un po'
+    strano. Ho infatti aggiunto un parametro che non è altro che una funzione e ho aggiunto un metodo che faccia da setter per questa funzione, questo
+    setter prenderà in argomento una Lambda, chiamando il vecchio metodo che prima avrei ridefinito con la classe anonima andrò ad eseguire la funzione
+    che invece ho settato grazie al setter, questo mi permette di definire le funzioni e aggiungerle senza dover ricorrere a classi anonime.
+    
+    facciamo un esempio di una classe chiamata Operation:
+
+        abstract class Operation{
+            Integer result;
+            
+            public Integer getResult(){
+                return result;
+            }
+
+            public abstract void doOperation(Integer a,Integer b);
+        } 
+
+    per definire un'istanza di Operation che andasse a fare una somma avrei dovuto creare una classe anonima dove sarei andato a definire doOperation
+    con un body del tipo 'result = a + b', questo è cioò che succedeva grosso modo per la definizione dei Mixin e dei metodi in Override.
+
+    Di per se questo non rappresenta un problema, però risulta in un output poco pulito, prima infatti la compilazione di un semplice programma come
+    MagdaTest (che è tra i programmi presenti nella suite di test di Magda) risultata in 110 file .class, utilizzando comandi come tree per dare
+    un'occhiata ai file risultava davvero brutto.
+
+    Implementando un sistema di Lambda Espressioni per gestire i vari componenti del compiler fa si che 1 file .magda = 1 file .class.
+
+    Passando da 110 file a 1 l'output risulta molto più pulito, e non perdo effettivamente nulla per quanto riguarda i tempi di esecuzione dei programmi
+    Magda (perdo 1 decimo di secondo per quanto riguarda la compilazione effettiva dei file .java di output del compiler, che è un basso prezzo da pagare
+    per una riduzione del genere).
+
+    Modifichiamo ora Operation per far capire come ho agiuto esattamente:
+        
+        class Operation{
+            Integer result;
+
+            BiFunction<Integer,Integer,Integer> op;
+            
+            public Integer getResult(){
+                return result;
+            }
+
+            public void setOperation(BiFunction<Integer,Integer,Integer> op){
+                this.op = op;
+            }
+
+            public void doOperation(Integer a,Integer b){
+                result = op.apply(a,b);
+            }
+        } 
+
+    Così facendo al posto di creare una classe anonima dove andrò a ridefinire doOperation potrò semplicemente creare un'istanza di Operation e utilizzare
+    il metodo setOperation con argomento (a,b) -> {return a+b;}.
+
+* Strutturale *
+
+    La modifica strutturale che ho apportato è stata in realtà molto semplice, ho tolto la possibilità di dichiarare istruzioni al di fuori di un
+    Mixin, allora, se avessi fatto solo questo avrei di fatto rotto tutto, perchè come sappiamo per avviare un programma Magda dovevo creare
+    un'istanza di un Mixin 'main' e dovevo invocare un metodo 'main' per far partire il programma.
+
+    Ora invece è necessario per compilare la presenza di un Mixin chiamato MainClass e un metodo all'interno di questo Mixin chiamato mainProgram,
+    Altrimenti riceveremo un errore di compilazione.
+
+    Perciò ricapitolando per far partire un programma Magda sarà necessaria la presenza di un Mixin chiamato MainClass contenente un metodo chiamato
+    mainProgram, questo metodo sarà il punto di ingresso dei programmi Magda!
+
+    Quali sono i vantaggi di questa modifica?
+    In realtà sono principalmente 3:
+    
+    1. Rende il linguaggio più chiaro da utilizzare togliendo si un po' di libertà dalle mani del programmatore, ma definendo una regola più chiara
+       per l'avviamento dei programmi
+
+    2. Mi ha permesso di effettuare una necessaria pulizia all'interno del Parser, infatti in precedenza avevo infatti raddoppiato i metodi del Parser
+       così da poter fornire una versione che utilizzasse il ProgramContext per la disambiguazione dei metodi e delle variabili e una versione
+       priva di ProgramContext per ciò che si trovava al di fuori dei Mixin; adesso invece c'è solo una versione (che utilizza il ProgramContext)
+
+    3. La soluzione precedente non era da considerarsi solida, infatti le istruzioni dichiarate fuori dai Mixin potevano essere dichiarate solo infondo,
+       non all'inizio e non in mezzo ai Mixin, solo alla fine (altrimenti si sarebbero ottenuti errori di Parsing). Queste istruzioni insomma seguivano
+       una regola poco generale, che non si addice ad un linguaggio con regole chiare e ben definite.
+
+/*----------------------------------------------------------------------------------------------------*/
+
+Log9 02/05/2025
+
+Ho fatto un po' di bug fixing realtivo alla modifica strutturale del log di ieri e ho adattato e testato tutti i programmi di esempio/testing presenti
+nella cartella Magda/src, che ovviamente si erano rotti a causa della modifica strutturale apportata.
+
+/*----------------------------------------------------------------------------------------------------*/
+
+Log10 05/05/2025-06/05/2025
+
+Ho reso l'output del compilatore completamente indentato così che sia completamente human readable, lavorando al compiler capita che si verifichi degli
+errori di traduzione, banalmente anche il vecchio bug dei valori assoluti negli IniModules l'ho risolto principalmente guardando l'output del compiler.
+
+Adesso che l'output del compilatore è leggibile questi errori saranno significativamente più facili da risolvere.
+
+Ovviamente sapevo che aggiungere tutti quei tab avrebbe causato un costo a livello di performance sul compilatore, quindi ne ho approfittato per utilizzare
+la classe StringBuilder anzichè String per le concatenazioni di stringhe, in questo modo anche se ho aggiunto un sacco di caratteri e di operazioni di
+concatenazione le performance non ne hanno minimamente risentito.
+
+Non mi ricordo più quando l'ho fatto esattamente ma sono riuscito a rimuovere tutti i warning di compilazione, erano rimasti 2 warning dovuti al fatto che
+javacc purtroppo genera codice contenente dei this-escape all'interno dei file *TokenManager.java, questo warning è facilmente risolvibile mettendo queste
+classi a final, tuttavia non si può istruire il java compiler compiler a farlo, probabilmente bisognerebbe modificare il codice e ricompilare l'intera
+libreria.
+
+Come avevo discusso nel Log2 stavo valutando l'opzione di creare uno script che andasse a modificare il file, alla fine è stato l'approccio che ho preso,
+per fortuna documentandomi sui possibili approcci ho scoperto il comando sed eseguibile tramite bash durante la fase di compilazione del compiler.
+
+Quindi ho aggiunto 2 righe all'interno dello script di building chiamato 'make.sh'
+
+ 
+    sed -i -e '0,/class/s//final class/' ./Magda/Parser/ParserTokenManager.java 
+    sed -i -e '0,/class/s//final class/' ./Magda/PreParser/PreParserTokenManager.java 
+
+Queste due istanze di sed vengono eseguite dopo la generazione del codice java da parte di javacc ma prima della compilazione effettiva fatta con javac.
+
+/*----------------------------------------------------------------------------------------------------*/
+
+Log11 11/05/2025
+
+Ho aggiunto il supporto per Windows del compilatore Magda, traducendo i file bash in file batch eseguibili su Windows con lo stesso effetto.
+
+Poi ho accorpato i file .sh e i file .bat in file .bat poliglotti, e ho testato il tutto su diverse macchine, Linux, MacOS e Windows 10. Funziona tutto.
+
+Tuttavia su Windows rimangono diversi warning di compilazione dovuti al codice generato da JavaCC, ma non ho idea di come risolversi, non mi aspettavo che
+generasse codice diverso per Windows e per macchine Unix-like.
+
+

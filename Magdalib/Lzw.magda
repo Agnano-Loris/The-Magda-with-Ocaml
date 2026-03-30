@@ -1,0 +1,154 @@
+
+mixin Lzw of Object =
+
+  // Compress a list of bytes representing a string to a list of output symbols.
+  new ByteVector compress(uncompressed:ByteVector)
+    res:ByteVector;
+    uncompressedStr:String;
+  begin
+    res := new Vector, ByteVector[ Vector.size := 0 ];
+    uncompressedStr := "";
+    % @SuppressWarnings("unchecked") java.util.Vector<Byte> in = ((java.util.Vector<Byte>)$uncompressed$.internalPointer); %;
+    % String result = ""; %;
+    % Byte b; %;
+    % byte valByte; %;
+    % for(int i=0; i<in.size(); i++) { %;
+    %   b = in.get(i); %;
+    %   valByte = b.byteValue(); %;
+    %   result = result + (char)valByte; %;
+    % } %;
+    % $uncompressedStr$.internalPointer = result; %;
+    return this.Lzw.compressString(uncompressedStr);
+  end;
+
+  // Compress a string to a list of output symbols.
+  new ByteVector compressString(uncompressed:String)
+    res:ByteVector;
+  begin
+    res := new Vector, ByteVector[ Vector.size := 0 ];
+
+    // Build the dictionary (first 128 characters of ascii table).
+    % int dictSize = 128; %;
+    % java.util.Map<String,Integer> dictionary = new java.util.HashMap<String,Integer>(); %;
+    % for (int i = 0; i < 128; i++) { %;
+    %  dictionary.put("" + (char)i, i); %;
+    % } %;
+
+    // Act compression
+    % String uncompressed = ((String)$uncompressed$.internalPointer); %;
+    % String w = ""; %;
+    % char[] uncompressedChars = uncompressed.toCharArray(); %;
+    % java.util.Vector<Byte> result = new java.util.Vector<Byte>(0); %;
+    % char c; %;
+    % String wc; %;
+    % int j=0; %;
+    % int valInt; %;
+    % byte valByte; %;
+    % for (int i=0; i<uncompressedChars.length; i++) { %;
+    %   c = uncompressedChars[i]; %;
+    %   wc = w + c; %;
+    %   if (dictionary.containsKey(wc)) { %;
+    %     w = wc; %;
+    %   } else { %;
+    %     valInt = dictionary.get(w); %;
+    %     if( valInt < 128 ) { %;
+    %       valByte = (byte)valInt; %;
+    %     } else { %;
+    %       valInt = valInt - 127; %;
+    %       valInt = valInt * (-1); %;
+    %       valByte = (byte)valInt; %;
+    %     } %;
+    %     Byte b = (Byte) valByte ; %;
+    %     result.add(j, b); %;
+    %     j++; %;
+    %     dictionary.put(wc, dictSize++); %;
+    %     w = "" + c; %;
+    %   } %;
+    % } %;
+    % if (!w.equals("")) { %;
+    %   valInt = dictionary.get(w); %;
+    %   if( valInt < 128 ) { %;
+    %     valByte = (byte)valInt; %;
+    %   } else { %;
+    %     valInt = valInt - 127; %;
+    %     valInt = valInt * (-1); %;
+    %     valByte = (byte)valInt; %;
+    %   } %;
+    %   Byte b = (Byte) valByte ; %;
+    %   result.add(j, b); %;
+    % } %;
+    % $res$.internalPointer = result; %;
+
+    return res;
+  end;
+
+  // Decompress a list of symbols to a list of bytes representing a string.
+  new ByteVector decompress(compressed:ByteVector)
+    res:ByteVector;
+    uncompressedStr:String;
+  begin
+    res := new Vector, ByteVector[ Vector.size := 0 ];
+    uncompressedStr := this.Lzw.decompressString(compressed);
+    % String in = ((String)$uncompressedStr$.internalPointer); %;
+    % byte[] inAsBytes = in.getBytes(); %;
+    % java.util.Vector<Byte> result = new java.util.Vector<Byte>(0); %;
+    % Byte b; %;
+    % for(int i=0; i<inAsBytes.length; i++) { %;
+    %   b = (Byte)inAsBytes[i]; %;
+    %   result.add(i, b); %;
+    % } %;
+    % $res$.internalPointer = result; %;
+    return res;
+  end;
+
+  // Decompress a list of symbols to a string.
+  new String decompressString(compressed:ByteVector)
+    res:String;
+  begin
+    res := "";
+
+    // Build the dictionary.
+    % int dictSize = 128; %;
+    % java.util.Map<Integer,String> dictionary = new java.util.HashMap<Integer,String>(); %;
+    % for (int i = 0; i < 128; i++) { %;
+    %   dictionary.put(i, "" + (char)i); %;
+    % } %;
+
+    // Act decompression
+    % @SuppressWarnings("unchecked") java.util.Vector<Byte> compressed = ((java.util.Vector<Byte>)$compressed$.internalPointer); %;
+    % int valInt = 0; %;
+    % byte valByte = 0; %;
+    % String w = ""; %;
+    % String result = ""; %;
+    % String entry = ""; %;
+    % int listSize = compressed.size(); %;
+    % for (int i=0; i<listSize; i++) { %;
+    %   Byte b = compressed.get(i); %;
+    %   valByte = b.byteValue(); %;
+    %   if( valByte < 0 ) { %;
+    %     valInt = (int) valByte; %;
+    %     valInt = valInt * (-1); %;
+    %     valInt = valInt + 127; %;
+    %   } else { %;
+    %     valInt = (int) valByte; %;
+    %   } %;
+    %   if(i==0) {                    // init step %;
+    %     w = "" + (char)valByte; %;
+    %     result = w; %;
+    %   } else {                      // "n" step %;
+    %     if (dictionary.containsKey(valInt)) { %;
+    %       entry = dictionary.get(valInt); %;
+    %     } else if (valInt == dictSize) { %;
+    %       entry = w + w.charAt(0); %;
+    %     } %;
+    %     result += entry; %;
+    %     dictionary.put(dictSize++, w + entry.charAt(0)); %;
+    %     w = entry; %;
+    %   } %;
+    % } %;
+    % $res$.internalPointer = result; %;
+
+    return res;
+  end;
+
+end;

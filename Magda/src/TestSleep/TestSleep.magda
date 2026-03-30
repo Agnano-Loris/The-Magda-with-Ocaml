@@ -1,0 +1,25 @@
+include "Magdalib/library.magda";
+
+// Main program
+mixin MainClass of Object =
+
+  new Object mainProgram()
+    s:Sleep;
+  begin
+
+  "\r\n\r\n*** TestSleep Program ***\r\n\r\n".String.print();
+
+  "Sleeping for 10 seconds...\r\n".String.print();
+  s := new Sleep[];
+  s.Sleep.DoSleep(10000);
+
+  "Now sleeping 5 seconds...\r\n".String.print();
+  s.Sleep.DoSleep(5000);
+
+  "Now sleeping 1 second...\r\n".String.print();
+  s.Sleep.DoSleep(1000);
+
+  "Test DONE.\r\n\r\n".String.print();
+
+  end;
+end;

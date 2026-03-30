@@ -1,0 +1,125 @@
+
+/*
+  Rules for type id hieararchy
+    Simple  type id function:
+      id = 0x11
+
+    Encrypted type id function:
+      id = ( (PrevId - 0x10) * 2 ) + PrevId       |   where PrevId = 0x11 (simple id)
+
+    Compressed type id function:
+      id = ( (PrevId - 0x10) * 3 ) + PrevId + 1   |   where PrevId = 0x11 (simple id)
+
+    Encrypted + Compressed type
+      id = Compressed_rule(PrevId)                |   where PrevId = 0x13 (encrypted id)
+
+    Compressed + Encrypted type
+      id = Encrypted_rule(PrevId)                 |   where PrevId = 0x15 (compressed id)
+
+  Examples:
+    11 - 10 = 1 * 2 + 11 = 13         -> Encrypted type
+    11 - 10 = 1 * 3 + 11 + 1 = 15     -> Compressed type
+    13 - 10 = 3 * 3 + 13 + 1 = 1D     -> Encrypted + Compressed type
+    15 - 10 = 5 * 2 + 15 = 1F         -> Compressed + Encrypted type
+*/
+
+
+
+mixin DemoProto of Object =
+
+  // This method checks if the passed byte value is (or not) a valid protocol START BYTE
+  new Boolean CheckStartByte(start:Byte)
+    res:Boolean;
+  begin
+    res := start.Object.equals(0x01);                   // START BYTE = 0x01
+    return res;
+  end;
+
+  // This method checks if the passed byte value is (or not) a valid protocol START BYTE
+  new Boolean CheckStopByte(stop:Byte)
+    res:Boolean;
+  begin
+    res := stop.Object.equals(0x10);                    // STOP BYTE = 0x10
+    return res;
+  end;
+
+  // This method gets an encoded buffer end returns only
+  // the byte value of protocol type.
+  new Byte GetProtoTypeByte(inBuf:ByteVector)
+    byteValue:Byte;
+    start:Integer;
+    res:Byte;
+  begin
+    // Search START_BYTE; this may not be in the first position of inBuf
+    start := 0;
+    byteValue := inBuf.ByteVector.get(start);
+    while ( this.DemoProto.CheckStartByte(byteValue).Object.equals(false) )
+      start := start + 1;
+      byteValue := inBuf.ByteVector.get(start);
+    end;
+    res := inBuf.ByteVector.get(start + 1);
+    return res;
+  end;
+
+  // This method takes a payload and returns an encoded buffer
+  new ByteVector Encode(inBuf:ByteVector)
+    outBuf:ByteVector;
+    lenIn:Integer;
+    lenOut:Integer;
+    i:Integer;
+
+  begin
+    lenIn := inBuf.Vector.getLength();
+    lenOut := lenIn + 3;                                // 3 more bytes of overhead: 1 start byte, 1 "protocol type" byte, 1 stop byte
+
+    outBuf := new Vector, ByteVector[ Vector.size := lenOut ];
+
+    outBuf.Vector.set(0, 0x01);                         // START BYTE = 0x01
+    outBuf.Vector.set(1, 0x11);                         // TYPE BYTE = 0x11 -> SIMPLE PROTOCOL
+
+    i := 0;
+    while(i < lenIn)
+      outBuf.Vector.set(i+2, inBuf.ByteVector.get(i));  // PAYLOAD BYTES
+      i := i + 1;
+    end;
+
+    outBuf.Vector.set(lenOut-1, 0x10);                  // STOP BYTE = 0x10
+
+    return outBuf;
+  end;
+
+  // This method takes an encoded buffer and returns the payload
+  new ByteVector Decode(inBuf:ByteVector)
+    outBuf:ByteVector;
+    byteValue:Byte;
+    lenIn:Integer;
+    lenOut:Integer;
+    start:Integer;
+    i:Integer;
+
+  begin
+    lenIn := inBuf.Vector.getLength();
+
+    // Search START_BYTE; this may not be in the first position of inBuf
+    start := 0;
+    byteValue := inBuf.ByteVector.get(start);
+    while ( this.DemoProto.CheckStartByte(byteValue).Object.equals(false) )
+      start := start + 1;
+      byteValue := inBuf.ByteVector.get(start);
+    end;
+    lenOut := lenIn - 3 - start;   // (3+start) less bytes of overhead: 1 start byte, 1 "protocol type" byte, 1 stop byte
+
+    outBuf := new Vector, ByteVector[ Vector.size := lenOut ];
+
+    i := start + 2;
+    while(i < lenIn)
+      outBuf.Vector.set(i-2-start, inBuf.ByteVector.get(i));  // PAYLOAD BYTES
+      i := i + 1;
+    end;
+
+    return outBuf;
+  end;
+
+end;
+
+

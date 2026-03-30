@@ -1,0 +1,29 @@
+include "Magdalib/library.magda";
+include "Mixinlib/mixinHelloWorld.magda";   // the mixin is included by an external file
+
+mixin HelloWorldExt1 of HelloWorld =
+  new String getMessageExt1 ()              // The mixin HelloWorld is extended with the new method getMessageExt1
+  begin
+    return "\r\nHello from Magda Extension1 world!\r\n";
+  end;
+end;
+
+mixin MainClass of Object =
+  new Object mainProgram()
+    msg:HelloWorldExt1;
+  begin
+
+    // msg is declared as a mixin type HelloWorldExt1;
+    // In order to allocate a new instance I must declare the complete list of ancestors of HelloWorldExt1.
+    // Is very important the declaration order: this will affect the mixins initialization order.
+    msg := new HelloWorld, HelloWorldExt1[];              // Right declaration
+//    msg := new HelloWorldExt1, HelloWorld[];            // Wrong declaration because HelloWorld -> HelloWorldExt1
+
+    msg.HelloWorld.getMessage().String.print();
+
+    msg.HelloWorldExt1.getMessageExt1().String.print();   // Right call
+//    msg.HelloWorld.getMessageExt1().String.print();     // Wrong call bacause getMessageExt1 is declared at the firt time inside HelloWorldExt1 and not inside HelloWorld
+
+  end;
+end;
+

@@ -1,0 +1,242 @@
+
+/*
+  Reasons:
+  - The main limitation of standard languages approach is that each time a programmer
+    wants to refer to an initialization protocol of a class, as an instance to create
+    a new one, or to define a subclass of an already exists, it must define or refer
+    explicitly to the entire list of parameters or, in case of inheritance, sometimes
+    to repeat the entire list of constructors.
+    So the number of constructors is exponential in the number of extensions of a given
+    library.
+  - If a designer decides that some parameters should be optional, or must be in xor
+    relationship (with given a set of parameters, others should not be provided), then
+    he must declare additional constructors that accept a fewer list of parameters than
+    the full one.
+  - Very often, a designer cannot write all needed constructors. This is the case in which
+    he should declare, as an instance, two constructors that have the same number and
+    compatible types of parameters; this choice is completely legitimate because the two
+    constructors could represent two different subsets of full constructor parameters.
+*/
+
+// The hierarchy of dependencies, in this example:
+//
+//               MixinA
+//              /      \
+//     MixinBLeft       MixinBRight
+//              \      /
+//               MixinC
+
+
+include "Magdalib/library.magda";
+
+mixin MixinA of Object =
+  val_A_1:Integer;
+  val_A_2:Integer;
+
+  required MixinA(a1:Integer; a2:Integer) initializes ()
+  begin
+    // Language workaround; using a dummy init method
+    this.MixinA.InitMixinA(a1, a2);
+    // this line is required to call the father init method in this execution time
+    super[];
+  end;
+
+  new void InitMixinA(a1:Integer; a2:Integer)
+  begin
+    " MixinA req init called \r\n".String.print();
+    this.MixinA.val_A_1 := a1;
+    this.MixinA.val_A_2 := a2;
+  end;
+
+  new Integer getA1()
+  begin
+    return this.MixinA.val_A_1;
+  end;
+
+  new Integer getA2()
+  begin
+    return this.MixinA.val_A_2;
+  end;
+
+end;
+
+mixin MixinBLeft of MixinA =
+  val_BLeft_1:Integer;
+  val_BLeft_2:Integer;
+
+  required MixinBLeft(bl1:Integer) initializes()
+  begin
+    // Language workaround; using a dummy init method
+    this.MixinBLeft.InitMixinBLeft1(bl1);
+    super[];
+  end;
+
+  optional MixinBLeft(bl2:Integer) initializes(MixinBLeft.bl1)
+    forBl1:Integer;
+  begin
+    // Language workaround; using a dummy init method
+    forBl1 := this.MixinBLeft.InitMixinBLeft2(bl2);
+    super[MixinBLeft.bl1 := forBl1];
+  end;
+
+  new void InitMixinBLeft1(bl1:Integer)
+  begin
+    " MixinBLeft1 req init called \r\n".String.print();
+    this.MixinBLeft.val_BLeft_1 := bl1;
+  end;
+
+  new Integer InitMixinBLeft2(bl2:Integer)
+    forBl1:Integer;
+  begin
+    " MixinBLeft2 req init called \r\n".String.print();
+    forBl1 := 30;
+    this.MixinBLeft.val_BLeft_2 := bl2;
+    return forBl1;
+  end;
+
+  new Integer getBL1()
+  begin
+    return this.MixinBLeft.val_BLeft_1;
+  end;
+
+  new Integer getBL2()
+  begin
+    return this.MixinBLeft.val_BLeft_2;
+  end;
+
+end;
+
+mixin MixinBRight of MixinA =
+  val_BRight:Integer;
+
+  required MixinBRight(br:Integer) initializes()
+  begin
+    // Language workaround; using a dummy init method
+    this.MixinBRight.InitMixinBRight(br);
+    super[];
+  end;
+
+  new void InitMixinBRight(br:Integer)
+  begin
+    " MixinBRight req init called \r\n".String.print();
+    this.MixinBRight.val_BRight := br;
+  end;
+
+  new Integer getBR()
+  begin
+    return this.MixinBRight.val_BRight;
+  end;
+
+end;
+
+mixin MixinC of MixinA, MixinBLeft, MixinBRight =
+  val_C:Integer;
+
+  required MixinC(c:Integer) initializes()
+  begin
+    // Language workaround; using a dummy init method
+    this.MixinC.InitMixinC(c);
+    super[];
+  end;
+
+  new void InitMixinC(c:Integer)
+  begin
+    " MixinC req init called \r\n".String.print();
+    this.MixinC.val_C := c;
+  end;
+
+  new Integer getC()
+  begin
+    return this.MixinC.val_C;
+  end;
+
+end;
+
+
+// Main program
+mixin MainClass of Object =
+
+  new Object mainProgram()
+    mA:MixinA;
+    mBl:MixinBLeft;
+    mBl2:MixinBLeft;
+    mBr:MixinBRight;
+    mC:MixinC;
+  begin
+
+    "\r\nMIPTest\r\n\r\n".String.print();
+
+    "\r\nnew of MixinA starts:\r\n".String.print();
+    mA := new MixinA[ MixinA.a1 := 1, MixinA.a2 := 2 ];
+
+    "\r\nnew of MixinBLeft starts:\r\n".String.print();
+    mBl := new MixinA, MixinBLeft[ MixinA.a1 := 1, MixinA.a2 := 2, MixinBLeft.bl1 := 3 ];
+
+    "\r\nnew of MixinBLeft 2 starts:\r\n".String.print();
+    mBl2 := new MixinA, MixinBLeft[ MixinA.a1 := 10, MixinA.a2 := 20, MixinBLeft.bl2 := 40 ];
+
+    "\r\nnew of MixinBRight starts:\r\n".String.print();
+    mBr := new MixinA, MixinBRight[ MixinA.a1 := 100, MixinA.a2 := 200, MixinBRight.br := 300 ];
+
+    "\r\nnew of MixinC starts:\r\n".String.print();
+    mC := new MixinA, MixinBLeft, MixinBRight, MixinC[ MixinA.a1 := 55, MixinA.a2 := 66, MixinBLeft.bl2 := 77, MixinBRight.br := 88, MixinC.c := 99 ];
+
+    "\r\n".String.print();
+
+    "mA values: ".String.print();
+    mA.MixinA.getA1().Integer.print();
+    ", ".String.print();
+    mA.MixinA.getA2().Integer.print();
+    "\r\n".String.print();
+
+    "mBl values: ".String.print();
+    mBl.MixinA.getA1().Integer.print();
+    ", ".String.print();
+    mBl.MixinA.getA2().Integer.print();
+    ", ".String.print();
+    mBl.MixinBLeft.getBL1().Integer.print();
+    ", ".String.print();
+    "\r\n".String.print();
+
+    "mBl2 values: ".String.print();
+    mBl2.MixinA.getA1().Integer.print();
+    ", ".String.print();
+    mBl2.MixinA.getA2().Integer.print();
+    ", ".String.print();
+    mBl2.MixinBLeft.getBL1().Integer.print();
+    ", ".String.print();
+    mBl2.MixinBLeft.getBL2().Integer.print();
+    ", ".String.print();
+    "\r\n".String.print();
+
+    "mBr values: ".String.print();
+    mBr.MixinA.getA1().Integer.print();
+    ", ".String.print();
+    mBr.MixinA.getA2().Integer.print();
+    ", ".String.print();
+    mBr.MixinBRight.getBR().Integer.print();
+    ", ".String.print();
+    "\r\n".String.print();
+
+    "mC values: ".String.print();
+    mC.MixinA.getA1().Integer.print();
+    ", ".String.print();
+    mC.MixinA.getA2().Integer.print();
+    ", ".String.print();
+    mC.MixinBLeft.getBL1().Integer.print();
+    ", ".String.print();
+    mC.MixinBLeft.getBL2().Integer.print();
+    ", ".String.print();
+    mC.MixinBRight.getBR().Integer.print();
+    ", ".String.print();
+    mC.MixinC.getC().Integer.print();
+    ", ".String.print();
+    "\r\n".String.print();
+
+    "\r\n".String.print();
+
+  end;
+
+end;
+
+//(new MainClass[]).MainClass.mainProgram();

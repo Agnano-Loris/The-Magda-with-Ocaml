@@ -1,0 +1,72 @@
+include "Magdalib/library.magda";
+
+// Base mixin interface descpription where Talk take a polimorphic parameter.
+// The sintax '<t <= Speaker>' say to the compiler that the type 't' must be
+// an extention of the mixin 'Speaker'; in other words defines the ancestor
+// of any possible type of mixin that can be passed to the method 'Talk'.
+mixin Speaker <t <= Speaker> of Object =
+
+	abstract void Talk(other:t);
+	abstract String GiveMeYourKind();
+
+end;
+
+
+// This is a mixin specialization of 'Speaker' in which is used the sintax
+// 'where Speaker.t := (Speaker, Animal)' to specify that the method 'Talk'
+// can accept a parameter type mixin 'Animal' (that's also a specialization
+// of 'Speaker' obviously).
+mixin Human of Speaker, where Speaker.t := (Speaker, Animal) =
+
+  override void Speaker.Talk(other:Animal)
+  	msg:String;
+  begin
+  	msg := "Hi ".String.add(other.Speaker.GiveMeYourKind()); 
+  	msg := msg + ", I am a Human Speaker\n"; 
+  	msg.String.print();
+  end;
+
+	override String Speaker.GiveMeYourKind()
+  begin
+  	return ("Human");
+  end;
+
+end;
+
+
+// Has the 'Human' mixin this defines the 'Animal' behaviour
+mixin Animal of Speaker, where Speaker.t := (Speaker, Human) =
+
+  override void Speaker.Talk(other:Human)
+  	msg:String;
+  begin
+  	msg := "Hi ".String.add(other.Speaker.GiveMeYourKind()); 
+  	msg := msg + ", I am an Animal Speaker\n"; 
+  	msg.String.print();
+  end;
+
+	override String Speaker.GiveMeYourKind()
+  begin
+  	return ("Animal");
+  end;
+
+end;
+
+
+
+mixin MainClass of Object = 
+  
+  new Object mainProgram()
+  	act1:Human;									// Actor 1 is a Human
+  	act2:Animal;								// Actor 2 is an Animal
+  begin 
+		
+		act1 := new Speaker, Human[];
+		act2 := new Speaker, Animal[];
+
+		act1.Speaker.Talk(act2);		// Human talks to Animal and...
+		act2.Speaker.Talk(act1);    // ... Animal talks to Human.
+		
+  end;
+
+end;

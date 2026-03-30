@@ -1,0 +1,33 @@
+include "Magdalib/library.magda";
+include "Mixinlib/mixinHelloWorld.magda";   // the mixin is included by an external file
+
+mixin HelloWorldExt1 of HelloWorld =
+  // I want to overwrite the getMessage method of ancestor mixin HelloWorld;
+  // Magda language needs to specify the complete hierarchy of overwritten method to avoid ambiguity.
+  override String HelloWorld.getMessage ()
+  begin
+    return "\r\nHello from Magda Extension1 world!\r\n";
+  end;
+end;
+
+mixin MainClass of Object =
+  new Object mainProgram()
+    msg:HelloWorldExt1;
+  begin
+
+    // msg is declared as a mixin type HelloWorldExt1;
+    // In order to allocate a new instance I must declare the complete list of ancestors of HelloWorldExt1.
+    // Is very important the declaration order: this will affect the mixins initialization order.
+    msg := new HelloWorld, HelloWorldExt1[];            // Right declaration
+//    msg := new HelloWorldExt1, HelloWorld[];          // Wrong declaration because HelloWorld -> HelloWorldExt1
+
+    msg.HelloWorld.getMessage().String.print();         // Right call
+    // Wrong call because getMessage() has been overrided by HelloWorldExt1 but Magda language
+    // requires to use in the call the name of the mixin in which the method was created for the
+    // first time (with "new" literal).
+    // Anyway the executed code is the content of the overrided method of HelloWorldExt1.
+//    msg.HelloWorldExt1.getMessage().String.print();
+
+  end;
+end;
+

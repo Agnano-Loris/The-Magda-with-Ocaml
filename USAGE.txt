@@ -1,0 +1,105 @@
+
+Last update on: 12/05/2025
+
+
+-----------------------------------------------------------------------------
+
+Copyright (C) 2011 Jarek Kusmierek, Mauro Mulatero, Marco Naddeo, Pietro Cavicchioli
+  Licensed to to the public under the Academic Free License version 3.0
+  For further information see http://sourceforge.net/projects/magdalanguage/
+
+-----------------------------------------------------------------------------
+
+
+No installations are needed. You can just clone this repository, install the dependencies
+and you can start tinkering with the language by following this file instructions.
+
+This Magda language prototype uses Java classes included inside this "mtj"
+package and no specific configurations for Magda are needed, you will oly need the 
+following dependencies:
+
+A JDK for Java 23 (or later, Java is backwards compatible) so that you can use 'javac' to compile
+    - It can be istalled with the oracle installer that you can find here: https://www.oracle.com/java/technologies/javase/jdk23-archive-downloads.html
+    - Or with your package manager of choice if the package is available
+
+And JavaCC 7.0.12 or later
+    - It can be installed by following the official instructions here: https://javacc.github.io/javacc/
+    - Or with your package manager of choice if the package is available
+
+
+This Magda milestone is built and checked on a Linux based machine (Debian 12).
+But it has also been tested on a MacBook air M1 with macOS 15 Sequoia and on a
+Windows 10 machine.
+
+On Windows 10 there may be a few warning while building the compiler, they are due
+to the javacc generated code.
+
+-----------------------------------------------------------------------------
+
+Building or cleaning the project:
+
+To build the project type:
+    Windows:
+        .\make.bat
+
+    Linux/macOS:
+        bash make.bat
+
+To remove all the compiled code
+    Windows:
+        .\clean.bat
+
+    Linux/macOS:
+        bash clean.bat
+
+
+-----------------------------------------------------------------------------
+
+All sample user programs are present (and must be) in the path ./Magda/src/...
+
+To compile a program, from command prompt, type:
+    Windows
+        .\compile.bat ProgramName
+    
+    Linux/macOS
+        bash compile.bat ProgramName 
+
+Note: ProgramName without extension
+
+Example: to compile the program MagdaTest.magda in the main directory type:
+    Windows
+        .\compile.bat MagdaTest 
+    
+    Linux/macOS
+        bash compile.bat MagdaTest 
+  
+To execute a program, from command prompt, type: 
+    Windows
+        .\execute.bat ProgramName 
+    
+    Linux/macOS
+        bash execute.bat ProgramName 
+
+Note: ProgramName without extension
+
+Example: to execute the program MagdaTest.magda in the main directory type:
+    Windows
+        .\execute.bat MagdaTest 
+    
+    Linux/macOS
+        bash execute.bat MagdaTest 
+
+
+-------
+
+NOTES: Any new program must be created in a folder with the same name of the
+       Magda program that contains the 'main' and must be placed inside the
+       path: ./Magda/src/...
+
+       With 'main' we intend a method called 'mainProgram' contained in a Mixin
+       called 'MainClass', this method can't have any parameters!
+
+       The program folder will contain a sub-folder named 'obj', it will be created
+       (if not already present), and it will contain the output of the Magda Compiler
+
+       All sample user program are present (and must be) in the path ./Magda/src/...

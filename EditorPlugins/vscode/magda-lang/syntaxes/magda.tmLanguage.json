@@ -1,0 +1,97 @@
+{
+	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+	"name": "Magda",
+	"patterns": [
+		{
+			"include": "#keywords"
+		},
+		{
+			"include": "#strings"
+		},
+		{
+			"include": "#comment"
+		},
+		{
+			"include": "#constant"
+		},
+		{
+			"include": "#entity"
+		}
+	],
+	"repository": {
+		"keywords": {
+			"patterns": [
+				{
+					"name": "keyword.control.magda",
+					"match": "\\b(if|else|while|return|mixin|of|let|where|required|optional|initializes)\\b"
+				}
+			]
+		},
+		"strings": {
+			"name": "string.quoted.double.magda",
+			"begin": "\"",
+			"end": "\"",
+			"patterns": [
+				{
+					"name": "constant.character.escape.magda",
+					"match": "\\\\."
+				}
+			]
+		},
+		"comment": {
+			"patterns" : [
+				{
+					"name": "comment.line.magda",
+      				"begin": "//",
+      				"end": "$"
+				},
+				{
+					"begin": "/\\*",
+					"beginCaptures": {
+						"0": {
+							"name": "punctuation.definition.comment.begin.magda"
+						}
+					},
+					"end": "\\*/",
+					"endCaptures": {
+						"0": {
+							"name": "punctuation.definition.comment.end.magda"
+						}
+					},
+					"name": "comment.block.magda"
+				}
+			]
+      		
+    	},
+		"constant": {
+			"patterns": [
+				{
+					"match": "\\b((0(x|X)[0-9a-fA-F]*)|(0(b|B)[01]*)|(([0-9]+\\.?[0-9]*)|(\\.[0-9]+))((e|E)(\\+|-)?[0-9]+)?)(L|l|UL|ul|u|U|F|f|ll|LL|ull|ULL)?\\b",
+					"name": "constant.numeric.magda"
+				},
+				{
+					"match": "\\b(true|false|void|null)\\b",
+					"name": "constant.language.magda"
+				}
+			]
+		},
+		"entity":{
+			"patterns": [
+				{
+					"match": "\\b(new|abstract|override)\\b",
+					"name": "entity.other.inherited-class.magda"
+				},
+				{
+					"match": "\\b(begin|end|include)\\b",
+					"name": "constant.language"
+				},
+				{
+					"match": "\\b(this|super)\\b",
+					"name": "keyword.operator"
+				}			
+			]
+		}
+	},
+	"scopeName": "source.magda"
+	
+}

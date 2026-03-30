@@ -1,0 +1,25 @@
+
+mixin Object of void =
+  new void Init()
+  begin
+    return null;
+  end;
+
+  new Boolean equals(other:Object)
+    res:Boolean;
+  begin
+    res := new Boolean [];
+    % $res$.internalPointer = (aSelf == $other$); %;
+    return res;
+  end;
+
+  new Boolean neq(other:Object)
+    res:Boolean;
+  begin
+    res := new Boolean [];
+    % $res$.internalPointer = (aSelf != $other$); %;
+    return res;
+  end;
+
+end;
+

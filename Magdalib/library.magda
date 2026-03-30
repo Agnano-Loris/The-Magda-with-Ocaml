@@ -1,0 +1,20 @@
+include "Magdalib/Object.magda";
+include "Magdalib/Comparable.magda";
+include "Magdalib/Boolean.magda";
+include "Magdalib/Byte.magda";
+include "Magdalib/Integer.magda";
+include "Magdalib/Float.magda";
+include "Magdalib/String.magda";
+include "Magdalib/Vector.magda";
+include "Magdalib/BooleanVector.magda";
+include "Magdalib/ByteVector.magda";
+include "Magdalib/IntegerVector.magda";
+include "Magdalib/FloatVector.magda";
+include "Magdalib/StringVector.magda";
+include "Magdalib/UserInput.magda";
+include "Magdalib/Sleep.magda";
+include "Magdalib/ServerSocket.magda";
+include "Magdalib/Socket.magda";
+include "Magdalib/Lzw.magda";
+
+

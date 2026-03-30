@@ -1,0 +1,32 @@
+PLUGINS
+
+    In this folder we have 2 very simple plugins that can be used in Vim or VsCode to enable
+    a basic syntax highlighting for the Magda programming language. I will briefly cover the
+    installation, it will be very easy!
+
+VsCode:
+
+    to enable this simple plugin you will have to copy the folder magda-lang contained in
+    the vscode folder present in this directory in the extensions folder of the VsCode
+    editor.
+    Here are the locations of this folder in Windows, macOS and Linux
+
+        Windows: 
+            %USERPROFILE%\.vscode\extensions\
+        macOS: 
+            ~/.vscode/extensions/
+        Linux: 
+            ~/.vscode/extensions/
+
+Vim:
+    
+    to enable syntax highlighting in vim for the magda language you will have to copy the
+    two folders in the vim folder, so ftdetect and syntax in your vim configuration
+    directory, which on a Linux system will be located at:
+ 
+        ~/.vim
+
+    It should be in the same location on macOS as well, I don't really know about windows
+    but it's not common to see vim installed on windows.
+    If you already have the ftdetect and the syntax directory in your vim configuration
+    you can simply copy their contents into your directories with the same name. 

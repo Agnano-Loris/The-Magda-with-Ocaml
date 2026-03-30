@@ -1,0 +1,133 @@
+// WARNING: It's based on Java Byte class and it's a 7bit signed byte range.
+
+let FullByte = Comparable, Byte, where Comparable.t := (Comparable, Byte);
+
+mixin Byte of Comparable, where  Comparable.t := (Comparable, Byte) =
+
+  new Byte or(other:Byte)
+    res:Byte;
+  begin
+    res := new FullByte [];
+    % byte thisVal = ((Byte)aSelf.internalPointer).byteValue(); %;
+    % byte otherVal = ((Byte)$other$.internalPointer).byteValue(); %;
+    % byte resultingVal = (byte) (thisVal | otherVal); %;
+    % Byte result = (Byte)resultingVal; %;
+    % $res$.internalPointer = result; %;
+    return res;
+  end;
+
+  new Byte and(other:Byte)
+    res:Byte;
+  begin
+    res := new FullByte [];
+    % byte thisVal = ((Byte)aSelf.internalPointer).byteValue(); %;
+    % byte otherVal = ((Byte)$other$.internalPointer).byteValue(); %;
+    % byte resultingVal = (byte) (thisVal & otherVal); %;
+    % Byte result = (Byte)resultingVal; %;
+    % $res$.internalPointer = result; %;
+    return res;
+  end;
+
+  new Byte add(other:Byte)
+    res:Byte;
+  begin
+    res := new FullByte [];
+    % byte thisVal = ((Byte)aSelf.internalPointer).byteValue(); %;
+    % byte otherVal = ((Byte)$other$.internalPointer).byteValue(); %;
+    % byte resultingVal = (byte) (thisVal + otherVal); %;
+    % Byte result = (Byte)resultingVal; %;
+    % $res$.internalPointer = result; %;
+    return res;
+  end;
+
+  new Byte sub(other:Byte)
+    res:Byte;
+  begin
+    res := new FullByte [];
+    % byte thisVal = ((Byte)aSelf.internalPointer).byteValue(); %;
+    % byte otherVal = ((Byte)$other$.internalPointer).byteValue(); %;
+    % byte resultingVal = (byte) (thisVal - otherVal); %;
+    % Byte result = (Byte)resultingVal; %;
+    % $res$.internalPointer = result; %;
+    return res;
+  end;
+
+  new Byte multiply(other:Byte)
+    res:Byte;
+  begin
+    res := new FullByte [];
+    % byte thisVal = ((Byte)aSelf.internalPointer).byteValue(); %;
+    % byte otherVal = ((Byte)$other$.internalPointer).byteValue(); %;
+    % byte resultingVal = (byte) (thisVal * otherVal); %;
+    % Byte result = (Byte)resultingVal; %;
+    % $res$.internalPointer = result; %;
+    return res;
+  end;
+
+  new Byte divide(other:Byte)
+    res:Byte;
+  begin
+    res := new FullByte [];
+    % byte thisVal = ((Byte)aSelf.internalPointer).byteValue(); %;
+    % byte otherVal = ((Byte)$other$.internalPointer).byteValue(); %;
+    % byte resultingVal = (byte) (thisVal / otherVal); %;
+    % Byte result = (Byte)resultingVal; %;
+    % $res$.internalPointer = result; %;
+    return res;
+  end;
+
+  new Object print()
+  begin
+    % java.lang.Integer decValue = Integer.valueOf(((Byte)aSelf.internalPointer).toString(),10) ; %;
+    % if( decValue >= 0 ) { %;
+    %   System.out.print( java.lang.Integer.toHexString( decValue.intValue() ) ); %;
+    % } else { %;
+    %   String tot = java.lang.Integer.toHexString( decValue.intValue() ); %;
+    %   System.out.print( tot.substring(6) ); %;
+    % } %;
+    return null;
+  end;
+
+  new Object printChar()
+  begin
+    % byte b = ((Byte)aSelf.internalPointer).byteValue(); %;
+    % System.out.print( new String(new byte[] {b}) ); %;
+    return null;
+  end;
+
+  override Boolean Comparable.less(other:Byte)
+    res:Boolean;
+  begin
+    res := new Boolean[];
+    % int result = ((Byte)aSelf.internalPointer).compareTo((Byte)$other$.internalPointer); %;
+    % if (result < 0) $res$.internalPointer = (Boolean)true; else $res$.internalPointer = (Boolean)false; %;
+    return res;
+  end;
+
+  override Boolean Comparable.leq(other:Byte)
+    res:Boolean;
+  begin
+    res := new Boolean[];
+    % int result = ((Byte)aSelf.internalPointer).compareTo((Byte)$other$.internalPointer); %;
+    % if (result <= 0) $res$.internalPointer = (Boolean)true; else $res$.internalPointer = (Boolean)false; %;
+    return res;
+  end;
+
+  override Boolean Object.equals(other:Object)
+    res:Boolean;
+  begin
+    res := super(other);
+    % $res$.internalPointer = (aSelf.internalPointer.equals($other$.internalPointer)); %;
+    return res;
+  end;
+
+  override Boolean Object.neq(other:Object)
+    res:Boolean;
+  begin
+    res := new Boolean[];
+    % if(aSelf.internalPointer.equals($other$.internalPointer) == false) $res$.internalPointer = (Boolean)true; else $res$.internalPointer = (Boolean)false; %;
+    return res;
+  end;
+
+end;
+

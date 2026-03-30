@@ -1,0 +1,24 @@
+mixin UserInput of Object =
+
+  new Integer GetInt ()
+    res:Integer;
+  begin
+    res := new FullInteger [];
+    % java.util.Scanner sc = new java.util.Scanner(System.in); %;
+    % int i = sc.nextInt(); %;
+    % $res$.internalPointer = (Integer)i; %;
+    return res;
+  end;
+
+  new String GetString ()
+    res:String;
+  begin
+    res := new String [];
+    % java.util.Scanner sc = new java.util.Scanner(System.in); %;
+    % String s = sc.nextLine(); %;
+    % $res$.internalPointer = s; %;
+    return res;
+  end;
+
+end;
+

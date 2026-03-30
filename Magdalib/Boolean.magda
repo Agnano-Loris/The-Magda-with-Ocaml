@@ -1,0 +1,40 @@
+mixin Boolean of Object =
+  override Boolean Object.equals(other:Object)
+    res:Boolean;
+  begin
+    res := super(other);
+    % $res$.internalPointer = (aSelf.internalPointer.equals($other$.internalPointer)); %;
+    return res;
+  end;
+
+  override Boolean Object.neq(other:Object)
+    res:Boolean;
+  begin
+    res := new Boolean[];
+    % if(aSelf.internalPointer.equals($other$.internalPointer) == false) $res$.internalPointer = (Boolean)true; else $res$.internalPointer = (Boolean)false; %;
+    return res;
+  end;
+
+  new Boolean or (other:Boolean)
+    res:Boolean;
+  begin
+    res := new Boolean[];
+    % $res$.internalPointer = ((Boolean) aSelf.internalPointer) || ((Boolean) $other$.internalPointer); %;
+    return res;
+  end;
+
+  new Boolean and (other:Boolean)
+    res:Boolean;
+  begin
+    res := new Boolean[];
+    % $res$.internalPointer = ((Boolean) aSelf.internalPointer) && ((Boolean) $other$.internalPointer); %;
+    return res;
+  end;
+
+  new Object print ()
+  begin
+    % System.out.print((Boolean)aSelf.internalPointer); %;
+    return null;
+  end;
+end;
+

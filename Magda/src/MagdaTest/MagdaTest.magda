@@ -1,0 +1,418 @@
+include "Magdalib/library.magda";
+
+mixin TestControl of Object =
+
+  // negation implemented using if condition
+  new Boolean Not(a:Boolean)
+  begin
+    if ( a )
+      return false;
+    else
+      return true;
+    end;
+  end;
+
+  new Boolean Xor(a:Boolean; b:Boolean)
+  begin
+    if ( a )
+      return this.TestControl.Not(b);    // NOTE: to refer internal methods is necessary to specify always "this." before calling the method
+    else
+      return b;
+    end;
+  end;
+
+  new Object SomeMethodWithLoop ()
+    x:Boolean;
+    i:Integer;
+  begin
+    x := true;
+    i := 0;
+    "Loop iterator value = ".String.print();
+    while ( x )
+      i.Integer.print();
+      ", ".String.print();
+      i := i + 1;
+      if ( i = 10 )
+        x := false;
+      end;
+    end;
+    "\r\nLoop done\r\n".String.print();
+  end;
+
+end;
+
+
+mixin MainClass of Object =
+  new Object mainProgram()
+
+    // types to test
+    numeroBinario:Boolean;
+    numeroByte:Byte;
+    numeroIntero:Integer;
+    numeroFloat:Float;
+    stringa:String;
+
+    // Internal mixin
+    tc:TestControl;
+
+    // test support variables
+    test:Boolean;
+    testTrigo:Float;
+    testString:String;
+
+    // iterator variables
+    i:Integer;
+
+  begin
+
+    "Magda language base types test:\r\n\r\n".String.print();
+
+    // *** Boolean TEST ***
+    numeroBinario := false;
+
+    i := 0;
+    while ( i < 2 )
+
+      "Boolean value = ".String.print();
+      numeroBinario.Boolean.print();
+
+      "\r\n ".String.print();
+      numeroBinario.Boolean.print();
+      " OR false = ".String.print();
+      test := numeroBinario.Boolean.or(false);
+      test.Boolean.print();
+      "\r\n ".String.print();
+      numeroBinario.Boolean.print();
+      " OR true = ".String.print();
+      test := numeroBinario.Boolean.or(true);
+      test.Boolean.print();
+
+      "\r\n ".String.print();
+      numeroBinario.Boolean.print();
+      " AND false = ".String.print();
+      test := numeroBinario.Boolean.and(false);
+      test.Boolean.print();
+      "\r\n ".String.print();
+      numeroBinario.Boolean.print();
+      " AND true = ".String.print();
+      test := numeroBinario.Boolean.and(true);
+      test.Boolean.print();
+
+      "\r\n ".String.print();
+      numeroBinario.Boolean.print();
+      " EQUALS false = ".String.print();
+      test := numeroBinario = false;
+      test.Boolean.print();
+      "\r\n ".String.print();
+      numeroBinario.Boolean.print();
+      " EQUALS true = ".String.print();
+      test := numeroBinario = true;
+      test.Boolean.print();
+
+      "\r\n".String.print();
+      numeroBinario := true;
+      i := i + 1;
+    end;
+
+    "\r\n".String.print();
+    // *** Boolean TEST END ***
+
+    // *** Byte TEST ***
+    numeroByte := 0x3f;
+
+    "Exadecimal Byte = ".String.print();
+    numeroByte.Byte.print();
+
+    "\r\n ".String.print();
+    numeroByte.Byte.print();
+    " ADD 6 = ".String.print();
+		numeroByte := numeroByte + 0x06;
+    numeroByte.Byte.print();
+
+    "\r\n ".String.print();
+    numeroByte.Byte.print();
+    " SUB 9 = ".String.print();
+    numeroByte := numeroByte - 0x09;
+    numeroByte.Byte.print();
+
+    "\r\n ".String.print();
+    numeroByte.Byte.print();
+    " MUL 2 = ".String.print();
+    numeroByte := numeroByte * 0x02;
+    numeroByte.Byte.print();
+
+    "\r\n ".String.print();
+    numeroByte.Byte.print();
+    " DIV 2 = ".String.print();
+    numeroByte := numeroByte / 0x02;
+    numeroByte.Byte.print();
+
+    "\r\n ".String.print();
+    numeroByte.Byte.print();
+    " LESS 3C = ".String.print();
+    test := numeroByte < 0x3c;
+    test.Boolean.print();
+
+    "\r\n ".String.print();
+    numeroByte.Byte.print();
+    " LESS OR EQUALS 3C = ".String.print();
+    test := numeroByte <= 0x3c;
+    test.Boolean.print();
+
+    "\r\n ".String.print();
+    numeroByte.Byte.print();
+    " EQUALS 3C = ".String.print();
+    test := numeroByte = 0x3c;
+    test.Boolean.print();
+
+    "\r\n ".String.print();
+    numeroByte.Byte.print();
+    " AND C = ".String.print();
+    numeroByte := numeroByte.Byte.and(0x0c);
+    numeroByte.Byte.print();
+
+    "\r\n ".String.print();
+    numeroByte.Byte.print();
+    " OR 40 = ".String.print();
+    numeroByte := numeroByte.Byte.or(0x40);
+    numeroByte.Byte.print();
+
+    "\r\n\r\n".String.print();
+    // *** Byte TEST END ***
+
+    // *** Integer TEST ***
+    numeroIntero := 23750;
+
+    "Integer number = ".String.print();
+    numeroIntero.Integer.print();
+
+    "\r\n ".String.print();
+    numeroIntero.Integer.print();
+    " + 50 = ".String.print();
+    numeroIntero := numeroIntero + 50;
+    numeroIntero.Integer.print();
+
+    "\r\n ".String.print();
+    numeroIntero.Integer.print();
+    " - 1800 = ".String.print();
+    numeroIntero := numeroIntero - 1800;
+    numeroIntero.Integer.print();
+
+    "\r\n ".String.print();
+    numeroIntero.Integer.print();
+    " * 4 = ".String.print();
+    numeroIntero := numeroIntero * 4;
+    numeroIntero.Integer.print();
+
+    "\r\n ".String.print();
+    numeroIntero.Integer.print();
+    " / 2 = ".String.print();
+    numeroIntero := numeroIntero / 2;
+    numeroIntero.Integer.print();
+
+    "\r\n ".String.print();
+    numeroIntero.Integer.print();
+    " - 43990 = ".String.print();
+    numeroIntero := numeroIntero - 43990;
+    numeroIntero.Integer.print();
+
+    "\r\n ".String.print();
+    numeroIntero.Integer.print();
+    " / 3 = ".String.print();
+    numeroIntero := numeroIntero / 3;
+    numeroIntero.Integer.print();
+
+    "\r\n ".String.print();
+    numeroIntero.Integer.print();
+    " = 3 -> ".String.print();
+    test := numeroIntero = 3;
+    test.Boolean.print();
+
+    "\r\n ".String.print();
+    numeroIntero.Integer.print();
+    " != 3 -> ".String.print();
+    test := numeroIntero != 3;
+    test.Boolean.print();
+
+    "\r\n ".String.print();
+    numeroIntero.Integer.print();
+    " >= 3 -> ".String.print();
+    test := numeroIntero >= 3;
+    test.Boolean.print();
+
+    "\r\n ".String.print();
+    numeroIntero.Integer.print();
+    " >= 1 -> ".String.print();
+    test := numeroIntero >= 1;
+    test.Boolean.print();
+
+    "\r\n ".String.print();
+    numeroIntero.Integer.print();
+    " >= 7 -> ".String.print();
+    test := numeroIntero >= 7;
+    test.Boolean.print();
+
+    "\r\n ".String.print();
+    numeroIntero.Integer.print();
+    " <= 3 -> ".String.print();
+    test := numeroIntero <= 3;
+    test.Boolean.print();
+
+    "\r\n ".String.print();
+    numeroIntero.Integer.print();
+    " <= 5 -> ".String.print();
+    test := numeroIntero <= 5;
+    test.Boolean.print();
+
+    "\r\n ".String.print();
+    numeroIntero.Integer.print();
+    " <= 1 -> ".String.print();
+    test := numeroIntero <= 1;
+    test.Boolean.print();
+
+    "\r\n ".String.print();
+    numeroIntero.Integer.print();
+    " > 3 -> ".String.print();
+    test := numeroIntero > 3;
+    test.Boolean.print();
+
+    "\r\n ".String.print();
+    numeroIntero.Integer.print();
+    " > 1 -> ".String.print();
+    test := numeroIntero > 1;
+    test.Boolean.print();
+
+    "\r\n ".String.print();
+    numeroIntero.Integer.print();
+    " < 3 -> ".String.print();
+    test := numeroIntero < 3;
+    test.Boolean.print();
+
+    "\r\n ".String.print();
+    numeroIntero.Integer.print();
+    " < 5 -> ".String.print();
+    test := numeroIntero < 5;
+    test.Boolean.print();
+
+    "\r\n\r\n".String.print();
+    // *** Integer TEST END ***
+
+    // *** Float TEST ***
+    numeroFloat := 3.1415926;
+
+    "Float number = ".String.print();
+    numeroFloat.Float.print();
+
+    "\r\n ".String.print();
+    numeroFloat.Float.print();
+    " ADD 2.71828183 = ".String.print();
+    numeroFloat := 2.71828183 + numeroFloat;
+    numeroFloat.Float.print();
+
+    "\r\n ".String.print();
+    numeroFloat.Float.print();
+    " SUB 2.71828183 = ".String.print();
+    numeroFloat := numeroFloat - 2.71828183;
+    numeroFloat.Float.print();
+
+    "\r\n ".String.print();
+    numeroFloat.Float.print();
+    " MUL 2.0 = ".String.print();
+    numeroFloat := numeroFloat * 2.0;
+    numeroFloat.Float.print();
+
+    "\r\n ".String.print();
+    numeroFloat.Float.print();
+    " DIV 2.0 = ".String.print();
+    numeroFloat := numeroFloat / 2.0;
+    numeroFloat.Float.print();
+
+    "\r\n sin(".String.print();
+    numeroFloat.Float.print();
+    ") = ".String.print();
+    testTrigo := numeroFloat.Float.sin();
+    testTrigo.Float.print();
+
+    "\r\n cos(".String.print();
+    numeroFloat.Float.print();
+    ") = ".String.print();
+    testTrigo := numeroFloat.Float.cos();
+    testTrigo.Float.print();
+
+    "\r\n ".String.print();
+    numeroFloat.Float.print();
+    " LESS 3.1415926 = ".String.print();
+    test := numeroFloat < 3.1415926;
+    test.Boolean.print();
+
+    "\r\n ".String.print();
+    numeroFloat.Float.print();
+    " LESS OR EQUALS 3.1415926 = ".String.print();
+    test := numeroFloat <= 3.1415926;
+    test.Boolean.print();
+
+    "\r\n ".String.print();
+    numeroFloat.Float.print();
+    " EQUALS 3.1415926 = ".String.print();
+    test := numeroFloat = 3.1415926;
+    test.Boolean.print();
+
+    "\r\n\r\n".String.print();
+    // *** Float TEST END ***
+
+    // *** String TEST ***
+    stringa := "'I am a string'";
+
+    "String = ".String.print();
+    stringa.String.print();
+
+    "\r\n ".String.print();
+    stringa.String.print();
+    " EQUALS 'I am a string' = ".String.print();
+    test := stringa = "'I am a string'";
+    test.Boolean.print();
+
+    "\r\n ".String.print();
+    stringa.String.print();
+    " EQUALS 'Check' = ".String.print();
+    test := stringa = "'Check'";
+    test.Boolean.print();
+
+    "\r\n ".String.print();
+    stringa.String.print();
+    " LENGTH = ".String.print();
+    i := stringa.String.length();
+    i.Integer.print();
+
+    "\r\n ".String.print();
+    stringa.String.print();
+    " ADD 'with yet another string!'\r\n".String.print();
+    testString := stringa + "' with yet another string!'";
+    "   = ".String.print();
+    testString.String.print();
+
+    "\r\n\r\n".String.print();
+    // *** String TEST END ***
+
+    // *** Control logic TEST ***
+    "Starting to test control logic\r\n".String.print();
+    tc := new TestControl[];
+
+    "Acting NOT and XOR features with if and else keywords:\r\n".String.print();
+    test := tc.TestControl.Not(false);
+    "NOT false = ".String.print();
+    test.Boolean.print();
+    "\r\n".String.print();
+    "true XOR true = ".String.print();
+    test := tc.TestControl.Xor(true, true);
+    test.Boolean.print();
+    "\r\n".String.print();
+
+    "Acting an internal loop of 10 times with while keyword:\r\n".String.print();
+    tc.TestControl.SomeMethodWithLoop();
+    // *** Control logic TEST END ***
+
+  end;
+end;
+
+//(new MainClass[]).MainClass.mainProgram();

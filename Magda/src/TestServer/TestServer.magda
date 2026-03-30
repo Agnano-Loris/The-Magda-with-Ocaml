@@ -1,0 +1,76 @@
+include "Magdalib/library.magda";
+
+// Main program
+mixin MainClass of Object =
+
+  new Object mainProgram()
+    server:ServerSocket;
+    inMessage:String;
+    byteVect:ByteVector;
+    byteValue:Byte;
+    s:Sleep;
+    i:Integer;
+  begin
+
+  "\r\n\r\n*** TestServer Program ***\r\n\r\n".String.print();
+
+  s := new Sleep[];
+
+  server := new ServerSocket[];
+  server.ServerSocket.CreateNewServer(9999);
+
+  "Server created.\r\nWaiting connection request...\r\n".String.print();
+  server.ServerSocket.WaitConnectionRequest();
+  "Connection from client got\r\n".String.print();
+
+  s.Sleep.DoSleep(500);
+
+  "Waiting a BYTE message from client...\r\n".String.print();
+  byteVect := new Vector, ByteVector[ Vector.size := 10 ];
+
+  byteValue := 0x00;
+  i := 0;
+  while ( i < 10 )
+    "RX: ".String.print();
+    byteValue := server.ServerSocket.ReadByte();
+    byteValue.Byte.print();
+    "\r\n".String.print();
+    byteVect.Vector.set(i, byteValue);
+    i := i + 1;
+  end;
+
+  "Received BYTE message: ".String.print();
+  i := 0;
+  while ( i < 10 )
+    byteValue := byteVect.ByteVector.get(i);
+    byteValue.Byte.print();
+    ", ".String.print();
+    i := i + 1;
+  end;
+  "\r\n".String.print();
+
+  s.Sleep.DoSleep(2000);
+
+  "Waiting a string message from client...\r\n".String.print();
+  inMessage := server.ServerSocket.ReadString();
+  "Received message (string) from client = ".String.print();
+  inMessage.String.print();
+  "\r\n".String.print();
+
+  s.Sleep.DoSleep(500);
+
+  "Sending a string message to client.\r\n".String.print();
+  server.ServerSocket.WriteString("[FROM SERVER TEST MESSAGE]");
+  "\r\n".String.print();
+
+  s.Sleep.DoSleep(3000);
+
+  "Test done closing connection on server side...\r\n".String.print();
+  server.ServerSocket.CloseClientConnection();
+  server.ServerSocket.CloseServer();
+  "\r\n\r\n".String.print();
+
+  end;
+end;
+
+//(new MainClass[]).MainClass.mainProgram();

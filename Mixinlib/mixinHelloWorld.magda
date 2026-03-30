@@ -1,0 +1,8 @@
+
+mixin HelloWorld of Object =
+  new String getMessage ()
+  begin
+    return "\r\nHello from Magda world!\r\n";
+  end;
+end;
+

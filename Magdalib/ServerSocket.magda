@@ -1,0 +1,185 @@
+mixin ServerSocket of Object =
+  servObjHandle:Object;               // Java Object -> java.net.ServerSocket
+  clientObjHandle:Object;             // Java Object -> java.net.Socket
+  inputObjHandle:Object;              // Java Object -> java.io.DataInputStream
+  outputObjHandle:Object;             // Java Object -> java.io.DataOutputStream
+
+
+  // ------------- PRIVATE METHODS ----------------------
+
+  // Private...
+  new Object PrivateCreateNewServer(port:Integer)
+    res:Object;
+  begin
+    res := new Object[];
+
+    // ServerSocket init
+    % try { %;
+    % int paramPort = ((Integer)$port$.internalPointer).intValue(); %;
+    % java.net.ServerSocket serverSock = new java.net.ServerSocket(paramPort); %;
+
+    // Retrieve server's info
+    % java.net.InetAddress info = serverSock.getInetAddress();%;
+    % String server = info.getHostAddress(); %;
+    % int port = serverSock.getLocalPort(); %;
+    % System.out.println("[SERVER]CreateNewServer-> Name:"+ server + " Port:"+ port); %;
+
+    // Return the handle
+    % $res$.internalPointer = (Object)serverSock; %;
+
+    % } catch(java.io.IOException e) { System.out.println("[SERVER]PrivateCreateNewServer: java.io.IOException!"); } %;
+
+    return res;
+  end;
+
+  // Private...
+  new Object PrivateWaitConnectionRequest(serv:Object)
+    res:Object;
+  begin
+    res := new Object[];
+
+    // Waiting for client
+    % try { %;
+    % java.net.ServerSocket serverSock = ((java.net.ServerSocket)$serv$.internalPointer); %;
+    % System.out.println("[SERVER]WaitConnectionRequest..."); %;
+    % java.net.Socket socket = serverSock.accept(); %;
+
+    // Incoming request from client got
+    % System.out.println("[SERVER]Connection accepted."); %;
+    % java.net.InetAddress infoclient = socket.getInetAddress(); %;
+    % String client = infoclient.getHostAddress(); %;
+    % int portclient = socket.getLocalPort(); %;
+    % System.out.println("[SERVER]Got client " + client + " " + portclient); %;
+
+    // Return the handle
+    % $res$.internalPointer = (Object)socket; %;
+
+    % } catch(java.io.IOException e) { System.out.println("[SERVER]PrivateWaitConnectionRequest: java.io.IOException!"); } %;
+
+    return res;
+  end;
+
+  // Private...
+  new Object PrivateOpenInputStream(clientSock:Object)
+    res:Object;
+  begin
+    res := new Object[];
+    % try { %;
+    % java.net.Socket socket = ((java.net.Socket)$clientSock$.internalPointer); %;
+    % java.io.DataInputStream is = new java.io.DataInputStream(socket.getInputStream()); %;
+    % $res$.internalPointer = (Object)is; %;
+    % } catch(java.io.IOException e) { System.out.println("[SERVER]PrivateOpenInputStream: java.io.IOException!"); } %;
+    return res;
+  end;
+
+  // Private...
+  new Object PrivateOpenOutputStream(clientSock:Object)
+    res:Object;
+  begin
+    res := new Object[];
+    % try { %;
+    % java.net.Socket socket = ((java.net.Socket)$clientSock$.internalPointer); %;
+    % java.io.DataOutputStream os = new java.io.DataOutputStream(socket.getOutputStream()); %;
+    % $res$.internalPointer = (Object)os; %;
+    % } catch(java.io.IOException e) { System.out.println("[SERVER]PrivateOpenOutputStream: java.io.IOException!"); } %;
+    return res;
+  end;
+
+
+  // ------------- PUBLIC METHODS ----------------------
+
+  new void CreateNewServer(port:Integer)
+  begin
+    this.ServerSocket.servObjHandle := this.ServerSocket.PrivateCreateNewServer(port);
+  end;
+
+  new void WaitConnectionRequest()
+  begin
+    this.ServerSocket.clientObjHandle := this.ServerSocket.PrivateWaitConnectionRequest(this.ServerSocket.servObjHandle);
+    this.ServerSocket.inputObjHandle := this.ServerSocket.PrivateOpenInputStream(this.ServerSocket.clientObjHandle);
+    this.ServerSocket.outputObjHandle := this.ServerSocket.PrivateOpenOutputStream(this.ServerSocket.clientObjHandle);
+  end;
+
+  new void CloseClientConnection()
+    input:Object;
+    output:Object;
+    client:Object;
+  begin
+    input := this.ServerSocket.inputObjHandle;
+    output := this.ServerSocket.outputObjHandle;
+    client := this.ServerSocket.clientObjHandle;
+    % try { %;
+    % java.io.DataInputStream is = ((java.io.DataInputStream)$input$.internalPointer); %;
+    % java.io.DataOutputStream os = ((java.io.DataOutputStream)$output$.internalPointer); %;
+    % java.net.Socket socket = ((java.net.Socket)$client$.internalPointer); %;
+    % is.close(); %;
+    % os.close(); %;
+    % socket.close(); %;
+    % System.out.println("[SERVER]Current socket connection closed."); %;
+    % } catch(java.io.IOException e) { System.out.println("[SERVER]CloseClientConnection: java.io.IOException!"); } %;
+  end;
+
+  new void CloseServer()
+    server:Object;
+  begin
+    server := this.ServerSocket.servObjHandle;
+    % try { %;
+    % java.net.ServerSocket socket = ((java.net.ServerSocket)$server$.internalPointer); %;
+    % socket.close(); %;
+    % System.out.println("[SERVER]Server closed."); %;
+    % } catch(java.io.IOException e) { System.out.println("[SERVER]CloseServer: java.io.IOException!"); } %;
+  end;
+
+  new String ReadString()
+    message:String;
+    input:Object;
+  begin
+    message := new String [];
+    input := this.ServerSocket.inputObjHandle;
+    % try { %;
+    % java.io.BufferedReader is = new java.io.BufferedReader( new java.io.InputStreamReader (((java.io.DataInputStream)$input$.internalPointer))); %;
+    % String clientInput = is.readLine(); %;
+    % $message$.internalPointer = clientInput; %;
+    % } catch(java.io.IOException e) { System.out.println("[SERVER]ReadString: java.io.IOException!"); } %;
+    return message;
+  end;
+
+  new void WriteString(message:String)
+    output:Object;
+  begin
+    output := this.ServerSocket.outputObjHandle;
+    % try { %;
+    % String mes = ((String)$message$.internalPointer); %;
+    % java.io.DataOutputStream os = ((java.io.DataOutputStream)$output$.internalPointer); %;
+    % os.writeChars(mes + "\r\n"); %;
+    % } catch(java.io.IOException e) { System.out.println("[SERVER]WriteString: java.io.IOException!"); } %;
+  end;
+
+  new Byte ReadByte()
+    dataValue:Byte;
+    input:Object;
+  begin
+    dataValue := new FullByte [];
+    input := this.ServerSocket.inputObjHandle;
+    % try { %;
+    % java.io.DataInputStream is = ((java.io.DataInputStream)$input$.internalPointer); %;
+    % byte clientInput = is.readByte(); %;
+    % Byte clientByte = (Byte)clientInput; %;
+    % $dataValue$.internalPointer = clientByte; %;
+    % } catch(java.io.IOException e) { System.out.println("[SERVER]ReadByte: java.io.IOException!"); } %;
+    return dataValue;
+  end;
+
+  new void WriteByte(dataValue:Byte)
+    output:Object;
+  begin
+    output := this.ServerSocket.outputObjHandle;
+    % try { %;
+    % Byte clientByte = ((Byte)$dataValue$.internalPointer); %;
+    % java.io.DataOutputStream os = ((java.io.DataOutputStream)$output$.internalPointer); %;
+    % int clientOutput = clientByte.intValue(); %;
+    % os.writeByte(clientOutput); %;
+    % } catch(java.io.IOException e) { System.out.println("[SERVER]WriteByte: java.io.IOException!"); } %;
+  end;
+
+end;

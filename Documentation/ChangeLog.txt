@@ -1,0 +1,134 @@
+
+Last update on: 11/02/2014
+
+
+-----------------------------------------------------------------------------
+
+Copyright (C) 2011 Jarek Kusmierek, Mauro Mulatero, Marco Naddeo
+  Licensed to to the public under the Academic Free License version 3.0
+  For further information see http://sourceforge.net/projects/magdalanguage/
+
+-----------------------------------------------------------------------------
+
+
+2014-02-11 Mauro Mulatero, Marco Naddeo
+
+1) Added the description file "Eclipse plugin IDE how-to.pdf"
+
+2) Added the description file "Overview about examples.txt"
+
+
+2014-02-07 Mauro Mulatero
+
+1) Added the user application IniExample.magda
+
+2) Added the description file "Known issues and limitations.txt"
+
+
+2013-07-15 Marco Naddeo
+
+1) Added the Eclipde IDE plug-in for Magda
+
+
+2012-12-29 Mauro Mulatero
+
+1) Review of the parser in order to remove/fix unused words
+
+2) Improve performance on arithmetic operators and comparison operators
+
+3) Review of the '.syn' Textpad configuration file in order to match exactly with the parser
+
+4) Two more test application sources added
+
+5) Some minor fixes/changes on some test application sources
+
+
+2011-12-20 Mauro Mulatero:
+
+   List of main differences with respect to the first creator Jarek Kusmierek's milestone.
+
+1) Modified the tree structure a little.
+
+2) Created compile.bat and execute.bat to build and run Magda programs one by one.
+
+3) Created compdbg.bat for debug purposes, that is, to create a log file of building outputs.
+   
+4) In the path "mtj\Magda\ProgramTree\Expressions" added the file "CByteLiteral.java" in order
+   to have the possibility to use the exadecimal notation (e.g. 0x1F) for Byte types.
+
+5) In the path "mtj\Magda\ProgramTree\Expressions" added the file "CBinaryExpressionNeq.java"
+   in order to add the "not equal" literal (!=) for Integer type comparisons.
+
+6) Enriched the base Magda language library in the path "mtj\Magdalib" with the following
+   mixins:
+   - BooleanVector.magda     (creates a vector of booleans)
+   - Byte.magda              (base type mixin for bytes)
+   - ByteVector.magda        (creates a vector of bytes)
+   - FloatVector.magda       (creates a vector of floats)
+   - IntegerVector.magda     (creates a vector of integers)
+   - Lzw.magda               (base type mixin for LZW compression/decompression algorithm)
+   - ServerSocket.magda      (base type mixin for lan socket support on server side)
+   - Sleep.magda             (base type mixin for "sleep" support)
+   - Socket.magda            (base type mixin for lan socket support on client side or current connection)
+   - StringVector.magda      (creates a vector of strings)
+   - UserInput.magda         (base user input support)
+   - Vector.magda            (base type mixin for vectors)
+
+7) In the path "mtj\Magda\Parser\javacc_source" updated the file "Parser.jj" with:
+   - Added lines 118 and 271 for Byte literal exadecimal support
+   - Added line 298 for "not equal" literal support
+
+8) In the base library mixins "mtj\Magdalib\Boolean.magda":
+   - Bugfix in the method "and" at line 22
+   - Added the method override "override Boolean Object.neq(other:Object)" at line 10 to 16
+     for "not equal" support
+
+9) In the base library mixins "mtj\Magdalib\Float.magda":
+   - Added the method override "override Boolean Object.neq(other:Object)" at line 82 to 88
+     for "not equal" support
+
+10) In the base library mixins "mtj\Magdalib\Integer.magda":
+    - Added the method override "override Boolean Object.neq(other:Object)" at line 66 to 72
+      for "not equal" support
+    
+11) In the base library mixins "mtj\Magdalib\Object.magda": 
+    - Added the new method "new Boolean neq(other:Object)" at line 16 to 22   
+      for "not equal" support
+
+12) In the base library mixins "mtj\Magdalib\String.magda": 
+    - Added the new method "new Integer length()" at line 23 to 29   
+      in order to get the length of the string value
+    - Added the new method "new Integer length()" at line 31 to 50
+      in ordet to get a byte list representation of the string value
+
+13) In the base library mixins "mtj\Magdalib\library.magda":
+    - Added references to all added base library mixins
+
+14) Added the folder "mtj\Mixinlib" that is dedicated to "public" user mixins,
+    visible for inclusions in user-developed programs.
+    This folder contains some mixins supporting:
+    - "HelloWorld..." samples;
+    - "TestLabel" sample;
+    - "TestDiamondProtoClient" and "TestDiamondProtoServer" samples.
+
+15) Added the following sample programs in "mtj\Magda\src\...":
+    - HelloWorld.magda                   (simple base language usage example)
+    - HelloWorld2.magda                  (simple base language usage example)
+    - HelloWorld3.magda                  (simple base language usage example)
+    - HelloWorld4.magda                  (simple base language usage example)
+    - HelloWorld5.magda                  (simple base language usage example)
+    - MagdaTest.magda                    (base language sintax and implementation tester)
+    - MIPTest.magda                      (base language initialization protocol sintax and implementation tester)
+    - SimpleInit.magda                   (simple initialization protocol sintax and implementation tester)
+    - TestClient.magda                   (base library Socket.magda implementation tester)
+    - TestDiamondProtoClient.magda       (complex sample that shows the "OOP diamond problem" solution in a real comunication program environment)
+    - TestDiamondProtoServer.magda       (complex sample that shows the "OOP diamond problem" solution in a real comunication program environment)
+    - TestLabel                          (complex sample that shows the "pattern decorator" implementation)
+    - TestLzw                            (base library Lzw.magda implementation tester)
+    - TestServer                         (base library SocketServer.magda implementation tester)
+    - TestSleep                          (base library Sleep.magda implementation tester)
+    - TestUserInput                      (base library UserInput.magda implementation tester)      
+    - TestVector                         (base library Vector.magda, and derived Vector mixins, implementation tester)
+    
+    
+    

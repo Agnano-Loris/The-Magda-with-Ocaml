@@ -1,0 +1,42 @@
+
+mixin Label of Object =
+  labelText:String;
+
+  new void SetLabelText (text:String)
+  begin
+    this.Label.labelText := text;
+  end;
+
+  new String GetLabelText ()
+  begin
+    return this.Label.labelText;
+  end;
+
+  new void PrintLabel ()
+    lineFeed:String;
+    lenText:Integer;
+    i:Integer;
+  begin
+    lenText := this.Label.labelText.String.length();
+    lineFeed := "\r\n";
+    i := 0;
+    while(i < (lenText+4))
+      "-".String.print();
+      i := i + 1;
+    end;
+    lineFeed.String.print();
+    "| ".String.print();
+    this.Label.labelText.String.print();
+    " |".String.print();
+    lineFeed.String.print();
+    i := 0;
+    while(i < (lenText+4))
+      "-".String.print();
+      i := i + 1;
+    end;
+    lineFeed.String.print();
+  end;
+
+end;
+
+

@@ -1,0 +1,14 @@
+
+mixin IntegerVector of Vector =
+
+  new Integer get(index:Integer)
+    res:Integer;
+    resObj:Object;
+  begin
+    res := 0;
+    resObj := this.Vector.get(index);
+    % $res$.internalPointer = (Integer)$resObj$.internalPointer; %;
+    return res;
+  end;
+
+end;

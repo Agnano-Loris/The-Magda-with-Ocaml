@@ -1,0 +1,14 @@
+
+mixin BooleanVector of Vector =
+
+  new Boolean get(index:Integer)
+    res:Boolean;
+    resObj:Object;
+  begin
+    res := false;
+    resObj := this.Vector.get(index);
+    % $res$.internalPointer = (Boolean)$resObj$.internalPointer; %;
+    return res;
+  end;
+
+end;

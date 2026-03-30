@@ -1,0 +1,8 @@
+mixin Comparable <t <= Comparable> of Object =
+
+abstract Boolean less(other:t);
+abstract Boolean leq(other:t);
+
+end;
+
+

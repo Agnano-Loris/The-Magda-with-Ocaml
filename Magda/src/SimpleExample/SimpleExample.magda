@@ -1,0 +1,12 @@
+include "Magdalib/library.magda";
+
+mixin MainClass of Object = 
+  new void mainProgram()
+   x:Float;
+   y:Integer;  
+  begin
+   y:=2;
+   x:=y.toFloat();
+  end;
+  
+end;
