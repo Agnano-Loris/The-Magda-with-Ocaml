@@ -30,3 +30,25 @@ Vim:
     but it's not common to see vim installed on windows.
     If you already have the ftdetect and the syntax directory in your vim configuration
     you can simply copy their contents into your directories with the same name. 
+
+
+ICONS
+
+Into the MagdaIcons folder we included some images that can be used to display an icon 
+when working with a .magda file.
+
+We can do so in VsCode by using the vscode-icons plugin: https://marketplace.visualstudio.com/items?itemName=vscode-icons-team.vscode-icons
+Follow the instructions of this wiki: https://github.com/vscode-icons/vscode-icons/wiki/Custom
+
+Note, you need to configue the settings.json of the extension like this:
+
+.........
+.........
+"vsicons.associations.files": [
+		{
+			"icon": "magda32",
+			"extensions": ["magda"],
+			"format": "png",
+		},
+	]
+}
