@@ -1,0 +1,4 @@
+(executable
+ (public_name magda-compiler)
+ (name main)
+ (libraries program_tree magda_pre_parser magda_parser compiler))
