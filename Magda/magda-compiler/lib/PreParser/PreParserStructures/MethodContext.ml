@@ -25,38 +25,25 @@ let empty () : t =
   }
 
 
-(** Compose a new method context given the necessary data 
-    @return the method context composed 
-    
-    This function is not defined in the module interface.
-*)
-let compose params variables res_type : t = 
-  {
-    params;
-    variables;
-    res_type;
-  }
-
-
 (** [add_variable] uses [StringMap.add] to add the variable,
-    @return a new method context with the variable added using the [compose] method*)
+    @return a new method context with the variable added*)
 let add_variable var_name var_type method_context = 
   let variables = StringMap.add var_name var_type method_context.variables in
-  compose method_context.params variables method_context.res_type;;
+  {method_context with variables};;
 
 
 (** [add_param] uses [StringMap.add] to add the parameter
-    @return a new method context with the parameter added using the [compose] method *)
+    @return a new method context with the parameter added*)
 let add_param param_name param_type method_context = 
 let params = StringMap.add param_name param_type method_context.params in
-  compose params method_context.variables method_context.res_type;;
+  {method_context with params};;
 
 
 let get_return_type method_context = method_context.res_type;;
 
 
 let set_return_type res_type method_context : t = 
-  compose method_context.params method_context.variables res_type;;
+    {method_context with res_type};;
 
 
 (** [get_variable_type] uses [StringMap.find_opt] to search the variable type *)
