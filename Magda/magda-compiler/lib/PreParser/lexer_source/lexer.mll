@@ -44,12 +44,9 @@ rule token = parse
     | "<=" { LTE }
     | ">=" { GTE }
     | "!=" { NEQ }
-    | "&&" { AND }
-    | "||" { OR }
     | "=" { EQUALS }
     | "<" { LT }
     | ">" { GT }
-    | "!" { NOT }
     | "+" { PLUS }
     | "-" { MINUS }
     | "*" { TIMES }
@@ -57,13 +54,13 @@ rule token = parse
 
     | "(" { LPAREN }
     | ")" { RPAREN }
-    | "{" { LBRACE }
-    | "}" { RBRACE }
     | "[" { LBRACKET }
     | "]" { RBRACKET }
     | ";" { SEMICOLON }
     | "," { COMMA }
     | "." { DOT }
+    | ":=" { ASSIGN }
+    | ":" { COLON }
 
     (*** Identifiers ***)
 
@@ -95,7 +92,7 @@ rule token = parse
     | eof { EOF }
     
     (*** Catch-all for unrecognized characters ***)
-    | _ as unk_ch { failwith "Error: Unrecognized character: " ^ String.make 1 unk_ch }
+    | _ as unk_ch { failwith ("Error: Unrecognized character: '" ^ String.make 1 unk_ch ^ "'" ) }
 
 
 and single_line_comment = parse
