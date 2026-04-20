@@ -1,8 +1,7 @@
 type t
 (** 
-    Method context type, represents the context of a given method.
-	The context is composed by the types of all the parameters, variables of the method 
-	and lastly its return type (set [None] by default).
+    Mixin context type, represents the context of a given mixin.
+	The context is made of the mixin fields, linked_mixins, methods and inimodules
 	
     The type t is not mutable, uses {! Utils.MagdaType.t} to store all the types
     and {! MethodContext.t} for the context of its methods.
@@ -21,6 +20,7 @@ val get_inimodule_name : string list -> t -> string option
 val add_inimodule : string list -> MethodContext.t -> t -> (t, string) result
 (** [add_inimodule params method_context mixin_context] given the [params] and [method_context] of the inimodule, 
     if successfull it returns [Ok new_mixin_context] where [new_mixin_context] is [mixin_context] with the inimodule added.
+    
     If there are any duplicate params either in the [params] list or in the other inimodules of the mixin,
     then [add_inimodule] returns [Error param] where [param] is the first duplicated param in the [params] list
 *)
@@ -55,5 +55,8 @@ val get_method_var_type : string -> string -> t -> Utils.MagdaType.t option
     where [type] is the type of a variable/parameter named [var_name] in [method_name],
     assuming that [mixin_context] contains [method_name] and the method [method_name] contains [var_name], otherwise returns [None] *)
 
+val get_linked_mixins : t -> string list
+(** [get_linked_mixins mixin_context] return the linked mixins of the [mixin_context]*)
+
 val to_string : t -> string
-(** [to_string mixin_context] returns a string wich contains the information of all the information in the [mixin_context] *)
+(** [to_string mixin_context] returns a string wich contains all the information in the [mixin_context] *)

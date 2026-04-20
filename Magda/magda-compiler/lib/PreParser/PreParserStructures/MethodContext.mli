@@ -32,4 +32,4 @@ val no_params : t -> bool
 (** [no_params method_context] returns [true] if there are no parameters in the [method_context], otherwise [false] *)
 
 val to_string : t -> string
-(** [to_string method_context] returns a string wich contains the information of all variables and parameters in the [method_context] *)
+(** [to_string method_context] returns a string wich contains all variables and parameters in the [method_context] *)
