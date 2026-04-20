@@ -3,8 +3,6 @@
 *)
 open Utils
 
-module StringMap = Map.Make(String)
-
 (** Type containing the data of the MixinContext*)
 type t = {
 

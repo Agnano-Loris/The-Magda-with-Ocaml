@@ -1,8 +1,5 @@
 open Utils
 
-module StringSet = Set.Make(String)
-module StringMap = Map.Make(String)
-
 (** Type containing the data of the MixinContext*)
 type t = {
 
@@ -105,6 +102,8 @@ let get_method_return_type method_name mixin_context =
 let get_method_var_type var_name method_name mixin_context =
     let method_context_opt = StringMap.find_opt method_name mixin_context.methods_context in
     Option.bind method_context_opt (MethodContext.get_variable_type var_name)
+
+let get_linked_mixins mixin_context = mixin_context.linked_mixins 
 
 (** [fold_func key value acc] is used by [to_string] as a fold function for [StringMap.fold], 
 	[acc] is the accumulator, wich is concatenated with the string made from the [key] [value] parameters, 
