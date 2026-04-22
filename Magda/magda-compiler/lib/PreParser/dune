@@ -1,4 +1,5 @@
 (include_subdirs qualified)
 
 (library
- (name magda_pre_parser))
+ (name magda_pre_parser)
+ (libraries utils))
