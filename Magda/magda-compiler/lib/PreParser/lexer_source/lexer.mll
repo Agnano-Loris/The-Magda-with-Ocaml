@@ -85,8 +85,8 @@ rule token = parse
             string_literal lexbuf
         }
     | "0x" ['0' - '9' 'a' - 'f' 'A' - 'F']+ as byte { BYTE_LITERAL byte }
-    | ['0' - '9']+ '.' ['0' - '9']+ as float { FLOAT_LITERAL float }
-    | ['0' - '9']+ as integer { INTEGER_LITERAL integer }
+    | ['0' - '9']+ '.' ['0' - '9']+ as nfloat { FLOAT_LITERAL float_of_string nfloat }
+    | ['0' - '9']+ as nint { INTEGER_LITERAL int_of_string nint }
 
     (*** End of file ***)    
     | eof { EOF }
