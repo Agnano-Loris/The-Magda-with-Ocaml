@@ -1,24 +1,6 @@
-type t = int
+(*Declared private first and second type for readability*)
+type param = Program_tree.Declarations.CPolymorphismParam.t
+type ctype = CType.t
+type t = param * ctype
 
-
-(*
-package Magda.Compiler;
-
-import java.util.ArrayList;
-import Magda.ProgramTree.Declarations.*;
-
-public class CPolyApplicationValues extends ArrayList<CPolyApplicationValue>{
-
-    private static final long serialVersionUID = 1L;
-    
-    public int indexOfParam (CPolymorphismParam aParam){
-        
-        for (int i=0; i<size(); i++)
-            if (get(i).param == aParam)
-                return i;
-        
-        return -1;
-    }
-
-};
-*)
+let index_of_param param (lst : t list) : int option = List.find_index (fun x -> (Pair.fst x) == param) lst
