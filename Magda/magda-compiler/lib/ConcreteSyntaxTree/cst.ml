@@ -32,8 +32,8 @@ and init_param = string * string * expression
 and binop = Add | Sub | Div | Mul | StrongEq | Eq | Leq | Lt | Geq | Gt | Neq
 
 and suffix = 
-| SpecificMethodCall of string * string * actualParameters
-| DirectMethodCall of string * actualParameters
+| SpecificMethodCall of string * string * expression list
+| DirectMethodCall of string * expression list
 | SpecificFieldSelect of string * string
 | DirectFieldSelect of string
 
@@ -80,7 +80,7 @@ and input_init_param = string * mixin_expression
 and output_init_param = string * string
 
 and ini_module_body = {
-ini_local_ars : local_variable_declaration list
+ini_local_vars : local_variable_declaration list
 instructions_pre_super : instruction list
 super_call : init_param list
 instructions_post_super : instruction list
