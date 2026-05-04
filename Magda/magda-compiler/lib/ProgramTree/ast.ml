@@ -1,5 +1,6 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 type binop = Add | Div | Eq | Leq | Less | Mul | Neq | StrongEq | Sub
 
 
@@ -19,10 +20,13 @@ and field_decl = {
 and parameter_decl = {
 
 =======
+=======
+>>>>>>> bf05703 (Changed structure of the ProgramTree. Added AST.ml)
 (*** Records used later ***)
 
 (* These sum types will be used to make the binary operations less verbose *)
 (*** Binary Operations ***)
+<<<<<<< HEAD
 =======
 (** Sum type [binop] has been made so the binary operations in [expression] are less verbose *)
 >>>>>>> 5b2adee (Added partial documentation for ast.ml)
@@ -62,10 +66,22 @@ and field_decl = {
     [field_name] : [field_type]
  *)
 
+=======
+type binop = Add | Div | Eq | Leq | Less | Mul | Neq | StrongEq | Sub
+
+
+
+(* These records will be used in the declarations to make the various sub-structures more readable *)
+
+
+(*** Field Declarations ***)
+type field_decl = {
+>>>>>>> bf05703 (Changed structure of the ProgramTree. Added AST.ml)
   field_name: string;
   field_type: mixin_expr;
 }
 
+<<<<<<< HEAD
 (*** Parameter Declarations ***)
 <<<<<<< HEAD
 type parameter_decl = {
@@ -86,10 +102,20 @@ and parameter_decl = {
  *)
 
 >>>>>>> 5b2adee (Added partial documentation for ast.ml)
+=======
+(*** Ini Module Declarations ***)
+type ini_module_decl = {
+  ini_module_name: string;
+  ini_module_params: parameter_decl list;
+}
+(*** Parameter Declarations ***)
+type parameter_decl = {
+>>>>>>> bf05703 (Changed structure of the ProgramTree. Added AST.ml)
   param_name: string;
   param_type: mixin_expr;
 }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -162,10 +188,15 @@ and variable_decl = {
   *)
 
 >>>>>>> 5b2adee (Added partial documentation for ast.ml)
+=======
+(*** Variable Declarations ***)
+type variable_decl = {
+>>>>>>> bf05703 (Changed structure of the ProgramTree. Added AST.ml)
   var_name: string;
   var_type: mixin_expr;
 }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -495,11 +526,16 @@ and mixin_decl = {
   mixin_override_methods: method_declaration list;
   mixin_ini_module: ini_module_decl list;
 }
+=======
+
+
+>>>>>>> bf05703 (Changed structure of the ProgramTree. Added AST.ml)
 
 (*** Sum types created from the interfaces ***)
 
 (*** Mixin Expressions ***)
 and mixin_expr =
+<<<<<<< HEAD
 (** A [mixin_expr] is used to express the type of declarations such as variables, parameters, fiels and return.
 
   A [mixin_expr] can be [MixinExpressionVoid] or [MixinExpressionId]. 
@@ -514,12 +550,19 @@ and mixin_expr =
   Syntax for [MixinExpressionApplication]:
   [mixin_name] . [param_name] = ([value])
 *)
+=======
+>>>>>>> bf05703 (Changed structure of the ProgramTree. Added AST.ml)
   | MixinExpressionId of {
       mixin_name: string;
   }
   | MixinExpressionConcat of {
+<<<<<<< HEAD
       left_mixin: mixin_expr;
       right_mixin: mixin_expr;
+=======
+      left: mixin_expr;
+      right: mixin_expr;
+>>>>>>> bf05703 (Changed structure of the ProgramTree. Added AST.ml)
   }
   | MixinExpressionApplication of {
       mixin_name : string;
@@ -530,6 +573,7 @@ and mixin_expr =
 
 (*** LValues ***)
 and lvalue =
+<<<<<<< HEAD
 (** A [lvalue] is a reference to a location in memory.
   It is used in the assignment instruction right before the ':=' operator.
   
@@ -542,6 +586,8 @@ and lvalue =
   [mixin_name].[field_name]
   *)
 
+=======
+>>>>>>> bf05703 (Changed structure of the ProgramTree. Added AST.ml)
   | VariableLValue of {
       var_name: string;
   }
@@ -552,9 +598,12 @@ and lvalue =
 
 (*** Instructions ***)
 and instruction =
+<<<<<<< HEAD
 (** An [instruction] is one of the operations expressed in the guards.
   There is no need of 'instruction option' since an instruction can be an ExprInstruction
   and an ExprInstruction can be a NullExpression *)
+=======
+>>>>>>> bf05703 (Changed structure of the ProgramTree. Added AST.ml)
   | Assignment of lvalue * expression
   | ExprInstruction of expression
   | IfInstruction of {
@@ -575,17 +624,21 @@ and instruction =
 (*** Expressions ***)
 and expression =
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 027ea10 (Changed structure of the ProgramTree. Added AST.ml)
 =======
 (** An [expression] is one of the operations expressed in the guards.
   There is no need of 'expression option' since an expression can be a NullExpression.
 *)
 >>>>>>> 5b2adee (Added partial documentation for ast.ml)
+=======
+>>>>>>> bf05703 (Changed structure of the ProgramTree. Added AST.ml)
   | ThisExpression
   | NullExpression
   | IntegerLiteral of int
   | BooleanLiteral of bool
   | FloatLiteral of float
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
   | ByteLiteral of string
@@ -620,6 +673,9 @@ and program = global_declaration list
 =======
   | ByteLiteral of string
 >>>>>>> 5b2adee (Added partial documentation for ast.ml)
+=======
+  | ByteLiteral of (* da capire se mettere string o no*) string
+>>>>>>> bf05703 (Changed structure of the ProgramTree. Added AST.ml)
   | StringLiteral of string
   | Identifier of string
   | SuperExpression of expression list
@@ -642,6 +698,7 @@ and program = global_declaration list
 
 
 (*** Declarations ***)
+<<<<<<< HEAD
 (** A [global_declaration] is either a [mixin_decl] or a [let_decl] statement *)
 and global_declaration =
   | MixinDecl of mixin_decl
@@ -687,3 +744,14 @@ and program = declaration list
 (** The [program] is a list of [global_declaration]s*)
 and program = global_declaration list
 >>>>>>> 5b2adee (Added partial documentation for ast.ml)
+=======
+and declaration =
+  | 
+(*** Method Declaration ***)
+and method_declaration =
+  |
+
+(*** New Method Declaration ***)
+and new_method_declaration =
+  |
+>>>>>>> bf05703 (Changed structure of the ProgramTree. Added AST.ml)
