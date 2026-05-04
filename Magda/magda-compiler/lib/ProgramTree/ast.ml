@@ -1,0 +1,123 @@
+(*** Records used later ***)
+
+(* These sum types will be used to make the binary operations less verbose *)
+(*** Binary Operations ***)
+type binop = Add | Div | Eq | Leq | Less | Mul | Neq | StrongEq | Sub
+
+
+
+(* These records will be used in the declarations to make the various sub-structures more readable *)
+
+
+(*** Field Declarations ***)
+type field_decl = {
+  field_name: string;
+  field_type: mixin_expr;
+}
+
+(*** Ini Module Declarations ***)
+type ini_module_decl = {
+  ini_module_name: string;
+  ini_module_params: parameter_decl list;
+}
+(*** Parameter Declarations ***)
+type parameter_decl = {
+  param_name: string;
+  param_type: mixin_expr;
+}
+
+(*** Variable Declarations ***)
+type variable_decl = {
+  var_name: string;
+  var_type: mixin_expr;
+}
+
+
+
+
+(*** Sum types created from the interfaces ***)
+
+(*** Mixin Expressions ***)
+and mixin_expr =
+  | MixinExpressionId of {
+      mixin_name: string;
+  }
+  | MixinExpressionConcat of {
+      left: mixin_expr;
+      right: mixin_expr;
+  }
+  | MixinExpressionApplication of {
+      mixin_name : string;
+      param_name : string;
+      value : mixin_expr;
+  }
+  | MixinExpressionVoid
+
+(*** LValues ***)
+and lvalue =
+  | VariableLValue of {
+      var_name: string;
+  }
+  | FieldLValue of {
+      mixin_name: string;
+      field_name: string;
+  }
+
+(*** Instructions ***)
+and instruction =
+  | Assignment of lvalue * expression
+  | ExprInstruction of expression
+  | IfInstruction of {
+      cond: expression;
+      true_instructions: instruction list;
+      false_instructions: instruction list;
+  }
+  | IniModuleSuperInstruction of {
+      init_params: expression list;
+  }
+  | NativeInstruction of string
+  | ReturnInstruction of expression
+  | WhileInstruction of {
+      cond: expression;
+      instructions: instruction list;
+  }
+
+(*** Expressions ***)
+and expression =
+  | ThisExpression
+  | NullExpression
+  | IntegerLiteral of int
+  | BooleanLiteral of bool
+  | FloatLiteral of float
+  | ByteLiteral of (* da capire se mettere string o no*) string
+  | StringLiteral of string
+  | Identifier of string
+  | SuperExpression of expression list
+  | MethodCallExpression of {
+      target: expression;
+      mixin_name: string;
+      method_name: string;
+      params: expression list;
+  }
+  | FieldSelectExpression of {
+      target: expression;
+      mixin_name: string;
+      field_name: string;
+  }
+  | ObjectCreationExpression of {
+      mixin_expr: mixin_expr;
+      init_params: expression list;
+  }
+  | BinaryOperation of binop * expression * expression
+
+
+(*** Declarations ***)
+and declaration =
+  | 
+(*** Method Declaration ***)
+and method_declaration =
+  |
+
+(*** New Method Declaration ***)
+and new_method_declaration =
+  |
