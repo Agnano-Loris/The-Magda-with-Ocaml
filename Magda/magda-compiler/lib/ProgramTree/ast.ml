@@ -28,52 +28,74 @@ type binop = Add | Div | Eq | Leq | Less | Mul | Neq | StrongEq | Sub
 
 (* These records will be used in the declarations to make the various sub-structures more readable *)
 
+(*** Let ***)
+and let_decl = {
+  let_name: string;
+  bound: expression;
+}
 
 (*** Field Declarations ***)
-type field_decl = {
+and field_decl = {
   field_name: string;
   field_type: mixin_expr;
 }
 
-(*** Ini Module Declarations ***)
-type ini_module_decl = {
-  ini_module_name: string;
-  ini_module_params: parameter_decl list;
-}
 (*** Parameter Declarations ***)
+<<<<<<< HEAD
 type parameter_decl = {
 >>>>>>> 027ea10 (Changed structure of the ProgramTree. Added AST.ml)
+=======
+and parameter_decl = {
+>>>>>>> f698489 (Fixed AST.ml by changing the 'type' keyword in 'and'. Removed a duplicated 'ini_module_decl' that was causing conflicts)
   param_name: string;
   param_type: mixin_expr;
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+(*** Init Module Parameters ***)
+>>>>>>> f698489 (Fixed AST.ml by changing the 'type' keyword in 'and'. Removed a duplicated 'ini_module_decl' that was causing conflicts)
 and init_param = {
   imixin_name: string;
   iparam_name: string;
   ivalue: expression;
 }
 
+<<<<<<< HEAD
+=======
+(*** Source Parameters ***)
+>>>>>>> f698489 (Fixed AST.ml by changing the 'type' keyword in 'and'. Removed a duplicated 'ini_module_decl' that was causing conflicts)
 and source_param = {
   mixin_name: string;
   param_name: string;
   source_type: mixin_expr;
 }
 
+<<<<<<< HEAD
 and variable_decl = { 
 =======
 (*** Variable Declarations ***)
 type variable_decl = {
 >>>>>>> 027ea10 (Changed structure of the ProgramTree. Added AST.ml)
+=======
+(*** Variable Declarations ***)
+and variable_decl = {
+>>>>>>> f698489 (Fixed AST.ml by changing the 'type' keyword in 'and'. Removed a duplicated 'ini_module_decl' that was causing conflicts)
   var_name: string;
   var_type: mixin_expr;
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+(*** Polymorphism ***)
+>>>>>>> f698489 (Fixed AST.ml by changing the 'type' keyword in 'and'. Removed a duplicated 'ini_module_decl' that was causing conflicts)
 and polymorphism_param = {
   poly_name: string;
   bound: mixin_expr;
 }
+<<<<<<< HEAD
 
 and method_body = {
   method_local_variables: variable_decl list;
@@ -263,8 +285,44 @@ and expression =
   There is no need of 'expression option' since an expression can be a NullExpression.
 *)
 =======
+=======
+>>>>>>> f698489 (Fixed AST.ml by changing the 'type' keyword in 'and'. Removed a duplicated 'ini_module_decl' that was causing conflicts)
 
+(*** Method Body ***)
+and method_body = {
+  method_local_variables: variable_decl list;
+  method_instructions: instruction list;
+}
 
+(*** Ini Module super ***)
+and ini_module_super = {
+  super_name: string;
+  super_params: init_param list;
+}
+
+(*** Ini Module Body ***)
+and ini_module_body = {
+  ini_module_variables: variable_decl list;
+  ini_module_instructions: instruction list;
+  ini_module_super: ini_module_super;
+}
+
+(*** Ini Module Declarations ***)
+and ini_module_decl = {
+  in_params: source_param list;
+  out_params: source_param list;
+  ini_module_body: ini_module_body;
+}
+
+(*** Mixin Declarations ***)
+and mixin_decl = {
+  mixin_name: string;
+  mixin_polymorphism_params: polymorphism_param list;
+  mixin_fields: field_decl list;
+  mixin_new_methods: method_declaration list;
+  mixin_override_methods: method_declaration list;
+  mixin_ini_module: ini_module_decl list;
+}
 
 (*** Sum types created from the interfaces ***)
 
@@ -374,12 +432,36 @@ and program = global_declaration list
 
 (*** Declarations ***)
 and declaration =
-  | 
+  | MixinDecl of mixin_decl
+  | LetDecl of let_decl
+
 (*** Method Declaration ***)
 and method_declaration =
-  |
+  | AbstractMethod of {
+      name: string;
+      params: parameter_decl list;
+      return_type: mixin_expr;
+  }
+  | NewMethod of {
+      name: string;
+      params: parameter_decl list;
+      return_type: mixin_expr;
+      body: method_body;
+  }
+  | OverrideMethod of {
+      name: string;
+      mixin_overridden: string;
+      params: parameter_decl list;
+      return_type: mixin_expr;
+      body: method_body;
+  }
 
+<<<<<<< HEAD
 (*** New Method Declaration ***)
 and new_method_declaration =
   |
 >>>>>>> 027ea10 (Changed structure of the ProgramTree. Added AST.ml)
+=======
+
+and program = declaration list
+>>>>>>> f698489 (Fixed AST.ml by changing the 'type' keyword in 'and'. Removed a duplicated 'ini_module_decl' that was causing conflicts)
