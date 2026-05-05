@@ -73,14 +73,24 @@ type binop = Add | Div | Eq | Leq | Less | Mul | Neq | StrongEq | Sub
 
 (* These records will be used in the declarations to make the various sub-structures more readable *)
 
+(*** Let ***)
+and let_decl = {
+  let_name: string;
+  bound: expression;
+}
 
 (*** Field Declarations ***)
+<<<<<<< HEAD
 type field_decl = {
 >>>>>>> bf05703 (Changed structure of the ProgramTree. Added AST.ml)
+=======
+and field_decl = {
+>>>>>>> efa6ce2 (Fixed AST.ml by changing the 'type' keyword in 'and'. Removed a duplicated 'ini_module_decl' that was causing conflicts)
   field_name: string;
   field_type: mixin_expr;
 }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 (*** Parameter Declarations ***)
 <<<<<<< HEAD
@@ -111,10 +121,15 @@ type ini_module_decl = {
 (*** Parameter Declarations ***)
 type parameter_decl = {
 >>>>>>> bf05703 (Changed structure of the ProgramTree. Added AST.ml)
+=======
+(*** Parameter Declarations ***)
+and parameter_decl = {
+>>>>>>> efa6ce2 (Fixed AST.ml by changing the 'type' keyword in 'and'. Removed a duplicated 'ini_module_decl' that was causing conflicts)
   param_name: string;
   param_type: mixin_expr;
 }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -134,11 +149,16 @@ and init_param = {
     [imixin_name].[iparam_name] = [ivalue]
  *)
 
+=======
+(*** Init Module Parameters ***)
+and init_param = {
+>>>>>>> efa6ce2 (Fixed AST.ml by changing the 'type' keyword in 'and'. Removed a duplicated 'ini_module_decl' that was causing conflicts)
   imixin_name: string;
   iparam_name: string;
   ivalue: expression;
 }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 (*** Source Parameters ***)
@@ -158,11 +178,16 @@ and source_param = {
     [mixin_name].[param_name] : [source_type]
   *)
 
+=======
+(*** Source Parameters ***)
+and source_param = {
+>>>>>>> efa6ce2 (Fixed AST.ml by changing the 'type' keyword in 'and'. Removed a duplicated 'ini_module_decl' that was causing conflicts)
   mixin_name: string;
   param_name: string;
   source_type: mixin_expr;
 }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 and variable_decl = { 
@@ -192,10 +217,15 @@ and variable_decl = {
 (*** Variable Declarations ***)
 type variable_decl = {
 >>>>>>> bf05703 (Changed structure of the ProgramTree. Added AST.ml)
+=======
+(*** Variable Declarations ***)
+and variable_decl = {
+>>>>>>> efa6ce2 (Fixed AST.ml by changing the 'type' keyword in 'and'. Removed a duplicated 'ini_module_decl' that was causing conflicts)
   var_name: string;
   var_type: mixin_expr;
 }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -477,17 +507,44 @@ and ini_module_body = {
           [ini_module_instructions_postcall]
 
     end
+=======
+(*** Polymorphism ***)
+and polymorphism_param = {
+  poly_name: string;
+  bound: mixin_expr;
+}
+>>>>>>> efa6ce2 (Fixed AST.ml by changing the 'type' keyword in 'and'. Removed a duplicated 'ini_module_decl' that was causing conflicts)
 
+(*** Method Body ***)
+and method_body = {
+  method_local_variables: variable_decl list;
+  method_instructions: instruction list;
+}
 
+<<<<<<< HEAD
   *)
   ini_module_variables: variable_decl list;
   ini_module_instructions_precall: instruction list;
   ini_module_super: ini_module_super;
   ini_module_instructions_postcall: instruction list;
+=======
+(*** Ini Module super ***)
+and ini_module_super = {
+  super_name: string;
+  super_params: init_param list;
+}
+
+(*** Ini Module Body ***)
+and ini_module_body = {
+  ini_module_variables: variable_decl list;
+  ini_module_instructions: instruction list;
+  ini_module_super: ini_module_super;
+>>>>>>> efa6ce2 (Fixed AST.ml by changing the 'type' keyword in 'and'. Removed a duplicated 'ini_module_decl' that was causing conflicts)
 }
 
 (*** Ini Module Declarations ***)
 and ini_module_decl = {
+<<<<<<< HEAD
 (** The record [ini_module_decl] is the declaration of an ini module.
   The record contains the following fields:
   
@@ -498,6 +555,8 @@ and ini_module_decl = {
      [ini_module_body] that is the body of the ini module.
 
 *)
+=======
+>>>>>>> efa6ce2 (Fixed AST.ml by changing the 'type' keyword in 'and'. Removed a duplicated 'ini_module_decl' that was causing conflicts)
   in_params: source_param list;
   out_params: source_param list;
   ini_module_body: ini_module_body;
@@ -505,6 +564,7 @@ and ini_module_decl = {
 
 (*** Mixin Declarations ***)
 and mixin_decl = {
+<<<<<<< HEAD
 (** The record [mixin_decl] contains the following fields:
 
     [mixin_name] that is the name of the mixin
@@ -519,6 +579,8 @@ and mixin_decl = {
 
     [mixin_ini_module] that is a list of [ini_module_decl]s
 *)
+=======
+>>>>>>> efa6ce2 (Fixed AST.ml by changing the 'type' keyword in 'and'. Removed a duplicated 'ini_module_decl' that was causing conflicts)
   mixin_name: string;
   mixin_polymorphism_params: polymorphism_param list;
   mixin_fields: field_decl list;
@@ -526,10 +588,13 @@ and mixin_decl = {
   mixin_override_methods: method_declaration list;
   mixin_ini_module: ini_module_decl list;
 }
+<<<<<<< HEAD
 =======
 
 
 >>>>>>> bf05703 (Changed structure of the ProgramTree. Added AST.ml)
+=======
+>>>>>>> efa6ce2 (Fixed AST.ml by changing the 'type' keyword in 'and'. Removed a duplicated 'ini_module_decl' that was causing conflicts)
 
 (*** Sum types created from the interfaces ***)
 
@@ -746,12 +811,36 @@ and program = global_declaration list
 >>>>>>> 5b2adee (Added partial documentation for ast.ml)
 =======
 and declaration =
-  | 
+  | MixinDecl of mixin_decl
+  | LetDecl of let_decl
+
 (*** Method Declaration ***)
 and method_declaration =
-  |
+  | AbstractMethod of {
+      name: string;
+      params: parameter_decl list;
+      return_type: mixin_expr;
+  }
+  | NewMethod of {
+      name: string;
+      params: parameter_decl list;
+      return_type: mixin_expr;
+      body: method_body;
+  }
+  | OverrideMethod of {
+      name: string;
+      mixin_overridden: string;
+      params: parameter_decl list;
+      return_type: mixin_expr;
+      body: method_body;
+  }
 
+<<<<<<< HEAD
 (*** New Method Declaration ***)
 and new_method_declaration =
   |
 >>>>>>> bf05703 (Changed structure of the ProgramTree. Added AST.ml)
+=======
+
+and program = declaration list
+>>>>>>> efa6ce2 (Fixed AST.ml by changing the 'type' keyword in 'and'. Removed a duplicated 'ini_module_decl' that was causing conflicts)
