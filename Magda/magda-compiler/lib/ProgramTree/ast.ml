@@ -8,32 +8,85 @@ type binop = Add | Div | Eq | Leq | Less | Mul | Neq | StrongEq | Sub
 
 (* These records will be used in the declarations to make the various sub-structures more readable *)
 
+(*** Let ***)
+and let_decl = {
+  let_name: string;
+  bound: expression;
+}
 
 (*** Field Declarations ***)
-type field_decl = {
+and field_decl = {
   field_name: string;
   field_type: mixin_expr;
 }
 
-(*** Ini Module Declarations ***)
-type ini_module_decl = {
-  ini_module_name: string;
-  ini_module_params: parameter_decl list;
-}
 (*** Parameter Declarations ***)
-type parameter_decl = {
+and parameter_decl = {
   param_name: string;
   param_type: mixin_expr;
 }
 
+(*** Init Module Parameters ***)
+and init_param = {
+  imixin_name: string;
+  iparam_name: string;
+  ivalue: expression;
+}
+
+(*** Source Parameters ***)
+and source_param = {
+  mixin_name: string;
+  param_name: string;
+  source_type: mixin_expr;
+}
+
 (*** Variable Declarations ***)
-type variable_decl = {
+and variable_decl = {
   var_name: string;
   var_type: mixin_expr;
 }
 
+(*** Polymorphism ***)
+and polymorphism_param = {
+  poly_name: string;
+  bound: mixin_expr;
+}
 
+(*** Method Body ***)
+and method_body = {
+  method_local_variables: variable_decl list;
+  method_instructions: instruction list;
+}
 
+(*** Ini Module super ***)
+and ini_module_super = {
+  super_name: string;
+  super_params: init_param list;
+}
+
+(*** Ini Module Body ***)
+and ini_module_body = {
+  ini_module_variables: variable_decl list;
+  ini_module_instructions: instruction list;
+  ini_module_super: ini_module_super;
+}
+
+(*** Ini Module Declarations ***)
+and ini_module_decl = {
+  in_params: source_param list;
+  out_params: source_param list;
+  ini_module_body: ini_module_body;
+}
+
+(*** Mixin Declarations ***)
+and mixin_decl = {
+  mixin_name: string;
+  mixin_polymorphism_params: polymorphism_param list;
+  mixin_fields: field_decl list;
+  mixin_new_methods: method_declaration list;
+  mixin_override_methods: method_declaration list;
+  mixin_ini_module: ini_module_decl list;
+}
 
 (*** Sum types created from the interfaces ***)
 
@@ -113,11 +166,29 @@ and expression =
 
 (*** Declarations ***)
 and declaration =
-  | 
+  | MixinDecl of mixin_decl
+  | LetDecl of let_decl
+
 (*** Method Declaration ***)
 and method_declaration =
-  |
+  | AbstractMethod of {
+      name: string;
+      params: parameter_decl list;
+      return_type: mixin_expr;
+  }
+  | NewMethod of {
+      name: string;
+      params: parameter_decl list;
+      return_type: mixin_expr;
+      body: method_body;
+  }
+  | OverrideMethod of {
+      name: string;
+      mixin_overridden: string;
+      params: parameter_decl list;
+      return_type: mixin_expr;
+      body: method_body;
+  }
 
-(*** New Method Declaration ***)
-and new_method_declaration =
-  |
+
+and program = declaration list
