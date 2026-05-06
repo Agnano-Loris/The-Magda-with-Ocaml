@@ -1,4 +1,8 @@
 (include_subdirs qualified)
 
+(menhir
+ (modules Parser))
+
 (library
- (name magda_parser))
+ (name magda_parser)
+ (libraries magda_pre_parser magda_cst))
