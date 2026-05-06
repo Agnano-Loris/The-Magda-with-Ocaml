@@ -63,7 +63,7 @@ and other_declaration =
 and parameter_decl = string * mixin_expression
 
 and method_body = {
-met_local_vars : local_variable_declaration list
+met_local_vars : local_variable_declaration list;
 instructions : instruction list
 }
 
@@ -80,9 +80,9 @@ and input_init_param = string * mixin_expression
 and output_init_param = string * string
 
 and ini_module_body = {
-ini_local_vars : local_variable_declaration list
-instructions_pre_super : instruction list
-super_call : init_param list
+ini_local_vars : local_variable_declaration list;
+instructions_pre_super : instruction list;
+super_call : init_param list;
 instructions_post_super : instruction list
 }
 
