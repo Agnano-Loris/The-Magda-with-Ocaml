@@ -101,11 +101,16 @@ output_init_param:
 | mixname = ID DOT pname = ID { (mixname, pname) }
 
 ini_module_body:
-| vars = list(local_variable_declaration) BEGIN instrs = list(instruction) SUPER super = delimited(LBRACKET, separated_list(COMMA, init_param) , RBRACKET) SEMICOLON instrs2 = list(instruction) END
-{ { ini_local_vars = vars;
-instructions_pre_super = instrs;
+| vars = list(local_variable_declaration) BEGIN pre_and_super = ini_pre_and_super_instructions post = list(instruction) END
+{ let (pre, super) = pre_and_super in
+ { ini_local_vars = vars;
+instructions_pre_super = pre;
 super_call = super;
-instructions_post_super = instrs2 } }
+instructions_post_super = post } }
+
+ini_pre_and_super_instructions: 
+| SUPER super = delimited(LBRACKET, separated_list(COMMA, init_param) , RBRACKET) SEMICOLON { ([], super) }
+| instr = instruction rest = ini_pre_and_super_instructions { let (pre, super) = rest in ( instr :: pre , super ) }
 
 init_param:
 | mixname = ID DOT pname = ID ASSIGN expr = expression { (mixname, pname, expr) }
@@ -123,17 +128,12 @@ instruction:
 | i = instruction_body SEMICOLON { i }
 
 instruction_body:
-| exprlvalue = expression ASSIGN expr = expression { Assignment(expression_to_value exprlvalue, expr) }
+| exprlvalue = expression ASSIGN expr = expression { Assignment(expression_to_lvalue exprlvalue, expr) }
 | expr = expression { ExprInstruction expr }
 | RETURN expr = expression { Return expr }
 | n = NATIVEINSTRUCTION { NativeInstruction n }
 | WHILE LPAREN cond = expression RPAREN instrs = list(instruction) END { WhileLoop (cond, instrs) }
 | IF LPAREN cond = expression RPAREN tinstr = list(instruction) finstr=option(preceded(ELSE, list(instruction))) END { IfCond (cond, tinstr, Option.value ~default:[] finstr) }
-
-l_value:
-| THIS DOT mixname = ID DOT fname = ID { MixinField(mixname, fname) }
-| THIS DOT fname = ID { DirectField fname }
-| vname = ID { Variable vname }
 
 expression:
 | e = base_expression { e }
