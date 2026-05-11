@@ -1,6 +1,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 type binop = Add | Div | Eq | Leq | Less | Mul | Neq | StrongEq | Sub
 
 
@@ -67,17 +68,32 @@ and field_decl = {
  *)
 
 =======
+=======
+(** Sum type [binop] has been made so the binary operations in [expression] are less verbose *)
+>>>>>>> 52b13d5 (Added partial documentation for ast.ml)
 type binop = Add | Div | Eq | Leq | Less | Mul | Neq | StrongEq | Sub
 
 
+(* The following records are needed for the sum types [method_declaration] and [global_declaration].*)
 
-(* These records will be used in the declarations to make the various sub-structures more readable *)
-
-(*** Let ***)
+(*** Let Declarations ***)
 and let_decl = {
+(** The record [let_decl] contains the following fields:
+
+  [let_name] that is used for the name of the 'let' variable
+  
+  [bound] that is the expression that follows the '=' keyword.
+
+  Syntax:
+  let [let_name] = [bound]
+  
+  *)
+
   let_name: string;
   bound: expression;
 }
+
+
 
 (*** Field Declarations ***)
 <<<<<<< HEAD
@@ -85,7 +101,20 @@ type field_decl = {
 >>>>>>> bf05703 (Changed structure of the ProgramTree. Added AST.ml)
 =======
 and field_decl = {
+<<<<<<< HEAD
 >>>>>>> efa6ce2 (Fixed AST.ml by changing the 'type' keyword in 'and'. Removed a duplicated 'ini_module_decl' that was causing conflicts)
+=======
+(** The record [field_decl] contains the following fields:
+
+    [field_name] that is used for the name of the field
+
+    [field_type] that is used to express the type of the field.
+
+    Syntax:
+    [field_name] : [field_type]
+ *)
+
+>>>>>>> 52b13d5 (Added partial documentation for ast.ml)
   field_name: string;
   field_type: mixin_expr;
 }
@@ -124,7 +153,20 @@ type parameter_decl = {
 =======
 (*** Parameter Declarations ***)
 and parameter_decl = {
+<<<<<<< HEAD
 >>>>>>> efa6ce2 (Fixed AST.ml by changing the 'type' keyword in 'and'. Removed a duplicated 'ini_module_decl' that was causing conflicts)
+=======
+(** The record [parameter_decl] contains the following fields:
+
+    [param_name] that is used for the name of the parameter
+
+    [param_type] that is used to express the type of the parameter.
+
+    Syntax:
+    [param_name] : [param_type]
+ *)
+
+>>>>>>> 52b13d5 (Added partial documentation for ast.ml)
   param_name: string;
   param_type: mixin_expr;
 }
@@ -152,7 +194,22 @@ and init_param = {
 =======
 (*** Init Module Parameters ***)
 and init_param = {
+<<<<<<< HEAD
 >>>>>>> efa6ce2 (Fixed AST.ml by changing the 'type' keyword in 'and'. Removed a duplicated 'ini_module_decl' that was causing conflicts)
+=======
+(** The record [init_param] contains the following fields:
+
+    [imixin_name] that is used for the name of the mixin
+
+    [iparam_name] that is the name of the parameter. It follows the '.' character
+
+    [ivalue] that is the expression that follows the '=' keyword.
+
+    Syntax:
+    [imixin_name].[iparam_name] = [ivalue]
+ *)
+
+>>>>>>> 52b13d5 (Added partial documentation for ast.ml)
   imixin_name: string;
   iparam_name: string;
   ivalue: expression;
@@ -181,12 +238,29 @@ and source_param = {
 =======
 (*** Source Parameters ***)
 and source_param = {
+<<<<<<< HEAD
 >>>>>>> efa6ce2 (Fixed AST.ml by changing the 'type' keyword in 'and'. Removed a duplicated 'ini_module_decl' that was causing conflicts)
+=======
+(** The record [source_param] are the parameters in input/output.
+
+  The record contains the following fields:
+
+    [mixin_name] that is used for the name of the mixin
+
+    [param_name] that is the name of the parameter. It follows the '.' character
+
+    [source_type] explains if the parameter is an input or output parameter.
+
+    Syntax:
+    [mixin_name].[param_name] : [source_type]
+  *)
+>>>>>>> 52b13d5 (Added partial documentation for ast.ml)
   mixin_name: string;
   param_name: string;
   source_type: mixin_expr;
 }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -200,6 +274,8 @@ type variable_decl = {
 and variable_decl = {
 >>>>>>> f698489 (Fixed AST.ml by changing the 'type' keyword in 'and'. Removed a duplicated 'ini_module_decl' that was causing conflicts)
 =======
+=======
+>>>>>>> 52b13d5 (Added partial documentation for ast.ml)
 (** Variable Declarations ***)
 and variable_decl = { 
 (** The record [variable_decl] contains the following fields:
@@ -212,6 +288,7 @@ and variable_decl = {
     [var_name] : [var_type]
   *)
 
+<<<<<<< HEAD
 >>>>>>> 5b2adee (Added partial documentation for ast.ml)
 =======
 (*** Variable Declarations ***)
@@ -221,6 +298,8 @@ type variable_decl = {
 (*** Variable Declarations ***)
 and variable_decl = {
 >>>>>>> efa6ce2 (Fixed AST.ml by changing the 'type' keyword in 'and'. Removed a duplicated 'ini_module_decl' that was causing conflicts)
+=======
+>>>>>>> 52b13d5 (Added partial documentation for ast.ml)
   var_name: string;
   var_type: mixin_expr;
 }
@@ -517,6 +596,25 @@ and polymorphism_param = {
 
 (*** Method Body ***)
 and method_body = {
+(** The record [method_body] is the body of a [NewMethod] or [OverrideMethod].
+
+  The record contains the following fields:
+
+  [method_local_variables] that is a list of variable declarations that are local to the method.
+  [method_instructions] that is a list of instructions between the 'begin' and 'end' keywords.
+
+  Syntax used in [NewMethod]:
+
+  new [method_name] ([params])
+  
+  [method_local_variables]
+
+      begin
+
+            [method_instructions]
+  
+      end
+*)
   method_local_variables: variable_decl list;
   method_instructions: instruction list;
 }
@@ -565,10 +663,14 @@ and ini_module_decl = {
 (*** Mixin Declarations ***)
 and mixin_decl = {
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 52b13d5 (Added partial documentation for ast.ml)
 (** The record [mixin_decl] contains the following fields:
 
     [mixin_name] that is the name of the mixin
 
+<<<<<<< HEAD
     [mixin_polymorphism_params] that is a list of [polymorphism_param]s
     
     [mixin_fields] that is a list of [field_decl]s
@@ -581,6 +683,10 @@ and mixin_decl = {
 *)
 =======
 >>>>>>> efa6ce2 (Fixed AST.ml by changing the 'type' keyword in 'and'. Removed a duplicated 'ini_module_decl' that was causing conflicts)
+=======
+    [mixin_polymorphism_params]
+  *)
+>>>>>>> 52b13d5 (Added partial documentation for ast.ml)
   mixin_name: string;
   mixin_polymorphism_params: polymorphism_param list;
   mixin_fields: field_decl list;
@@ -622,12 +728,17 @@ and mixin_expr =
   }
   | MixinExpressionConcat of {
 <<<<<<< HEAD
+<<<<<<< HEAD
       left_mixin: mixin_expr;
       right_mixin: mixin_expr;
 =======
       left: mixin_expr;
       right: mixin_expr;
 >>>>>>> bf05703 (Changed structure of the ProgramTree. Added AST.ml)
+=======
+      left_mixin: mixin_expr;
+      right_mixin: mixin_expr;
+>>>>>>> 52b13d5 (Added partial documentation for ast.ml)
   }
   | MixinExpressionApplication of {
       mixin_name : string;
@@ -639,7 +750,11 @@ and mixin_expr =
 (*** LValues ***)
 and lvalue =
 <<<<<<< HEAD
+<<<<<<< HEAD
 (** A [lvalue] is a reference to a location in memory.
+=======
+  (** A [lvalue] is a reference to a location in memory.
+>>>>>>> 52b13d5 (Added partial documentation for ast.ml)
   It is used in the assignment instruction right before the ':=' operator.
   
   It can be either a variable [VariableLValue] or a field [FieldLValue].
@@ -651,8 +766,11 @@ and lvalue =
   [mixin_name].[field_name]
   *)
 
+<<<<<<< HEAD
 =======
 >>>>>>> bf05703 (Changed structure of the ProgramTree. Added AST.ml)
+=======
+>>>>>>> 52b13d5 (Added partial documentation for ast.ml)
   | VariableLValue of {
       var_name: string;
   }
@@ -664,11 +782,17 @@ and lvalue =
 (*** Instructions ***)
 and instruction =
 <<<<<<< HEAD
+<<<<<<< HEAD
 (** An [instruction] is one of the operations expressed in the guards.
   There is no need of 'instruction option' since an instruction can be an ExprInstruction
   and an ExprInstruction can be a NullExpression *)
 =======
 >>>>>>> bf05703 (Changed structure of the ProgramTree. Added AST.ml)
+=======
+(** An [instruction] is one of the operations expressed in the guards.
+  There is no need of 'instruction option' since an instruction can be an ExprInstruction
+  and an ExprInstruction can be a NullExpression *)
+>>>>>>> 52b13d5 (Added partial documentation for ast.ml)
   | Assignment of lvalue * expression
   | ExprInstruction of expression
   | IfInstruction of {
@@ -690,6 +814,7 @@ and instruction =
 and expression =
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 027ea10 (Changed structure of the ProgramTree. Added AST.ml)
 =======
 (** An [expression] is one of the operations expressed in the guards.
@@ -698,11 +823,17 @@ and expression =
 >>>>>>> 5b2adee (Added partial documentation for ast.ml)
 =======
 >>>>>>> bf05703 (Changed structure of the ProgramTree. Added AST.ml)
+=======
+(** An [expression] is one of the operations expressed in the guards.
+  There is no need of 'expression option' since an expression can be a NullExpression.
+*)
+>>>>>>> 52b13d5 (Added partial documentation for ast.ml)
   | ThisExpression
   | NullExpression
   | IntegerLiteral of int
   | BooleanLiteral of bool
   | FloatLiteral of float
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -741,6 +872,9 @@ and program = global_declaration list
 =======
   | ByteLiteral of (* da capire se mettere string o no*) string
 >>>>>>> bf05703 (Changed structure of the ProgramTree. Added AST.ml)
+=======
+  | ByteLiteral of string
+>>>>>>> 52b13d5 (Added partial documentation for ast.ml)
   | StringLiteral of string
   | Identifier of string
   | SuperExpression of expression list
@@ -763,6 +897,7 @@ and program = global_declaration list
 
 
 (*** Declarations ***)
+<<<<<<< HEAD
 <<<<<<< HEAD
 (** A [global_declaration] is either a [mixin_decl] or a [let_decl] statement *)
 and global_declaration =
@@ -811,11 +946,17 @@ and program = global_declaration list
 >>>>>>> 5b2adee (Added partial documentation for ast.ml)
 =======
 and declaration =
+=======
+(** A [global_declaration] is either a [mixin_decl] or a [let_decl] statement *)
+and global_declaration =
+>>>>>>> 52b13d5 (Added partial documentation for ast.ml)
   | MixinDecl of mixin_decl
   | LetDecl of let_decl
 
 (*** Method Declaration ***)
 and method_declaration =
+  (** A [method_declaration] is a bodyless abstract [AbstactMethod] or a concrete [NewMethod] or an override of an existing mixin [OverrideMethod]*)
+
   | AbstractMethod of {
       name: string;
       params: parameter_decl list;
@@ -836,6 +977,7 @@ and method_declaration =
   }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 (*** New Method Declaration ***)
 and new_method_declaration =
   |
@@ -844,3 +986,8 @@ and new_method_declaration =
 
 and program = declaration list
 >>>>>>> efa6ce2 (Fixed AST.ml by changing the 'type' keyword in 'and'. Removed a duplicated 'ini_module_decl' that was causing conflicts)
+=======
+(*** Program ***)
+(** The [program] is a list of [global_declaration]s*)
+and program = global_declaration list
+>>>>>>> 52b13d5 (Added partial documentation for ast.ml)
