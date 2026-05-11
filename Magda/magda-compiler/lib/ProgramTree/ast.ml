@@ -1,33 +1,74 @@
-(*** Records used later ***)
-
-(* These sum types will be used to make the binary operations less verbose *)
-(*** Binary Operations ***)
+(** Sum type [binop] has been made so the binary operations in [expression] are less verbose *)
 type binop = Add | Div | Eq | Leq | Less | Mul | Neq | StrongEq | Sub
 
 
+(* The following records are needed for the sum types [method_declaration] and [global_declaration].*)
 
-(* These records will be used in the declarations to make the various sub-structures more readable *)
-
-(*** Let ***)
+(*** Let Declarations ***)
 and let_decl = {
+(** The record [let_decl] contains the following fields:
+
+  [let_name] that is used for the name of the 'let' variable
+  
+  [bound] that is the expression that follows the '=' keyword.
+
+  Syntax:
+  let [let_name] = [bound]
+  
+  *)
+
   let_name: string;
   bound: expression;
 }
 
+
+
 (*** Field Declarations ***)
 and field_decl = {
+(** The record [field_decl] contains the following fields:
+
+    [field_name] that is used for the name of the field
+
+    [field_type] that is used to express the type of the field.
+
+    Syntax:
+    [field_name] : [field_type]
+ *)
+
   field_name: string;
   field_type: mixin_expr;
 }
 
 (*** Parameter Declarations ***)
 and parameter_decl = {
+(** The record [parameter_decl] contains the following fields:
+
+    [param_name] that is used for the name of the parameter
+
+    [param_type] that is used to express the type of the parameter.
+
+    Syntax:
+    [param_name] : [param_type]
+ *)
+
   param_name: string;
   param_type: mixin_expr;
 }
 
 (*** Init Module Parameters ***)
 and init_param = {
+(** The record [init_param] contains the following fields:
+
+    [imixin_name] that is used for the name of the mixin
+
+    [iparam_name] that is the name of the parameter. It follows the '.' character
+
+    [ivalue] that is the expression that follows the '=' keyword.
+
+    Syntax:
+    [imixin_name].[iparam_name] = [ivalue]
+ *)
+
   imixin_name: string;
   iparam_name: string;
   ivalue: expression;
@@ -35,13 +76,36 @@ and init_param = {
 
 (*** Source Parameters ***)
 and source_param = {
+(** The record [source_param] are the parameters in input/output.
+
+  The record contains the following fields:
+
+    [mixin_name] that is used for the name of the mixin
+
+    [param_name] that is the name of the parameter. It follows the '.' character
+
+    [source_type] explains if the parameter is an input or output parameter.
+
+    Syntax:
+    [mixin_name].[param_name] : [source_type]
+  *)
   mixin_name: string;
   param_name: string;
   source_type: mixin_expr;
 }
 
-(*** Variable Declarations ***)
-and variable_decl = {
+(** Variable Declarations ***)
+and variable_decl = { 
+(** The record [variable_decl] contains the following fields:
+
+    [var_name] that is used for the name of the variable
+    
+    [var_type] that is used to express the type of the variable.
+
+    Syntax:
+    [var_name] : [var_type]
+  *)
+
   var_name: string;
   var_type: mixin_expr;
 }
@@ -54,6 +118,25 @@ and polymorphism_param = {
 
 (*** Method Body ***)
 and method_body = {
+(** The record [method_body] is the body of a [NewMethod] or [OverrideMethod].
+
+  The record contains the following fields:
+
+  [method_local_variables] that is a list of variable declarations that are local to the method.
+  [method_instructions] that is a list of instructions between the 'begin' and 'end' keywords.
+
+  Syntax used in [NewMethod]:
+
+  new [method_name] ([params])
+  
+  [method_local_variables]
+
+      begin
+
+            [method_instructions]
+  
+      end
+*)
   method_local_variables: variable_decl list;
   method_instructions: instruction list;
 }
@@ -80,6 +163,12 @@ and ini_module_decl = {
 
 (*** Mixin Declarations ***)
 and mixin_decl = {
+(** The record [mixin_decl] contains the following fields:
+
+    [mixin_name] that is the name of the mixin
+
+    [mixin_polymorphism_params]
+  *)
   mixin_name: string;
   mixin_polymorphism_params: polymorphism_param list;
   mixin_fields: field_decl list;
@@ -96,8 +185,8 @@ and mixin_expr =
       mixin_name: string;
   }
   | MixinExpressionConcat of {
-      left: mixin_expr;
-      right: mixin_expr;
+      left_mixin: mixin_expr;
+      right_mixin: mixin_expr;
   }
   | MixinExpressionApplication of {
       mixin_name : string;
@@ -108,6 +197,18 @@ and mixin_expr =
 
 (*** LValues ***)
 and lvalue =
+  (** A [lvalue] is a reference to a location in memory.
+  It is used in the assignment instruction right before the ':=' operator.
+  
+  It can be either a variable [VariableLValue] or a field [FieldLValue].
+
+  Syntax for [VariableLValue]:
+  [var_name]
+
+  Syntax for [FieldLValue]:
+  [mixin_name].[field_name]
+  *)
+
   | VariableLValue of {
       var_name: string;
   }
@@ -118,6 +219,9 @@ and lvalue =
 
 (*** Instructions ***)
 and instruction =
+(** An [instruction] is one of the operations expressed in the guards.
+  There is no need of 'instruction option' since an instruction can be an ExprInstruction
+  and an ExprInstruction can be a NullExpression *)
   | Assignment of lvalue * expression
   | ExprInstruction of expression
   | IfInstruction of {
@@ -137,12 +241,15 @@ and instruction =
 
 (*** Expressions ***)
 and expression =
+(** An [expression] is one of the operations expressed in the guards.
+  There is no need of 'expression option' since an expression can be a NullExpression.
+*)
   | ThisExpression
   | NullExpression
   | IntegerLiteral of int
   | BooleanLiteral of bool
   | FloatLiteral of float
-  | ByteLiteral of (* da capire se mettere string o no*) string
+  | ByteLiteral of string
   | StringLiteral of string
   | Identifier of string
   | SuperExpression of expression list
@@ -165,12 +272,15 @@ and expression =
 
 
 (*** Declarations ***)
-and declaration =
+(** A [global_declaration] is either a [mixin_decl] or a [let_decl] statement *)
+and global_declaration =
   | MixinDecl of mixin_decl
   | LetDecl of let_decl
 
 (*** Method Declaration ***)
 and method_declaration =
+  (** A [method_declaration] is a bodyless abstract [AbstactMethod] or a concrete [NewMethod] or an override of an existing mixin [OverrideMethod]*)
+
   | AbstractMethod of {
       name: string;
       params: parameter_decl list;
@@ -190,5 +300,6 @@ and method_declaration =
       body: method_body;
   }
 
-
-and program = declaration list
+(*** Program ***)
+(** The [program] is a list of [global_declaration]s*)
+and program = global_declaration list
