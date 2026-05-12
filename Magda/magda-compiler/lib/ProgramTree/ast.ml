@@ -235,6 +235,7 @@ and source_param = {
     [mixin_name].[param_name] : [source_type]
   *)
 
+<<<<<<< HEAD
 =======
 (*** Source Parameters ***)
 and source_param = {
@@ -255,6 +256,8 @@ and source_param = {
     [mixin_name].[param_name] : [source_type]
   *)
 >>>>>>> 52b13d5 (Added partial documentation for ast.ml)
+=======
+>>>>>>> fcf2a64 (Completed a first version of documentation for ast.ml)
   mixin_name: string;
   param_name: string;
   source_type: mixin_expr;
@@ -555,6 +558,7 @@ and ini_module_super = {
     Syntax:
     super [super_name] ([super_params])
  *)
+<<<<<<< HEAD
   super_name: string;
   super_params: init_param list;
 }
@@ -628,21 +632,58 @@ and method_body = {
 =======
 (*** Ini Module super ***)
 and ini_module_super = {
+=======
+>>>>>>> fcf2a64 (Completed a first version of documentation for ast.ml)
   super_name: string;
   super_params: init_param list;
 }
 
 (*** Ini Module Body ***)
 and ini_module_body = {
+(** The record [ini_module_body] is the body of an [ini_module_decl].
+    
+  The record contains the following fields:
+
+  [ini_module_variables] that is a list of [variable_decl]s that are local to the ini module.
+
+  [ini_module_instructions_precall] that is a list of [instruction]s between the 'begin' the [ini_module_super] call.
+
+  [ini_module_super] that is the super call of the ini module. 
+
+  [ini_module_instructions_postcall] that is a list of [instruction]s between the [ini_module_super] call and the 'end' keyword.
+
+  Syntax:
+  
+  [ini_module_variables]
+
+    begin
+
+          [ini_module_instructions_precall]
+
+          super \[[ini_module_super]\]
+
+          [ini_module_instructions_postcall]
+
+    end
+
+
+  *)
   ini_module_variables: variable_decl list;
-  ini_module_instructions: instruction list;
+  ini_module_instructions_precall: instruction list;
   ini_module_super: ini_module_super;
+<<<<<<< HEAD
 >>>>>>> efa6ce2 (Fixed AST.ml by changing the 'type' keyword in 'and'. Removed a duplicated 'ini_module_decl' that was causing conflicts)
+=======
+  ini_module_instructions_postcall: instruction list;
+>>>>>>> fcf2a64 (Completed a first version of documentation for ast.ml)
 }
 
 (*** Ini Module Declarations ***)
 and ini_module_decl = {
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> fcf2a64 (Completed a first version of documentation for ast.ml)
 (** The record [ini_module_decl] is the declaration of an ini module.
   The record contains the following fields:
   
@@ -653,8 +694,11 @@ and ini_module_decl = {
      [ini_module_body] that is the body of the ini module.
 
 *)
+<<<<<<< HEAD
 =======
 >>>>>>> efa6ce2 (Fixed AST.ml by changing the 'type' keyword in 'and'. Removed a duplicated 'ini_module_decl' that was causing conflicts)
+=======
+>>>>>>> fcf2a64 (Completed a first version of documentation for ast.ml)
   in_params: source_param list;
   out_params: source_param list;
   ini_module_body: ini_module_body;
@@ -671,6 +715,9 @@ and mixin_decl = {
     [mixin_name] that is the name of the mixin
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> fcf2a64 (Completed a first version of documentation for ast.ml)
     [mixin_polymorphism_params] that is a list of [polymorphism_param]s
     
     [mixin_fields] that is a list of [field_decl]s
@@ -681,12 +728,15 @@ and mixin_decl = {
 
     [mixin_ini_module] that is a list of [ini_module_decl]s
 *)
+<<<<<<< HEAD
 =======
 >>>>>>> efa6ce2 (Fixed AST.ml by changing the 'type' keyword in 'and'. Removed a duplicated 'ini_module_decl' that was causing conflicts)
 =======
     [mixin_polymorphism_params]
   *)
 >>>>>>> 52b13d5 (Added partial documentation for ast.ml)
+=======
+>>>>>>> fcf2a64 (Completed a first version of documentation for ast.ml)
   mixin_name: string;
   mixin_polymorphism_params: polymorphism_param list;
   mixin_fields: field_decl list;
@@ -707,6 +757,9 @@ and mixin_decl = {
 (*** Mixin Expressions ***)
 and mixin_expr =
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> fcf2a64 (Completed a first version of documentation for ast.ml)
 (** A [mixin_expr] is used to express the type of declarations such as variables, parameters, fiels and return.
 
   A [mixin_expr] can be [MixinExpressionVoid] or [MixinExpressionId]. 
@@ -721,8 +774,11 @@ and mixin_expr =
   Syntax for [MixinExpressionApplication]:
   [mixin_name] . [param_name] = ([value])
 *)
+<<<<<<< HEAD
 =======
 >>>>>>> bf05703 (Changed structure of the ProgramTree. Added AST.ml)
+=======
+>>>>>>> fcf2a64 (Completed a first version of documentation for ast.ml)
   | MixinExpressionId of {
       mixin_name: string;
   }
@@ -751,10 +807,14 @@ and mixin_expr =
 and lvalue =
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 (** A [lvalue] is a reference to a location in memory.
 =======
   (** A [lvalue] is a reference to a location in memory.
 >>>>>>> 52b13d5 (Added partial documentation for ast.ml)
+=======
+(** A [lvalue] is a reference to a location in memory.
+>>>>>>> fcf2a64 (Completed a first version of documentation for ast.ml)
   It is used in the assignment instruction right before the ':=' operator.
   
   It can be either a variable [VariableLValue] or a field [FieldLValue].
