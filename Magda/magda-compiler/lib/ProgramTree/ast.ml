@@ -89,6 +89,7 @@ and source_param = {
     Syntax:
     [mixin_name].[param_name] : [source_type]
   *)
+
   mixin_name: string;
   param_name: string;
   source_type: mixin_expr;
@@ -112,6 +113,17 @@ and variable_decl = {
 
 (*** Polymorphism ***)
 and polymorphism_param = {
+(** The record [polymorphism_param] is used to define polymorphic parameters in [mixin_decl]. 
+    
+    The record contains the following fields:
+
+    [poly_name] that is the name of the polymorphic parameter
+
+    [bound] that is the [mixin_expr] that follows the '<=' keyword.
+
+    Syntax:
+    [poly_name] <= [bound]
+ *)
   poly_name: string;
   bound: mixin_expr;
 }
@@ -143,19 +155,67 @@ and method_body = {
 
 (*** Ini Module super ***)
 and ini_module_super = {
+(** The record [ini_module_super] is the supercall of the inimodule. It contains the following fields:
+
+    [super_name] that is the name of the super mixin
+
+    [super_params] that is a list of [init_param]s.
+
+    Syntax:
+    super [super_name] ([super_params])
+ *)
   super_name: string;
   super_params: init_param list;
 }
 
 (*** Ini Module Body ***)
 and ini_module_body = {
+(** The record [ini_module_body] is the body of an [ini_module_decl].
+    
+  The record contains the following fields:
+
+  [ini_module_variables] that is a list of [variable_decl]s that are local to the ini module.
+
+  [ini_module_instructions_precall] that is a list of [instruction]s between the 'begin' the [ini_module_super] call.
+
+  [ini_module_super] that is the super call of the ini module. 
+
+  [ini_module_instructions_postcall] that is a list of [instruction]s between the [ini_module_super] call and the 'end' keyword.
+
+  Syntax:
+  
+  [ini_module_variables]
+
+    begin
+
+          [ini_module_instructions_precall]
+
+          super \[[ini_module_super]\]
+
+          [ini_module_instructions_postcall]
+
+    end
+
+
+  *)
   ini_module_variables: variable_decl list;
-  ini_module_instructions: instruction list;
+  ini_module_instructions_precall: instruction list;
   ini_module_super: ini_module_super;
+  ini_module_instructions_postcall: instruction list;
 }
 
 (*** Ini Module Declarations ***)
 and ini_module_decl = {
+(** The record [ini_module_decl] is the declaration of an ini module.
+  The record contains the following fields:
+  
+     [in_params] that is a list of [source_param]s that are the input parameters of the ini module.
+
+     [out_params] that is a list of [source_param]s that are the output parameters of the ini module.
+
+     [ini_module_body] that is the body of the ini module.
+
+*)
   in_params: source_param list;
   out_params: source_param list;
   ini_module_body: ini_module_body;
@@ -167,8 +227,16 @@ and mixin_decl = {
 
     [mixin_name] that is the name of the mixin
 
-    [mixin_polymorphism_params]
-  *)
+    [mixin_polymorphism_params] that is a list of [polymorphism_param]s
+    
+    [mixin_fields] that is a list of [field_decl]s
+
+    [mixin_new_methods] that is a list of [method_declaration]s that are [NewMethod]s
+
+    [mixin_override_methods] that is a list of [method_declaration]s that are [OverrideMethod]s
+
+    [mixin_ini_module] that is a list of [ini_module_decl]s
+*)
   mixin_name: string;
   mixin_polymorphism_params: polymorphism_param list;
   mixin_fields: field_decl list;
@@ -181,6 +249,20 @@ and mixin_decl = {
 
 (*** Mixin Expressions ***)
 and mixin_expr =
+(** A [mixin_expr] is used to express the type of declarations such as variables, parameters, fiels and return.
+
+  A [mixin_expr] can be [MixinExpressionVoid] or [MixinExpressionId]. 
+  
+  It can be combined with other [mixin_expr]s using [MixinExpressionConcat].
+
+  It can also be an application of a mixin to a [mixin_expr] using [MixinExpressionApplication].
+
+  Syntax for [MixinExpressionConcat]:
+  [left_mixin] , [right_mixin]
+
+  Syntax for [MixinExpressionApplication]:
+  [mixin_name] . [param_name] = ([value])
+*)
   | MixinExpressionId of {
       mixin_name: string;
   }
@@ -197,7 +279,7 @@ and mixin_expr =
 
 (*** LValues ***)
 and lvalue =
-  (** A [lvalue] is a reference to a location in memory.
+(** A [lvalue] is a reference to a location in memory.
   It is used in the assignment instruction right before the ':=' operator.
   
   It can be either a variable [VariableLValue] or a field [FieldLValue].
