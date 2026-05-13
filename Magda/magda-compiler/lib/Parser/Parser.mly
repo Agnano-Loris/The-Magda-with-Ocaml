@@ -1,5 +1,5 @@
 %{
-  open Magda_cst.Cst
+  open Utils.Cst
 
   let expression_to_lvalue = function
   | ExprSuffix(ThisExpr, SpecificFieldSelect(m, f)) -> MixinField(m, f)
