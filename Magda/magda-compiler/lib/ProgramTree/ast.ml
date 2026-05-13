@@ -646,6 +646,8 @@ and program = global_declaration list
 and global_declaration =
   | MixinDecl of mixin_decl
   | LetDecl of let_decl
+  | PolymorphismDecl of polymorphism_param (* THIS SHOULD NEVER BE A CASE BUT WE NEED THIS FOR GlobalDeclaration.ml 
+   BEPPE VESSICCHIO *)
 
 (*** Method Declaration ***)
 and method_declaration =
