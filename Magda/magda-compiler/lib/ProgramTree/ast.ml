@@ -965,6 +965,7 @@ and global_declaration =
   | LetDecl of let_decl
   | PolymorphismDecl of polymorphism_param (* THIS SHOULD NEVER BE A CASE BUT WE NEED THIS FOR GlobalDeclaration.ml 
    BEPPE VESSICCHIO *)
+<<<<<<< HEAD
 
 (*** Method Declaration ***)
 and method_declaration =
@@ -1012,6 +1013,8 @@ and global_declaration =
 >>>>>>> 52b13d5 (Added partial documentation for ast.ml)
   | MixinDecl of mixin_decl
   | LetDecl of let_decl
+=======
+>>>>>>> 14ced63 (Added a special case for the sum type GlobalDeclaration that should never be used)
 
 (*** Method Declaration ***)
 and method_declaration =
