@@ -2,4 +2,4 @@
 
 (library
  (name magda_pre_parser)
- (libraries utils))
+ (libraries utils magda_parser))

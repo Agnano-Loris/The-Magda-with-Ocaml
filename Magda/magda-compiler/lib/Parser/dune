@@ -1,8 +1,10 @@
 (include_subdirs qualified)
 
+(ocamllex Lexer)
+
 (menhir
  (modules Parser))
 
 (library
  (name magda_parser)
- (libraries magda_pre_parser magda_cst))
+ (libraries utils))
