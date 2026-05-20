@@ -245,6 +245,163 @@ and mixin_decl = {
   mixin_ini_module: ini_module_decl list;
 }
 
+and abstract_method = {
+(** The record [abstract_method] is used to express the abstract methods of a mixin. It contains the following fields:
+
+    [abstract_method_name] that is the name of the abstract method
+
+    [abstract_method_params] that is a list of [parameter_decl]s that are the parameters of the abstract method
+
+    [abstract_method_return_type] that is a [mixin_expr] that returns the type of the abstract method
+
+    Syntax:
+    abstract [abstract_method_return_type] [abstract_method_name] ([abstract_method_params])
+*)
+  abstract_method_name: string;
+  abstract_method_params: parameter_decl list;
+  abstract_method_return_type: mixin_expr;
+}
+
+and new_method = {
+(** The record [new_method] is used to express the new methods of a mixin. It contains the following fields:
+
+    [new_method_name] that is the name of the new method
+
+    [new_method_params] that is a list of [parameter_decl]s that are the parameters of the new method
+
+    [new_method_return_type] that is a [mixin_expr] that returns the type of the new method
+
+    [new_method_body] that is a [method_body] that contains the body of the new method
+
+    Syntax:
+    new [new_method_return_type] [new_method_name] ([new_method_params])
+    [new_method_body]
+*)
+  new_method_name: string; 
+  new_method_params: parameter_decl list;
+  new_method_return_type: mixin_expr;
+  new_method_body: method_body;
+}
+
+and override_method = {
+(** The record [override_method] is used to express the override methods of a mixin. It contains the following fields:
+
+    [override_method_name] that is the name of the override method
+
+    [override_method_mixin_overridden] that is the name of the mixin that is being overridden
+
+    [override_method_params] that is a list of [parameter_decl]s that are the parameters of the override method
+
+    [override_method_return_type] that is a [mixin_expr] that returns the type of the override method
+
+    [override_method_body] that is a [method_body] that contains the body of the override method
+
+    Syntax:
+    override [override_method_return_type] [override_mixin_overridden].[override_method_name] ([override_method_params])
+    [override_method_body]
+*)
+  override_method_name: string;
+  override_method_mixin_overridden: string;
+  override_method_params: parameter_decl list;
+  override_method_return_type: mixin_expr;
+  override_method_body: method_body;
+}
+
+and object_creation = {
+(** The record [object_creation] is used to express the object creation expression. It contains the following fields:
+
+    [object_creation_mixin_expr] that is a [mixin_expr] that expresses the type of the object being created
+
+    [object_creation_init_params] that is a list of [expression]s that are the parameters of the object creation
+
+    Syntax:
+    new [object_creation_mixin_expr] ([object_creation_init_params])
+*)
+  object_creation_mixin_expr: mixin_expr;
+  object_creation_init_params: expression list;
+}
+
+and field_selection = {
+(** The record [field_selection] is used to express the field selection expression. It contains the following fields:
+
+    [field_selection_target] that is an [expression] that follows the '=' character
+
+    [field_selection_mixin_name] that is the name of the mixin that contains the field being selected
+
+    [field_selection_field_name] that is the name of the field being selected
+
+    Syntax:
+    [field_selection_mixin_name].[field_selection_field_name] = [field_selection_target]
+*)
+  field_selection_target: expression;
+  field_selection_mixin_name: string;
+  field_selection_field_name: string;
+}
+
+and method_call = {
+(** The record [method_call] is used to express the method call expression. It contains the following fields:
+
+    [method_call_target] that is an [expression]. This should be written before the '=' character
+
+    [method_call_mixin_name] that is the name of the mixin that contains the method being called
+
+    [method_call_method_name] that is the name of the method being called
+
+    [method_call_params] that is a list of [expression]s that are the parameters of the method call
+
+    Syntax:
+    [method_call_target] = [method_call_mixin_name].[method_call_method_name] ([method_call_params])
+*)
+  method_call_target: expression;
+  method_call_mixin_name: string;
+  method_call_method_name: string;
+  method_call_params: expression list;
+}
+
+and while_instruction = {
+(** The record [while_instruction] is used to express the while instruction. It contains the following fields:
+
+    [while_condition] that is an [expression] inside the parentheses of the while instruction
+
+    [while_instructions] that is a list of [instruction]s before the 'end' keyword
+
+    Syntax:
+    while ([while_condition])
+      [while_instructions]
+    end;
+*)
+  while_condition: expression;
+  while_instructions: instruction list;
+}
+
+and if_instruction = {
+(** The record [if_instruction] is used to express the if instruction. It contains the following fields:
+
+    [if_condition] that is an [expression] inside the parentheses of the if instruction
+
+    [if_true_instructions] that is a list of [instruction]s before the 'else' or 'end' keyword, depending on whether there is an 'else' block or not.
+
+    [if_false_instructions] that is a list of [instruction]s before the 'end' keyword. This can be empty.
+
+    Syntax:
+    if ([if_condition])
+      [if_true_instructions]
+    else [if_false_instructions]
+    end;
+*)
+  if_condition: expression;
+  if_true_instructions: instruction list;
+  if_false_instructions: instruction list;
+}
+
+and ini_module_super_instruction = {
+(** The record [ini_module_super_instruction] is used to express the super call of an ini module. It contains the following fields:
+
+[ini_module_super_params] that is a list of [expression]s that are the parameters of the super call
+*)
+  ini_module_super_params: expression list;
+}
+
 (*** Sum types created from the interfaces ***)
 
 (*** Mixin Expressions ***)
@@ -306,20 +463,11 @@ and instruction =
   and an ExprInstruction can be a NullExpression *)
   | Assignment of lvalue * expression
   | ExprInstruction of expression
-  | IfInstruction of {
-      cond: expression;
-      true_instructions: instruction list;
-      false_instructions: instruction list;
-  }
-  | IniModuleSuperInstruction of {
-      init_params: expression list;
-  }
+  | IfInstruction of if_instruction
+  | IniModuleSuperInstruction of ini_module_super_instruction
   | NativeInstruction of string
   | ReturnInstruction of expression
-  | WhileInstruction of {
-      cond: expression;
-      instructions: instruction list;
-  }
+  | WhileInstruction of while_instruction
 
 (*** Expressions ***)
 and expression =
@@ -335,21 +483,9 @@ and expression =
   | StringLiteral of string
   | Identifier of string
   | SuperExpression of expression list
-  | MethodCallExpression of {
-      target: expression;
-      mixin_name: string;
-      method_name: string;
-      params: expression list;
-  }
-  | FieldSelectExpression of {
-      target: expression;
-      mixin_name: string;
-      field_name: string;
-  }
-  | ObjectCreationExpression of {
-      mixin_expr: mixin_expr;
-      init_params: expression list;
-  }
+  | MethodCallExpression of method_call
+  | FieldSelectExpression of field_selection
+  | ObjectCreationExpression of object_creation
   | BinaryOperation of binop * expression * expression
 
 
@@ -364,26 +500,11 @@ and global_declaration =
 (*** Method Declaration ***)
 and method_declaration =
   (** A [method_declaration] is a bodyless abstract [AbstactMethod] or a concrete [NewMethod] or an override of an existing mixin [OverrideMethod]*)
-
-  | AbstractMethod of {
-      name: string;
-      params: parameter_decl list;
-      return_type: mixin_expr;
-  }
-  | NewMethod of {
-      name: string;
-      params: parameter_decl list;
-      return_type: mixin_expr;
-      body: method_body;
-  }
-  | OverrideMethod of {
-      name: string;
-      mixin_overridden: string;
-      params: parameter_decl list;
-      return_type: mixin_expr;
-      body: method_body;
-  }
+  | AbstractMethod of abstract_method
+  | NewMethod of new_method
+  | OverrideMethod of override_method
 
 (*** Program ***)
 (** The [program] is a list of [global_declaration]s*)
 and program = global_declaration list
+
