@@ -402,6 +402,51 @@ and ini_module_super_instruction = {
   ini_module_super_params: expression list;
 }
 
+and mixin_expr_concat = {
+(** The record [mixin_expr_concat] is used to express the concatenation of two mixin expressions. It contains the following fields:
+
+    [left_mixin] that is a [mixin_expr] that is on the left side of the ',' character
+
+    [right_mixin] that is a [mixin_expr] that is on the right side of the ',' character
+
+    Syntax:
+    [left_mixin] , [right_mixin]
+*)
+  left_mixin: mixin_expr;
+  right_mixin: mixin_expr;
+}
+
+and mixin_expr_application = {
+(** The record [mixin_expr_application] is used to express the application of a mixin to a mixin expression. It contains the following fields:
+
+    [mixin_name] that is the name of the mixin being applied
+
+    [param_name] that is the name of the parameter being applied. It follows the '.' character
+
+    [value] that is a [mixin_expr] that is the value being applied to the parameter
+
+    Syntax:
+    [mixin_name] . [param_name] = ([value])
+*)
+  mixin_name: string;
+  param_name: string;
+  value: mixin_expr;
+}
+
+and field_lvalue = {
+(** The record [field_lvalue] is used to express the field lvalue. It contains the following fields:
+
+    [field_lvalue_mixin_name] that is the name of the mixin that contains the field being assigned
+
+    [field_lvalue_field_name] that is the name of the field being assigned
+
+    Syntax:
+    [field_lvalue_mixin_name].[field_lvalue_field_name]
+*)
+  field_lvalue_mixin_name: string;
+  field_lvalue_field_name: string;
+}
+
 (*** Sum types created from the interfaces ***)
 
 (*** Mixin Expressions ***)
@@ -413,25 +458,10 @@ and mixin_expr =
   It can be combined with other [mixin_expr]s using [MixinExpressionConcat].
 
   It can also be an application of a mixin to a [mixin_expr] using [MixinExpressionApplication].
-
-  Syntax for [MixinExpressionConcat]:
-  [left_mixin] , [right_mixin]
-
-  Syntax for [MixinExpressionApplication]:
-  [mixin_name] . [param_name] = ([value])
 *)
-  | MixinExpressionId of {
-      mixin_name: string;
-  }
-  | MixinExpressionConcat of {
-      left_mixin: mixin_expr;
-      right_mixin: mixin_expr;
-  }
-  | MixinExpressionApplication of {
-      mixin_name : string;
-      param_name : string;
-      value : mixin_expr;
-  }
+  | MixinExpressionId of string
+  | MixinExpressionConcat of mixin_expr_concat
+  | MixinExpressionApplication of mixin_expr_application
   | MixinExpressionVoid
 
 (*** LValues ***)
@@ -441,20 +471,12 @@ and lvalue =
   
   It can be either a variable [VariableLValue] or a field [FieldLValue].
 
-  Syntax for [VariableLValue]:
-  [var_name]
-
   Syntax for [FieldLValue]:
   [mixin_name].[field_name]
   *)
 
-  | VariableLValue of {
-      var_name: string;
-  }
-  | FieldLValue of {
-      mixin_name: string;
-      field_name: string;
-  }
+  | VariableLValue of string
+  | FieldLValue of field_lvalue
 
 (*** Instructions ***)
 and instruction =
