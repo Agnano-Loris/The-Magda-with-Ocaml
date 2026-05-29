@@ -1,10 +1,9 @@
 open Program_tree.Ast
-open AstUtils.Declarations
+open ModuleSignatures
 
-module type D_S = DeclSignatures.GLOBAL_DECL
 
-module Make(GlobalDeclaration : D_S) : EnvSigTypes.ENV = struct
-	type t = EnvSigTypes.environment
+module Make (GlobalDeclaration : DeclSignatures.GLOBAL_DECL) : EnvSig.ENV = struct
+	type t = Types.EnvTypes.environment
 
 	let empty : t = {
 		decls = [];

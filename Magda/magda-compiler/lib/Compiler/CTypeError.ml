@@ -1,4 +1,4 @@
-exception CTypeError of string
+exception TypeError of string
 
 type t = {
     line_number : Int.t;
@@ -28,4 +28,4 @@ let get_error_message error_status = error_status.error_message
 
 let raise_ctype_error error_status = 
     let s = error_status.error_message ^ " at line:" ^ (string_of_int error_status.line_number) ^ " in file " ^ error_status.program_file in
-    raise(CTypeError s)
+    raise(TypeError s)

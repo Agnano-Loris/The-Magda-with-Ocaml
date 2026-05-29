@@ -1,7 +1,7 @@
 (** The CTypeError module contains the declaration and utility function wich can be usefull to manage the CTypeError exception *)
 
 (** [CTypeError] is an exception raised when a type error occour during compilation*)
-exception CTypeError of string
+exception TypeError of string
 
 (** Type containing the error status, it contains the error message, the file name and the line number *)
 type t
