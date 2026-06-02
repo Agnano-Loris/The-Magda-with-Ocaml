@@ -1,300 +1,147 @@
 open Types
 
+(* first class module signatures *)
+module type TypeElementSig = ModuleSignatures.TypeElementSig.S with type t = TypeElement.t
+module type PolymorphismParamSig = ModuleSignatures.TypeElementSig.PolymorphismParam with type t = TypeElement.t
+module type MixinDeclSig = ModuleSignatures.TypeElementSig.MixinDecl with type t = TypeElement.t
+module type InimoduleSig = ModuleSignatures.DeclSignatures.INIMODULE_DECL with type t = Program_tree.Ast.ini_module_decl
+
 type t = TypeElements.t
 
-let get_applications method_env (module TypeEl : ModuleSignatures.TypeElementSig.S with type t = TypeElement.t) (type_element:t) =     
-	let appl_list = List.map (TypeEl.get_applications method_env) type_element.types in
-	List.fold_left List.append type_element.poly_app_val
+let get_applications method_env (module TypeEl : TypeElementSig) (type_elements:t) =     
+	let appl_list = List.map (TypeEl.get_applications method_env) type_elements.types in
+	List.fold_left List.append type_elements.poly_app_val appl_list
 
-(*
-public CPolyApplicationValues getApplications(CMethodEnvironment env){ 
-        CPolyApplicationValues result = (CPolyApplicationValues) app.clone();
-      
-        for (int i=0; i<size(); i++)
-            result.addAll( get(i).getApplications (env) );
-      
-        return result;
-    }
+let new_type_el is_all : t = {types=[];is_all;poly_app_val=[]}
 
+let new_type_el_2 env poly_param (value:t) :t = 
+	let types = [TypeElement.of_global_decl_exn (Declarations.EnvGDeclMaker.Environment.get_mixin_exn "Object" env)] in
+	let is_all = false in
+	let poly_app_val : Types.TypeElements.poly_application_value list = [{poly_param;value}] in
+	{types;is_all;poly_app_val}
 
-package Magda.Compiler;
-import Magda.ProgramTree.Declarations.*;
-import Magda.ProgramTree.Expressions.*;
+let new_type_el_3 env type_el :t = 
+	let obj_el = TypeElement.of_global_decl_exn (Declarations.EnvGDeclMaker.Environment.get_mixin_exn "Object" env) in
+	let types = [obj_el; type_el] in
+	let is_all = false in
+	let poly_app_val = [] in
+	{types;is_all;poly_app_val}
 
-import java.util.ArrayList;
-
-
-public class CType extends ArrayList<ITypeElement>{
-
-    private static final long serialVersionUID = 1L;
-   
-    boolean isAll=false;
-
-    private CPolyApplicationValues app;
-
-    public CPolyApplicationValues getApplications(CMethodEnvironment env){ 
-        CPolyApplicationValues result = (CPolyApplicationValues) app.clone();
-      
-        for (int i=0; i<size(); i++)
-            result.addAll( get(i).getApplications (env) );
-      
-        return result;
-    }
-    
-    public CType deepCopy(){
-        CType res= (CType) this.clone();
-        res.app = (CPolyApplicationValues) this.app.clone();
-        return res;
-    }
-    
-    //------------ static-factories ---------------
-    
-    /*
-
-        To instanciate this class I opted for a static-factory approach, this allows us to create an instance of CType with the
-        same logic as the old version, passing all the parameters that we used to, so we don't change the logc whatsoever.
-        BUT this allow us to avoid any possible this-escape warning    
-
-    */
-
-    public static CType createCType(boolean isAll){
-        CType res = new CType(isAll);
-        
-        res.app = new CPolyApplicationValues();
-
-        return res;
-    }
-    
-    public static CType createCType(CEnvironment env, CPolymorphismParam param, CType value){
-        CType res = new CType(env,param,value);
-        
-        res.add (env.getMixin("Object"));
-        res.app = new CPolyApplicationValues();
-        res.app.add( new  CPolyApplicationValue(param, value) );
-
-        return res;
-    }
-
-    public static CType createCType(CEnvironment env, ITypeElement aTypeElement){
-        CType res = new CType(env,aTypeElement);
-        
-        res.app = new CPolyApplicationValues();
-        res.add (env.getMixin("Object"));
-        res.add (aTypeElement);
-
-        return res;
-    
-    }
-
-    //------------ constructors ---------------
-
-    protected CType(boolean isAll){ 
-        super();
-        
-        if (isAll)
-            this.isAll= true;
-      
-        //app = new CPolyApplicationValues();
-        //else - void
-    }
-
-    protected CType(CEnvironment env, CPolymorphismParam param, CType value){  
-        super();
-      
-        //add (env.getMixin("Object"));
-        //app = new CPolyApplicationValues();
-        //app.add( new  CPolyApplicationValue(param, value) );
-    
-    }
-
-    protected CType(CEnvironment env, ITypeElement aTypeElement){ 
-        super();
-      
-        //app = new CPolyApplicationValues();
-        //add (env.getMixin("Object"));
-        //add (aTypeElement);
-    }
-
-    //------------ metody ---------------
-    public void addNewAtStart ( CType other){ 
-        for (int i=other.size()-1; i>=0; i--){ 
-            if (contains(other.get(i)))
-                remove( other.get(i) );
-            add(0,other.get(i));
-        }
-	  
-        app.addAll(other.app);
-	}
-    
-    public CType sumWith (CType other){  
-        CType res = deepCopy();
-        res.addNew(other);
-           
-        return res;
-    }
-
-	public void addNew( CType other){ 
-        for (int i=0; i<other.size(); i++)
-		    if (!contains(other.get(i)))
-		        add(other.get(i));
-	  
-        app.addAll(other.app);
-	}
+let add_new_at_start (type_elements_1:t) (type_elements_2:t):t  = 
+	let lst = List.filter (fun x -> not (List.mem x type_elements_1.types)) type_elements_2.types in
+	{type_elements_1 with types = (type_elements_2.types@lst)}
 
 
-	public String toString(){ 
-        String res = "(";
-	    
-        for (int i=0; i<size(); i++)
-	        res += (i>0?", ":"")+ get(i).getCaption();
-	    
-        return res+")";
-	}
-	
-	public void CheckIsSubTypeOf(CEnvironment env, CType other) throws CTypeError { 
-        if (!isSubTypeOf(env, other) )
-  	        throw new CTypeError( this+" is not subtype of "+other);
-	}
+let add_new (type_elements_1:t) (type_elements_2:t):t = 
+	let type_el = add_new_at_start type_elements_1 type_elements_2 in
+	{type_el with poly_app_val = type_elements_1.poly_app_val @ type_elements_2.poly_app_val}
 
-    public boolean isIsomorphicTo(CEnvironment env, CType other ){ 
-        
-        return isSubTypeOf(env, other) && other.isSubTypeOf(env, this);
-	
-    }
+let sum_with (type_elements_1:t) (type_elements_2:t) :t = 
+	add_new type_elements_1 type_elements_2
 
-    public boolean ModuleContainsInputParameter (CEnvironment env,  CSourceInitializationParameter par){ 
-        for (int i=0; i<size(); i++){ 
-            if (get(i) instanceof CPolymorphismParam){  
-                if ( ((CPolymorphismParam) get(i)).GetBoundingType(env).ModuleContainsInputParameter(env, par) )
-	                return true;
-            } 
-            else if (get(i) instanceof CMixinDeclaration){  
-                if ( ((CMixinDeclaration) get(i)).ModuleContainsInputParameter(par) ) 
-                    return true;
-            } 
-            else
-                throw new Error("Unknown class of ITypeElement");
-	    
-	    }
-	  
-        return false;
-	}
-        
-	private boolean containsTypeElem(CEnvironment env,  ITypeElement el){ 
-        for (int i=0; i<size(); i++){ 
-            if (get(i) == el)
-	            return true;
-	        if (get(i) instanceof CPolymorphismParam)
-	            if ( ((CPolymorphismParam) get(i)).GetBoundingType(env).containsTypeElem(env, el) )
-	                return true;
-	    }
-	  
-        return false;
-	}
+let to_string (type_elements:t) = 
+	let fold_func acc el = acc ^ ", " ^ (TypeElement.get_caption el) in
+	let s = List.fold_left fold_func ("(" ^ (List.hd type_elements.types |> TypeElement.get_caption )) (List.tl type_elements.types) in 
+	s ^ ")"
 
-    CType lastChecked = null;
-	public boolean isSubTypeOf(CEnvironment env, CType other){ 
-        if (lastChecked == other) //tu jest sprawdzenie zeby sie nie zapetlic przy zacyklonych typach (ale prostych)
-	        return true;
-	  
-        try{
-            lastChecked = other;
-	        //
-            if (isAll)
-	            return true;
-  	  
-            for (int i=0; i<other.size();  i++)
-	            if (!containsTypeElem(env, other.get(i)))
-	                return false;
-	        //
- 	        return true;
-        } 
-        finally {
-            lastChecked = null;
-        }
-	}
+let rec contains_type_elem (module PolymorphismParam : PolymorphismParamSig) (env : Types.EnvTypes.environment) (el : TypeElement.t) (type_elements:t) =
+    let check_bounding_type = function
+    | TypeElement.PolymorphismDecl p -> PolymorphismParam.get_bounding_type env (PolymorphismDecl p) |> contains_type_elem (module PolymorphismParam) env el 
+    | _ -> false 
+    in
+    List.exists (fun x -> (el = x) || check_bounding_type x ) type_elements.types
 
-	public CNewMethodDeclarations calcAbstractMethods(CMethodEnvironment env){ 
-        CNewMethodDeclarations res = new  CNewMethodDeclarations();
-	    
-        for (int i=0;  i<size(); i++)
-	        res = ((CMixinDeclaration)get(i) ).calcAbstractMethods(env, res);
-	  
-        return res;
-	}
-        
-        //returns the number of activated modules
-	public int GenCodeForActivatedModules(java.io.PrintStream o, CInstrEnvironment env, CGenCodeHelper h, CInitializationOfParams Init) { 
-        int result =0;
-	    CInitializationOfParams localInit = (CInitializationOfParams) Init.clone();
-	  
-        for (int i=size()-1; i>=0; i--){ 
-            CMixinDeclaration mix = (CMixinDeclaration)get(i);
-	    
-            for (int mod=mix.IniModules.size()-1; mod>=0; mod--){ 
-                CIniModuleDeclaration moddecl=mix.IniModules.get(mod);
-                if (moddecl.activatedBy(localInit) ){ 
-                    if (o != null)
-                        o.println(CGenCodeHelper.tab+"modules.add("+mix.CodeForMixin()+".IniModules["+mod+"]);");
-	            moddecl.modifyParametersList(localInit);
-		        result++;
-  	            } 
-                else
-	                if (moddecl.isRequired)
-	                    throw new Error("Required ini module in ["+ toString() +"] was not activated");
-   	        }
-	    }
-	  
-        if (localInit.size() != 0)
-	        throw new Error("There is no ini module in ["+ toString() +"] to consume parameter: " + localInit.get(0).MixinName +"."+localInit.get(0).ParamName);
-	    return result;
-	}
-        
-    private boolean MixinExistsInPrefix(int PrefixEnd, CMixinDeclaration target){ 
-        for(int i=0; i<=PrefixEnd; i++)
-            if (get(i) == target)
-                return true;
-        
-        return false;
-    }
-        
-    public void CheckIfBaseMixinsExist( CMethodEnvironment env){ 
-        for (int i=0; i<size(); i++){ 
-            if (get(i) instanceof CMixinDeclaration) { 
-                CMixinDeclaration decl =  (CMixinDeclaration) get(i);
-                CType baseType = decl.BaseMixinExpression.GetType(env);
-                
-                for (int j=0; j<baseType.size(); j++){ 
-                    CMixinDeclaration baseMixin = (CMixinDeclaration) baseType.get(j);
-                    if (!MixinExistsInPrefix(i-1, baseMixin))
-                        throw new CTypeError("Error in Expression used to create new object from: "+this+" : "+decl.MixinName+" requires "+baseMixin.MixinName+ " which is not present");
-                }
-            
-            }
-            else
-                throw new Error("instantiation from the polymorphic params not yet supported!");
-                //TODO: czy tu jako powinnismy polimorficzne parametry obsluzyc???? moze ich boundy posprawdzac
-        }
-        
-    }
+(*lastChecked is not in this version because upon code review it does not have any effect on the code this makes the funcion a lot more simple*)
+let is_subtype_of (module PolymorphismParam : PolymorphismParamSig) env (type_elements_1:t) (type_elements_2:t) : bool =
+        try
+            type_elements_1.is_all || (List.for_all (fun el -> contains_type_elem (module PolymorphismParam) env el type_elements_1) type_elements_2.types)
+        with 
+            | _ -> false
 
-	public CType setPolyParamsFrom (CPolyApplicationValues vals){ 
-        CType res = createCType(false);
-	  
-        for (int i=0; i<size(); i++)
-	        if (get(i) instanceof CPolymorphismParam){ 
-                int j = vals.indexOfParam( (CPolymorphismParam) get(i) );
-                if (j>=0){  
-                    res.addNew( vals.get(j).value );
-	            }
-                else
-	                res.add(get(i));
-            } 
-            else
-	            res.add( get(i) );
-	    //
-	    return res;
-	}
-};
+let check_is_subtype_of_exn (module PolymorphismParam : PolymorphismParamSig) env (type_elements_1:t) (type_elements_2:t) error_status = 
+    if not (is_subtype_of (module PolymorphismParam) env type_elements_1 type_elements_2) then 
+        let error_message = (to_string type_elements_1) ^ " is not subtype of " ^ (to_string type_elements_2) in
+        let error_status = TypeError.set_error_message error_message error_status in
+        TypeError.raise_ctype_error error_status
 
-*)
+let is_isomorphicTo (module PolymorphismParam : PolymorphismParamSig) env (type_elements_1:t) (type_elements_2:t) : bool =
+    let is_subtype_of = is_subtype_of (module PolymorphismParam) env in
+    is_subtype_of type_elements_1 type_elements_2 && is_subtype_of type_elements_2 type_elements_1
+
+let rec module_contains_input_parameter_exn (module PolymorphismParam : PolymorphismParamSig) (module MixinDecl : MixinDeclSig) env (source_init_parameter : Program_tree.Ast.source_param) (type_elements:t) =
+    let module_contains_input_parameter_exn = module_contains_input_parameter_exn (module PolymorphismParam) (module MixinDecl) in
+    let check_function_exn (type_element:TypeElement.t) = match type_element with
+    | PolymorphismDecl _ -> module_contains_input_parameter_exn env source_init_parameter (PolymorphismParam.get_bounding_type env type_element)
+    | MixinDecl _ -> MixinDecl.module_contains_input_parameter_exn source_init_parameter type_element
+    (*| _ -> failwith ("Unknown class of ITypeElement")*)
+    in
+    List.exists check_function_exn type_elements.types
+
+let calc_abstract_methods (module MixinDecl : MixinDeclSig) (method_environment : EnvTypes.method_environment) (type_elements:t) = 
+    let res : Program_tree.Ast.new_method list = [] in
+    let fold_func acc (type_element:TypeElement.t) = match type_element with
+    | MixinDecl _ -> MixinDecl.calc_abstract_methods method_environment acc type_element
+    | _ -> acc in
+    List.fold_left fold_func res type_elements.types
+
+let set_poly_params_from (poly_appl_values : TypeElements.PolyApplicationValues.t) (type_elements:t) =
+    let res = new_type_el false in
+    let fold_func (acc:t) (type_element:TypeElement.t) = match type_element with
+    | PolymorphismDecl p ->  
+        let j = TypeElements.PolyApplicationValues.index_of_param p poly_appl_values in 
+        Option.fold 
+            ~none:{acc with types = type_element::acc.types} 
+            ~some:(fun j -> 
+                    let poly_value = Option.get (TypeElements.PolyApplicationValues.find_param j poly_appl_values) in
+                    add_new acc poly_value.value
+                ) j 
+    | _ -> {acc with types = type_element::acc.types} in
+    List.fold_left fold_func res type_elements.types
+
+let mixin_exists_in_prefix prefix_end mixin_target (type_elements:t) =
+	let get_mixin (m:TypeElement.t) = match m with
+	| MixinDecl m -> m
+	| _ -> failwith("A mixin was expected") in
+	let check_prefix (mixin:TypeElement.t) = match mixin with
+        | MixinDecl m -> m = (get_mixin mixin_target)
+        | _ -> false
+    in
+    List.filteri (fun i _ -> i <= prefix_end) type_elements.types 
+    |> List.exists check_prefix 
+
+let check_if_base_mixin_exist (module MixinDecl : MixinDeclSig) (method_environment : Types.EnvTypes.method_environment) (type_elements:t) =
+	let check_mixin (type_element:TypeElement.t) = 
+		match type_element with
+		| MixinDecl mixin_decl -> 
+			let base_type =  new_type_el false in (* Da ottenere Decl.BaseMixinExpression.gentype *)
+			let check_list = List.filteri (fun x y -> not (mixin_exists_in_prefix x y type_elements)) base_type.types in
+			if (not (List.is_empty check_list)) then failwith ("Error in Expression used to create new object from: " ^ (to_string type_elements) ^ " : " ^ mixin_decl.mixin_name ^ " requires " ^ (TypeElement.get_name type_element) ^ " which is not present") 
+		| _ -> failwith("instantiation from the polymorphic params not yet supported!") in
+	List.iter check_mixin type_elements.types
+
+(* Took out InstrEnvironment from the parameters since it is not used *)    
+let gen_code_for_activated_modules_exn (module MixinDecl : MixinDeclSig) (module InimoduleDecl : InimoduleSig) (initialization_of_params : Program_tree.Ast.init_param list) type_elements =
+    let fold_func_inner ini_module (acc: int * Program_tree.Ast.init_param list * TypeElement.t) = 
+        let result , t_init_params, mixin_decl = (acc) in
+        if not (InimoduleDecl.activated_by t_init_params ini_module) then
+            if (InimoduleDecl.is_required ini_module) then failwith("Required ini module in [" ^ (to_string type_elements) ^ "] was not activated")
+            else acc
+        else
+            let code_string = (Utils.CGenCodeHelper.get_tab ()) ^ "modules.add(" ^ (MixinDecl.code_for_mixin mixin_decl) ^ ".IniModules[" ^ (InimoduleDecl.to_string ini_module) ^ "]);" in
+                Utils.GenCode.print_code code_string;
+                (result + 1 , (InimoduleDecl.modify_parameter_list t_init_params ini_module) , mixin_decl)
+    in
+    let fold_func_outer (mixin_decl:TypeElement.t) (acc: int * Program_tree.Ast.init_param list) = 
+        let result , t_init_params = acc in
+        let ini_module_list = match mixin_decl with
+        | MixinDecl m -> m.mixin_ini_module
+        | _ -> [] in
+        List.fold_right fold_func_inner ini_module_list (result,t_init_params,mixin_decl) |>
+        fun (result,t_init_params,_) -> (result,t_init_params)
+    in
+    List.fold_right fold_func_outer type_elements.types (0, initialization_of_params) |>
+    fun (result, initialization_of_params) ->
+        if (List.is_empty initialization_of_params) then
+            result
+        else
+            failwith ("There is no ini module in [" ^ (to_string type_elements) ^ "] to consume parameter: " ^ (List.hd initialization_of_params |> fun init_param -> init_param.iparam_name^"."^init_param.iparam_name))

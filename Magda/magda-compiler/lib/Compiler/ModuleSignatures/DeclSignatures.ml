@@ -49,8 +49,9 @@ module type INIMODULE_DECL = sig
     val build_env : Types.EnvTypes.method_environment -> t -> Types.EnvTypes.instr_environment
     val check_types_exn : t -> unit
     val gen_code : Utils.CGenCodeHelper.TempCounter.t option -> Types.EnvTypes.method_environment -> t -> unit
-    val modify_parameter_list : Expressions.CInitializationOfParams.t -> t -> t (*Assuming stateless modules*)
-    val activated_by : Expressions.CInitializationOfParams.t -> t -> bool
+    val modify_parameter_list : Program_tree.Ast.init_param list -> t -> Program_tree.Ast.init_param list (*Assuming stateless modules*)
+    val activated_by : Program_tree.Ast.init_param list -> t -> bool
+	val is_required : t -> bool
 end
 
 (* Method declaration signatures *)

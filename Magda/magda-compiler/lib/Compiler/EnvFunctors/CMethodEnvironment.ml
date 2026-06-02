@@ -18,7 +18,7 @@ module Make (GlobalDeclaration : DeclSignatures.GLOBAL_DECL)(Env : EnvSig.ENV) :
 	let get_type_element_exn el_name (method_environment:t) = 
 		let mixin_polymorphism_params = let mixin = Option.get method_environment.current_mixin in mixin.mixin_polymorphism_params in
 		let mixin_type = List.find_opt (fun poli_el -> poli_el.poly_name == el_name) mixin_polymorphism_params in
-		let type_el_op = Option.bind mixin_type (fun x -> Some (Types.TypeElement.PolymorphismDecl x)) in
+		let type_el_op = Option.bind mixin_type (fun x -> Some (Types.TypeElement.PolymorphismDecl (Types.PolymorphismParam.of_polymorphism_param x))) in
 		Option.value type_el_op 
 			~default:(Environment.get_mixin_exn el_name method_environment.environment |> Types.TypeElement.of_global_decl_exn)
 

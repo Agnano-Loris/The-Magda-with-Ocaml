@@ -4,14 +4,17 @@ include List
 type t = {
 	types: TypeElement.t list;
 	is_all: bool;
-	poly_app_val: poly_application_values
+	poly_app_val: poly_application_value list;
 } 
 and poly_application_value = {
-  poly_param : polymorphism_param;
+  poly_param : PolymorphismParam.t;
   value : t
-} 
+}
 
 module PolyApplicationValues = struct
   type t = poly_application_value list
-  let index_of_param param (lst : poly_application_value) : int option = List.find_index (fun x -> (x.poly_name) == param.poly_name) lst.poly_param
+  let index_of_param (param:PolymorphismParam.t) (lst : t) : int option = List.find_index (fun x -> (x.poly_param.base.poly_name) == param.base.poly_name) lst
+  let find_param (param_index:int) (lst : t) : poly_application_value option = match List.filteri (fun i _ -> i = param_index) lst with
+  | [] -> None
+  | x :: _ -> Some x
 end
