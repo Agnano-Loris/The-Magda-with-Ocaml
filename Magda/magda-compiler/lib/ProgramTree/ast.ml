@@ -10,7 +10,7 @@ and let_decl = {
 
   [let_name] that is used for the name of the 'let' variable
   
-  [bound] that is the expression that follows the '=' keyword.
+  [bound] that is the [mixin_expr] that follows the '=' keyword.
 
   Syntax:
   let [let_name] = [bound]
@@ -18,7 +18,7 @@ and let_decl = {
   *)
 
   let_name: string;
-  bound: expression;
+  bound: mixin_expr;
 }
 
 
@@ -208,6 +208,8 @@ and ini_module_body = {
 and ini_module_decl = {
 (** The record [ini_module_decl] is the declaration of an ini module.
   The record contains the following fields:
+
+     [is_required] that represents if the ini module is required or optional. 
   
      [in_params] that is a list of [source_param]s that are the input parameters of the ini module.
 
@@ -216,6 +218,7 @@ and ini_module_decl = {
      [ini_module_body] that is the body of the ini module.
 
 *)
+  is_required: bool;
   in_params: source_param list;
   out_params: source_param list;
   ini_module_body: ini_module_body;
@@ -226,6 +229,8 @@ and mixin_decl = {
 (** The record [mixin_decl] contains the following fields:
 
     [mixin_name] that is the name of the mixin
+
+    [mixin_parent] that is the [mixin_expr] that follows the 'of' keyword.
 
     [mixin_polymorphism_params] that is a list of [polymorphism_param]s
     
@@ -238,6 +243,7 @@ and mixin_decl = {
     [mixin_ini_module] that is a list of [ini_module_decl]s
 *)
   mixin_name: string;
+  mixin_parent: mixin_expr;
   mixin_polymorphism_params: polymorphism_param list;
   mixin_fields: field_decl list;
   mixin_new_methods: method_declaration list;
@@ -312,13 +318,13 @@ and object_creation = {
 
     [object_creation_mixin_expr] that is a [mixin_expr] that expresses the type of the object being created
 
-    [object_creation_init_params] that is a list of [expression]s that are the parameters of the object creation
+    [object_creation_init_params] that is a list of [init_param]s that are the parameters of the object creation
 
     Syntax:
     new [object_creation_mixin_expr] ([object_creation_init_params])
 *)
   object_creation_mixin_expr: mixin_expr;
-  object_creation_init_params: expression list;
+  object_creation_init_params: init_param list;
 }
 
 and field_selection = {
@@ -397,9 +403,9 @@ and if_instruction = {
 and ini_module_super_instruction = {
 (** The record [ini_module_super_instruction] is used to express the super call of an ini module. It contains the following fields:
 
-[ini_module_super_params] that is a list of [expression]s that are the parameters of the super call
+[ini_module_super_init_params] that is a list of [init_param]s that are the parameters of the super call
 *)
-  ini_module_super_params: expression list;
+  ini_module_super_init_params: init_param list;
 }
 
 and mixin_expr_concat = {
