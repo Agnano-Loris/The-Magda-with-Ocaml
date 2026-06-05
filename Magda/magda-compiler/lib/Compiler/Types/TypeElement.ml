@@ -6,12 +6,11 @@ type t =
 
 let of_global_decl_exn (g_decl:global_declaration) = match g_decl with
 | MixinDecl mixin_decl -> MixinDecl mixin_decl
-| PolymorphismDecl polymorphism_param-> PolymorphismDecl {base = polymorphism_param; container = None}
 | _ -> failwith("Let Declaration is not a TypeElement")
 
 let to_global_decl (type_el:t):global_declaration = match type_el with
 | MixinDecl mixin_decl -> MixinDecl mixin_decl
-| PolymorphismDecl polymorphism_param-> PolymorphismDecl polymorphism_param.base
+| _ -> failwith("Polymorphism Declaration is not a TypeElement")
 
 let rec get_caption = function
 | MixinDecl mixin_decl -> mixin_decl.mixin_name

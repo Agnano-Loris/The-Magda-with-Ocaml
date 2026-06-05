@@ -3,7 +3,6 @@ module type GLOBAL_DECL = sig
     val compare : t -> t -> int
     val is_mixin_decl : t -> bool
     val is_let_decl : t -> bool
-    val is_poli_param_decl : t-> bool
     val get_name : t -> string
 	(*
 	verranno probabilmente gestiti dalle altre declaration
@@ -51,7 +50,6 @@ module type INIMODULE_DECL = sig
     val gen_code : Utils.CGenCodeHelper.TempCounter.t option -> Types.EnvTypes.method_environment -> t -> unit
     val modify_parameter_list : Program_tree.Ast.init_param list -> t -> Program_tree.Ast.init_param list (*Assuming stateless modules*)
     val activated_by : Program_tree.Ast.init_param list -> t -> bool
-	val is_required : t -> bool
 end
 
 (* Method declaration signatures *)

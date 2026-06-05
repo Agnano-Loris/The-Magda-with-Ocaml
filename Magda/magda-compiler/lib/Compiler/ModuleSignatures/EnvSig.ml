@@ -16,7 +16,7 @@ module type METHOD_ENV = sig
 	val new_method_environment : Environment.t -> mixin_decl -> t
   val new_method_environment_2 : global_declaration list -> mixin_decl -> t
 	val get_type_element_exn : string -> t -> Types.TypeElement.t
-	val get_declaration_exn : string -> t -> global_declaration
+	val get_declaration_exn : string -> t -> (global_declaration, polymorphism_param) Either.t
 
   (* FROM ENV *)
   val get_mixin_exn : string -> t -> global_declaration

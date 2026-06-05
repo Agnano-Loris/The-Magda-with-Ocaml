@@ -5,6 +5,7 @@ module type TypeElementSig = ModuleSignatures.TypeElementSig.S with type t = Typ
 module type PolymorphismParamSig = ModuleSignatures.TypeElementSig.PolymorphismParam with type t = TypeElement.t
 module type MixinDeclSig = ModuleSignatures.TypeElementSig.MixinDecl with type t = TypeElement.t
 module type InimoduleSig = ModuleSignatures.DeclSignatures.INIMODULE_DECL with type t = Program_tree.Ast.ini_module_decl
+module type MixinEXPRSig = ModuleSignatures.Expressions.MIXIN_EXPR with type t = Program_tree.Ast.mixin_expr
 
 type t = TypeElements.t
 
@@ -64,7 +65,7 @@ let check_is_subtype_of_exn (module PolymorphismParam : PolymorphismParamSig) en
         let error_status = TypeError.set_error_message error_message error_status in
         TypeError.raise_ctype_error error_status
 
-let is_isomorphicTo (module PolymorphismParam : PolymorphismParamSig) env (type_elements_1:t) (type_elements_2:t) : bool =
+let is_isomorphic_to (module PolymorphismParam : PolymorphismParamSig) env (type_elements_1:t) (type_elements_2:t) : bool =
     let is_subtype_of = is_subtype_of (module PolymorphismParam) env in
     is_subtype_of type_elements_1 type_elements_2 && is_subtype_of type_elements_2 type_elements_1
 
@@ -109,11 +110,11 @@ let mixin_exists_in_prefix prefix_end mixin_target (type_elements:t) =
     List.filteri (fun i _ -> i <= prefix_end) type_elements.types 
     |> List.exists check_prefix 
 
-let check_if_base_mixin_exist (module MixinDecl : MixinDeclSig) (method_environment : Types.EnvTypes.method_environment) (type_elements:t) =
+let check_if_base_mixin_exist (module MixinEXPR : MixinEXPRSig)(module MixinDecl : MixinDeclSig) (method_environment : Types.EnvTypes.method_environment) (type_elements:t) =
 	let check_mixin (type_element:TypeElement.t) = 
 		match type_element with
 		| MixinDecl mixin_decl -> 
-			let base_type =  new_type_el false in (* Da ottenere Decl.BaseMixinExpression.gentype *)
+			let base_type =  MixinEXPR.get_type_exn method_environment mixin_decl.mixin_parent in
 			let check_list = List.filteri (fun x y -> not (mixin_exists_in_prefix x y type_elements)) base_type.types in
 			if (not (List.is_empty check_list)) then failwith ("Error in Expression used to create new object from: " ^ (to_string type_elements) ^ " : " ^ mixin_decl.mixin_name ^ " requires " ^ (TypeElement.get_name type_element) ^ " which is not present") 
 		| _ -> failwith("instantiation from the polymorphic params not yet supported!") in
@@ -124,7 +125,7 @@ let gen_code_for_activated_modules_exn (module MixinDecl : MixinDeclSig) (module
     let fold_func_inner ini_module (acc: int * Program_tree.Ast.init_param list * TypeElement.t) = 
         let result , t_init_params, mixin_decl = (acc) in
         if not (InimoduleDecl.activated_by t_init_params ini_module) then
-            if (InimoduleDecl.is_required ini_module) then failwith("Required ini module in [" ^ (to_string type_elements) ^ "] was not activated")
+            if (ini_module.is_required) then failwith("Required ini module in [" ^ (to_string type_elements) ^ "] was not activated")
             else acc
         else
             let code_string = (Utils.CGenCodeHelper.get_tab ()) ^ "modules.add(" ^ (MixinDecl.code_for_mixin mixin_decl) ^ ".IniModules[" ^ (InimoduleDecl.to_string ini_module) ^ "]);" in
