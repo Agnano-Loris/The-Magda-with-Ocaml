@@ -5,7 +5,7 @@ type binop = Add | Div | Eq | Leq | Less | Mul | Neq | StrongEq | Sub
 (* The following records are needed for the sum types [method_declaration] and [global_declaration].*)
 
 (*** Let Declarations ***)
-and let_decl = {
+
 (** The record [let_decl] contains the following fields:
 
   [let_name] that is used for the name of the 'let' variable
@@ -13,18 +13,15 @@ and let_decl = {
   [bound] that is the [mixin_expr] that follows the '=' keyword.
 
   Syntax:
-  let [let_name] = [bound]
-  
-  *)
-
+  let [let_name] = [bound]*)
+and let_decl = {
   let_name: string;
   bound: mixin_expr;
 }
 
 
-
 (*** Field Declarations ***)
-and field_decl = {
+
 (** The record [field_decl] contains the following fields:
 
     [field_name] that is used for the name of the field
@@ -33,14 +30,14 @@ and field_decl = {
 
     Syntax:
     [field_name] : [field_type]
- *)
-
+*)
+and field_decl = {
   field_name: string;
   field_type: mixin_expr;
 }
 
 (*** Parameter Declarations ***)
-and parameter_decl = {
+
 (** The record [parameter_decl] contains the following fields:
 
     [param_name] that is used for the name of the parameter
@@ -49,14 +46,14 @@ and parameter_decl = {
 
     Syntax:
     [param_name] : [param_type]
- *)
-
+*)
+and parameter_decl = {
   param_name: string;
   param_type: mixin_expr;
 }
 
 (*** Init Module Parameters ***)
-and init_param = {
+
 (** The record [init_param] contains the following fields:
 
     [imixin_name] that is used for the name of the mixin
@@ -67,15 +64,15 @@ and init_param = {
 
     Syntax:
     [imixin_name].[iparam_name] = [ivalue]
- *)
-
+*)
+and init_param = {
   imixin_name: string;
   iparam_name: string;
   ivalue: expression;
 }
 
 (*** Source Parameters ***)
-and source_param = {
+
 (** The record [source_param] are the parameters in input/output.
 
   The record contains the following fields:
@@ -88,15 +85,15 @@ and source_param = {
 
     Syntax:
     [mixin_name].[param_name] : [source_type]
-  *)
-
+*)
+and source_param = {
   mixin_name: string;
   param_name: string;
   source_type: mixin_expr;
 }
 
 (** Variable Declarations ***)
-and variable_decl = { 
+
 (** The record [variable_decl] contains the following fields:
 
     [var_name] that is used for the name of the variable
@@ -105,14 +102,14 @@ and variable_decl = {
 
     Syntax:
     [var_name] : [var_type]
-  *)
-
+*)
+and variable_decl = { 
   var_name: string;
   var_type: mixin_expr;
 }
 
 (*** Polymorphism ***)
-and polymorphism_param = {
+
 (** The record [polymorphism_param] is used to define polymorphic parameters in [mixin_decl]. 
     
     The record contains the following fields:
@@ -123,13 +120,14 @@ and polymorphism_param = {
 
     Syntax:
     [poly_name] <= [bound]
- *)
+*)
+and polymorphism_param = {
   poly_name: string;
   bound: mixin_expr;
 }
 
 (*** Method Body ***)
-and method_body = {
+
 (** The record [method_body] is the body of a [NewMethod] or [OverrideMethod].
 
   The record contains the following fields:
@@ -149,12 +147,13 @@ and method_body = {
   
       end
 *)
+and method_body = {
   method_local_variables: variable_decl list;
   method_instructions: instruction list;
 }
 
 (*** Ini Module super ***)
-and ini_module_super = {
+
 (** The record [ini_module_super] is the supercall of the inimodule. It contains the following fields:
 
     [super_name] that is the name of the super mixin
@@ -163,13 +162,14 @@ and ini_module_super = {
 
     Syntax:
     super [super_name] ([super_params])
- *)
+*)
+and ini_module_super = {
   super_name: string;
   super_params: init_param list;
 }
 
 (*** Ini Module Body ***)
-and ini_module_body = {
+
 (** The record [ini_module_body] is the body of an [ini_module_decl].
     
   The record contains the following fields:
@@ -197,7 +197,8 @@ and ini_module_body = {
     end
 
 
-  *)
+*)
+and ini_module_body = {
   ini_module_variables: variable_decl list;
   ini_module_instructions_precall: instruction list;
   ini_module_super: ini_module_super;
@@ -205,7 +206,7 @@ and ini_module_body = {
 }
 
 (*** Ini Module Declarations ***)
-and ini_module_decl = {
+
 (** The record [ini_module_decl] is the declaration of an ini module.
   The record contains the following fields:
 
@@ -218,6 +219,7 @@ and ini_module_decl = {
      [ini_module_body] that is the body of the ini module.
 
 *)
+and ini_module_decl = {
   is_required: bool;
   in_params: source_param list;
   out_params: source_param list;
@@ -225,7 +227,7 @@ and ini_module_decl = {
 }
 
 (*** Mixin Declarations ***)
-and mixin_decl = {
+
 (** The record [mixin_decl] contains the following fields:
 
     [mixin_name] that is the name of the mixin
@@ -242,6 +244,7 @@ and mixin_decl = {
 
     [mixin_ini_module] that is a list of [ini_module_decl]s
 *)
+and mixin_decl = {
   mixin_name: string;
   mixin_parent: mixin_expr;
   mixin_polymorphism_params: polymorphism_param list;
@@ -251,7 +254,8 @@ and mixin_decl = {
   mixin_ini_module: ini_module_decl list;
 }
 
-and abstract_method = {
+(*** Abstract Method Declarations ***)
+
 (** The record [abstract_method] is used to express the abstract methods of a mixin. It contains the following fields:
 
     [abstract_method_name] that is the name of the abstract method
@@ -263,12 +267,15 @@ and abstract_method = {
     Syntax:
     abstract [abstract_method_return_type] [abstract_method_name] ([abstract_method_params])
 *)
+
+and abstract_method = {
   abstract_method_name: string;
   abstract_method_params: parameter_decl list;
   abstract_method_return_type: mixin_expr;
 }
 
-and new_method = {
+(*** New Method Declarations ***)
+
 (** The record [new_method] is used to express the new methods of a mixin. It contains the following fields:
 
     [new_method_name] that is the name of the new method
@@ -283,13 +290,15 @@ and new_method = {
     new [new_method_return_type] [new_method_name] ([new_method_params])
     [new_method_body]
 *)
+and new_method = {
   new_method_name: string; 
   new_method_params: parameter_decl list;
   new_method_return_type: mixin_expr;
   new_method_body: method_body;
 }
 
-and override_method = {
+(*** Override Method Declarations ***)
+
 (** The record [override_method] is used to express the override methods of a mixin. It contains the following fields:
 
     [override_method_name] that is the name of the override method
@@ -306,6 +315,7 @@ and override_method = {
     override [override_method_return_type] [override_mixin_overridden].[override_method_name] ([override_method_params])
     [override_method_body]
 *)
+and override_method = {
   override_method_name: string;
   override_method_mixin_overridden: string;
   override_method_params: parameter_decl list;
@@ -313,7 +323,8 @@ and override_method = {
   override_method_body: method_body;
 }
 
-and object_creation = {
+(*** Object Creation ***)
+
 (** The record [object_creation] is used to express the object creation expression. It contains the following fields:
 
     [object_creation_mixin_expr] that is a [mixin_expr] that expresses the type of the object being created
@@ -323,11 +334,13 @@ and object_creation = {
     Syntax:
     new [object_creation_mixin_expr] ([object_creation_init_params])
 *)
+and object_creation = {
   object_creation_mixin_expr: mixin_expr;
   object_creation_init_params: init_param list;
 }
 
-and field_selection = {
+(*** Field Selection ***)
+
 (** The record [field_selection] is used to express the field selection expression. It contains the following fields:
 
     [field_selection_target] that is an [expression] that follows the '=' character
@@ -339,12 +352,15 @@ and field_selection = {
     Syntax:
     [field_selection_mixin_name].[field_selection_field_name] = [field_selection_target]
 *)
+and field_selection = {
   field_selection_target: expression;
   field_selection_mixin_name: string;
   field_selection_field_name: string;
 }
 
-and method_call = {
+
+(*** Method Call ***)
+
 (** The record [method_call] is used to express the method call expression. It contains the following fields:
 
     [method_call_target] that is an [expression]. This should be written before the '=' character
@@ -358,13 +374,15 @@ and method_call = {
     Syntax:
     [method_call_target] = [method_call_mixin_name].[method_call_method_name] ([method_call_params])
 *)
+and method_call = {
   method_call_target: expression;
   method_call_mixin_name: string;
   method_call_method_name: string;
   method_call_params: expression list;
 }
 
-and while_instruction = {
+(*** While Instruction ***)
+
 (** The record [while_instruction] is used to express the while instruction. It contains the following fields:
 
     [while_condition] that is an [expression] inside the parentheses of the while instruction
@@ -376,11 +394,13 @@ and while_instruction = {
       [while_instructions]
     end;
 *)
+and while_instruction = {
   while_condition: expression;
   while_instructions: instruction list;
 }
 
-and if_instruction = {
+(*** If Instruction ***)
+
 (** The record [if_instruction] is used to express the if instruction. It contains the following fields:
 
     [if_condition] that is an [expression] inside the parentheses of the if instruction
@@ -395,20 +415,24 @@ and if_instruction = {
     else [if_false_instructions]
     end;
 *)
+and if_instruction = {
   if_condition: expression;
   if_true_instructions: instruction list;
   if_false_instructions: instruction list;
 }
 
-and ini_module_super_instruction = {
+(*** Super[] instruction ***)
+
 (** The record [ini_module_super_instruction] is used to express the super call of an ini module. It contains the following fields:
 
 [ini_module_super_init_params] that is a list of [init_param]s that are the parameters of the super call
 *)
+and ini_module_super_instruction = {
   ini_module_super_init_params: init_param list;
 }
 
-and mixin_expr_concat = {
+(*** Mixin concatenated ***)
+
 (** The record [mixin_expr_concat] is used to express the concatenation of two mixin expressions. It contains the following fields:
 
     [left_mixin] that is a [mixin_expr] that is on the left side of the ',' character
@@ -418,11 +442,13 @@ and mixin_expr_concat = {
     Syntax:
     [left_mixin] , [right_mixin]
 *)
+and mixin_expr_concat = {
   left_mixin: mixin_expr;
   right_mixin: mixin_expr;
 }
 
-and mixin_expr_application = {
+(*** Mixin Application ***)
+
 (** The record [mixin_expr_application] is used to express the application of a mixin to a mixin expression. It contains the following fields:
 
     [mixin_name] that is the name of the mixin being applied
@@ -434,12 +460,14 @@ and mixin_expr_application = {
     Syntax:
     [mixin_name] . [param_name] = ([value])
 *)
+and mixin_expr_application = {
   mixin_name: string;
   param_name: string;
   value: mixin_expr;
 }
 
-and field_lvalue = {
+(*** Field LValue ***)
+
 (** The record [field_lvalue] is used to express the field lvalue. It contains the following fields:
 
     [field_lvalue_mixin_name] that is the name of the mixin that contains the field being assigned
@@ -449,6 +477,7 @@ and field_lvalue = {
     Syntax:
     [field_lvalue_mixin_name].[field_lvalue_field_name]
 *)
+and field_lvalue = {
   field_lvalue_mixin_name: string;
   field_lvalue_field_name: string;
 }
@@ -456,7 +485,7 @@ and field_lvalue = {
 (*** Sum types created from the interfaces ***)
 
 (*** Mixin Expressions ***)
-and mixin_expr =
+
 (** A [mixin_expr] is used to express the type of declarations such as variables, parameters, fiels and return.
 
   A [mixin_expr] can be [MixinExpressionVoid] or [MixinExpressionId]. 
@@ -465,13 +494,14 @@ and mixin_expr =
 
   It can also be an application of a mixin to a [mixin_expr] using [MixinExpressionApplication].
 *)
+and mixin_expr =
   | MixinExpressionId of string
   | MixinExpressionConcat of mixin_expr_concat
   | MixinExpressionApplication of mixin_expr_application
   | MixinExpressionVoid
 
 (*** LValues ***)
-and lvalue =
+
 (** A [lvalue] is a reference to a location in memory.
   It is used in the assignment instruction right before the ':=' operator.
   
@@ -479,16 +509,17 @@ and lvalue =
 
   Syntax for [FieldLValue]:
   [mixin_name].[field_name]
-  *)
-
+*)
+and lvalue =
   | VariableLValue of string
   | FieldLValue of field_lvalue
 
 (*** Instructions ***)
-and instruction =
+
 (** An [instruction] is one of the operations expressed in the guards.
   There is no need of 'instruction option' since an instruction can be an ExprInstruction
   and an ExprInstruction can be a NullExpression *)
+and instruction =
   | Assignment of lvalue * expression
   | ExprInstruction of expression
   | IfInstruction of if_instruction
@@ -498,10 +529,11 @@ and instruction =
   | WhileInstruction of while_instruction
 
 (*** Expressions ***)
-and expression =
+
 (** An [expression] is one of the operations expressed in the guards.
   There is no need of 'expression option' since an expression can be a NullExpression.
 *)
+and expression =
   | ThisExpression
   | NullExpression
   | IntegerLiteral of int
@@ -526,8 +558,8 @@ and global_declaration =
    BEPPE VESSICCHIO *)
 
 (*** Method Declaration ***)
+(** A [method_declaration] is a bodyless abstract [AbstactMethod] or a concrete [NewMethod] or an override of an existing mixin [OverrideMethod]*)
 and method_declaration =
-  (** A [method_declaration] is a bodyless abstract [AbstactMethod] or a concrete [NewMethod] or an override of an existing mixin [OverrideMethod]*)
   | AbstractMethod of abstract_method
   | NewMethod of new_method
   | OverrideMethod of override_method
