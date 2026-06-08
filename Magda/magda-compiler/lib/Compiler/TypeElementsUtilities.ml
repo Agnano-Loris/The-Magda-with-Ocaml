@@ -5,12 +5,12 @@ module type TypeElementSig = ModuleSignatures.TypeElementSig.S with type t = Typ
 module type PolymorphismParamSig = ModuleSignatures.TypeElementSig.PolymorphismParam with type t = TypeElement.t
 module type MixinDeclSig = ModuleSignatures.TypeElementSig.MixinDecl with type t = TypeElement.t
 module type InimoduleSig = ModuleSignatures.DeclSignatures.INIMODULE_DECL with type t = Program_tree.Ast.ini_module_decl
-module type MixinEXPRSig = ModuleSignatures.Expressions.MIXIN_EXPR with type t = Program_tree.Ast.mixin_expr
+module type MixinEXPRSig = ModuleSignatures.ExpressionsSig.MIXIN_EXPR with type t = Program_tree.Ast.mixin_expr
 
 type t = TypeElements.t
 
-let get_applications method_env (module TypeEl : TypeElementSig) (type_elements:t) =     
-	let appl_list = List.map (TypeEl.get_applications method_env) type_elements.types in
+let get_applications (module MixinEXPR : MixinEXPRSig) (module TypeEl : TypeElementSig) method_env (type_elements:t) =     
+	let appl_list = List.map (TypeEl.get_applications (module MixinEXPR) method_env) type_elements.types in
 	List.fold_left List.append type_elements.poly_app_val appl_list
 
 let new_type_el is_all : t = {types=[];is_all;poly_app_val=[]}
@@ -41,8 +41,8 @@ let sum_with (type_elements_1:t) (type_elements_2:t) :t =
 	add_new type_elements_1 type_elements_2
 
 let to_string (type_elements:t) = 
-	let fold_func acc el = acc ^ ", " ^ (TypeElement.get_caption el) in
-	let s = List.fold_left fold_func ("(" ^ (List.hd type_elements.types |> TypeElement.get_caption )) (List.tl type_elements.types) in 
+	let fold_func acc el = acc ^ ", " ^ (Declarations.TypeElementDeclaration.get_caption el) in
+	let s = List.fold_left fold_func ("(" ^ (List.hd type_elements.types |> Declarations.TypeElementDeclaration.get_caption )) (List.tl type_elements.types) in 
 	s ^ ")"
 
 let rec contains_type_elem (module PolymorphismParam : PolymorphismParamSig) (env : Types.EnvTypes.environment) (el : TypeElement.t) (type_elements:t) =
@@ -116,7 +116,7 @@ let check_if_base_mixin_exist (module MixinEXPR : MixinEXPRSig)(module MixinDecl
 		| MixinDecl mixin_decl -> 
 			let base_type =  MixinEXPR.get_type_exn method_environment mixin_decl.mixin_parent in
 			let check_list = List.filteri (fun x y -> not (mixin_exists_in_prefix x y type_elements)) base_type.types in
-			if (not (List.is_empty check_list)) then failwith ("Error in Expression used to create new object from: " ^ (to_string type_elements) ^ " : " ^ mixin_decl.mixin_name ^ " requires " ^ (TypeElement.get_name type_element) ^ " which is not present") 
+			if (not (List.is_empty check_list)) then failwith ("Error in Expression used to create new object from: " ^ (to_string type_elements) ^ " : " ^ mixin_decl.mixin_name ^ " requires " ^ (Declarations.TypeElementDeclaration.get_name type_element) ^ " which is not present") 
 		| _ -> failwith("instantiation from the polymorphic params not yet supported!") in
 	List.iter check_mixin type_elements.types
 

@@ -1,10 +1,44 @@
 open Program_tree.Ast
 
+
+(*
+
+module type INSTR_ENV = sig 
+    type t = instr_environment
+    val new_instr_environment : global_declaration list -> mixin_decl -> variable_decl -> parameter_decl -> ?current_method_or_inimodule: (method_declaration, ini_module_decl) Either.t -> t
+    val find_param_or_variable_type : string -> t -> Types.TypeElements.t
+    val get_variable_offset : string -> t -> int
+    val get_parameter_offset : string -> t -> int
+    val expand_variables_in_native : string -> t -> string
+
+    (* FROM M_ENV *)
+  val get_type_element : string -> t -> Types.TypeElement.t
+	val get_declaration_exn : string -> t -> global_declaration
+  val get_mixin_exn : string -> t -> global_declaration
+end
+
+*)
+
+
+module I : ModuleSignatures.EnvSig.INSTR_ENV = struct
+  type t = Types.EnvTypes.instr_environment
+  let new_instr_environment (global_declarations : global_declaration list) (mixin_decl:mixin_decl) (variable_decl:variable_decl) (parameter_decl:parameter_decl) ?(current_method_or_inimodule) :t = failwith("Not necessary")
+  let find_param_or_variable_type (name:string) (instr_environment:t) = failwith("Not necessary")
+  let get_variable_offset (name:string) (instr_environment:t) = failwith("Not necessary")
+  let get_parameter_offset (name:string) (instr_environment:t) = failwith("Not necessary")
+  let expand_variables_in_native (name:string) (instr_environment:t) = failwith("Not necessary")
+  let get_type_element (name:string) (instr_environment:t) = failwith("Not necessary")
+  let get_declaration_exn (name:string) (instr_environment:t) = failwith("Not necessary")
+  let get_mixin_exn (name:string) (instr_environment:t) = failwith("Not necessary")
+end
+
 type t = Types.EnvTypes.instr_environment
 
+
+(* DO MixinExpressions modules before this *)
 let find_param_or_variable_type name (instr_environment:t) = 
 	let var = List.find_opt (fun v -> v.var_name == name) instr_environment.vars in
-	if Option.is_none var then var else var
+	if Option.is_some var then Option.get var |> 
 
 
 (*

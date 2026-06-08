@@ -17,4 +17,6 @@ module PolyApplicationValues = struct
   let find_param (param_index:int) (lst : t) : poly_application_value option = match List.filteri (fun i _ -> i = param_index) lst with
   | [] -> None
   | x :: _ -> Some x
+
+  let find_by_name param_name (lst:t) = List.find_opt (fun appl_value -> appl_value.poly_param.base.poly_name = param_name) lst
 end

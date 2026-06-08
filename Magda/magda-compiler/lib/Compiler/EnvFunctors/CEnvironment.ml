@@ -7,10 +7,10 @@ module Make (GlobalDeclaration : DeclSignatures.GLOBAL_DECL) : EnvSig.ENV = stru
 
 	let empty : t = {
 		decls = [];
-		calculated_types = OrderedGlobalDeclaration.DeclarationMap.empty
+		calculated_types = Types.TypeElement.TypeElementMap.empty
 	}
 
-	let new_environment ?(calculated_types = OrderedGlobalDeclaration.DeclarationMap.empty) decls : t = {decls;calculated_types}
+	let new_environment ?(calculated_types = Types.TypeElement.TypeElementMap.empty) decls : t = {decls;calculated_types}
 
 	let get_mixin_exn name (environment : t) = 
 		let find_mixin_decl (decl:global_declaration) = (GlobalDeclaration.is_mixin_decl decl) && (GlobalDeclaration.get_name decl == name) in

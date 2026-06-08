@@ -4,7 +4,11 @@ module type GLOBAL_DECL = sig
     val is_mixin_decl : t -> bool
     val is_let_decl : t -> bool
     val get_name : t -> string
-	(*
+
+    val get_mixin_exn : t -> Program_tree.Ast.mixin_decl
+    val get_let_exn : t -> Program_tree.Ast.let_decl
+    (*
+
 	verranno probabilmente gestiti dalle altre declaration
 	val empty_mixin : Program_tree.Ast.mixin_decl
     val empty_let : Program_tree.Ast.let_decl

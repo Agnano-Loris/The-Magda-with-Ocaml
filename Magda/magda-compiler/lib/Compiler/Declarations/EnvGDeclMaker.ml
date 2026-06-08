@@ -20,6 +20,14 @@ module GlobalDeclararion : DeclSignatures.GLOBAL_DECL = struct
 	let get_name = function
 	| MixinDecl m -> m.mixin_name
 	| LetDecl l -> l.let_name
+
+  let get_mixin_exn = function
+  | MixinDecl m -> m
+	| LetDecl _ -> failwith "Not a Mixin, but a Let Declaration"
+
+  let get_let_exn = function
+  | LetDecl l -> l
+	| MixinDecl _ -> failwith "Not a Let, but a Mixin Declaration"
 end
 
 module Environment : EnvSig.ENV = EnvFunctors.CEnvironment.Make(GlobalDeclararion) 

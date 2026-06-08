@@ -4,7 +4,7 @@ open Types.EnvTypes
 module type ENV = sig
 	type t = environment
 	val empty : t
-	val new_environment : ?calculated_types:Types.TypeElements.t OrderedGlobalDeclaration.DeclarationMap.t -> global_declaration list -> t
+	val new_environment : ?calculated_types:Types.TypeElements.t Types.TypeElement.TypeElementMap.t -> global_declaration list -> t
 	val get_mixin_exn : string -> t -> global_declaration
 	val get_declaration_exn : string -> t -> global_declaration
 end
