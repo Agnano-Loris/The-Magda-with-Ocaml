@@ -1,1 +1,1 @@
-opam exec -- dune build  --root Magda/magda-compiler --no-print-directory
+opam exec -- dune build  --root Magda/magda-compiler --no-print-directory --profile release

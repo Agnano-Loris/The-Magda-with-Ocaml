@@ -35,11 +35,11 @@ end
 type t = Types.EnvTypes.instr_environment
 
 
-(* DO MixinExpressions modules before this *)
+(* DO MixinExpressions modules before this 
 let find_param_or_variable_type name (instr_environment:t) = 
 	let var = List.find_opt (fun v -> v.var_name == name) instr_environment.vars in
 	if Option.is_some var then Option.get var |> 
-
+*)
 
 (*
 
