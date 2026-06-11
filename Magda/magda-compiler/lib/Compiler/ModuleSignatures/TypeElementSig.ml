@@ -14,7 +14,7 @@ module type S = sig
 	val get_bounding_type : (module MIXIN_EXPR_SIG) -> Types.EnvTypes.environment -> t -> Types.TypeElements.t
 	val module_contains_input_parameter_exn : Program_tree.Ast.source_param -> t -> bool
 	val module_contains_input_parameter_i_exn : Program_tree.Ast.source_param -> int -> t -> bool
-	val calc_abstract_methods: Types.EnvTypes.method_environment -> Program_tree.Ast.new_method list -> t -> Program_tree.Ast.new_method list
+	val calc_abstract_methods: Types.EnvTypes.method_environment -> Program_tree.Ast.method_declaration list -> t -> Program_tree.Ast.method_declaration list
 end
 
 module type TypeElementsSig = sig
