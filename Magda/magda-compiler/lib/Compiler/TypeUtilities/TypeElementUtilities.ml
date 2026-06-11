@@ -5,6 +5,44 @@ module Make (TypeElements : ModuleSignatures.TypeElementSig.TypeElementsSig) : M
 
 	module type MIXIN_EXPR_SIG = ModuleSignatures.ExpressionsSig.MIXIN_EXPR with type t := mixin_expr
 
+	module MethodDeclaration = struct
+	  type t = method_declaration
+
+	  let get_method_name = function
+			| AbstractMethod a -> a.abstract_method_name
+			| OverrideMethod o -> o.override_method_name
+			| NewMethod n -> n.new_method_name
+		let is_abstract_method = function
+		| AbstractMethod _ -> true
+		| _ -> false
+
+		let is_override_method = function
+		| OverrideMethod _ -> true
+		| _ -> false
+	
+		let is_new_method = function
+		| NewMethod _ -> true
+		| _ -> false
+
+		let get_record = function
+		| AbstractMethod a -> (Some a, None, None)
+		| OverrideMethod o -> (None, Some o, None)
+		| NewMethod n -> (None, None, Some n)
+		
+		let get_abstract = function
+		| AbstractMethod a -> a
+		| _ -> failwith "Not a AbstractMethod"
+
+
+		let get_override_method = function
+		| OverrideMethod o -> o
+		| _ -> failwith "Not a OverrideMethod"
+	
+		let get_new_method = function
+		| NewMethod n -> n
+		| _ -> failwith "Not a NewMethod"
+	end
+
 	let rec get_caption = function
 	| MixinDecl mixin_decl -> mixin_decl.mixin_name
 	| PolymorphismDecl polymorphism_param-> (get_caption (MixinDecl (Option.get polymorphism_param.container))) ^ "." ^ polymorphism_param.base.poly_name
@@ -48,6 +86,7 @@ module Make (TypeElements : ModuleSignatures.TypeElementSig.TypeElementsSig) : M
 		Utils.CGenCodeHelper.get_tab () ^ "tempList.add (" ^ code_for_mixin (MixinDecl m) ^");"
 		|> Utils.GenCode.print_code
 
+	(*Possible changes coming with Mattia's commits on gen_code*)
 	let get_bounding_type (module MixinEXPR : MIXIN_EXPR_SIG) env = function
 	| MixinDecl _ -> failwith "TypeElement.code_for_mixin not yet implemented for MixinDecl"
 	| PolymorphismDecl p -> 
@@ -75,39 +114,24 @@ module Make (TypeElements : ModuleSignatures.TypeElementSig.TypeElementsSig) : M
 			| PolymorphismDecl _ -> 
 				let res = TypeElements.new_type_el_3 method_env.environment type_element in
 				(res, MethodEnvironment.new_method_environment (new_env res) (Option.get method_env.current_mixin))
-				
+
   let module_contains_input_parameter_i_exn (source_param : Program_tree.Ast.source_param) (inimodule_size:int) (type_element:t):bool =
   let contains_param (param_el : Program_tree.Ast.source_param) = (param_el.param_name = source_param.param_name) &&  (param_el.mixin_name = source_param.mixin_name) in
   match type_element with
   | MixinDecl m -> List.filteri (fun i ini_module -> (i < inimodule_size) && List.exists contains_param ini_module.in_params) m.mixin_ini_module |> List.is_empty |> not
   | _ -> failwith "TypeElement.module_contains_input_parameter_exn can be called only on MixinDeclaration"
 
-	let module_contains_input_parameter_exn (source_param : Program_tree.Ast.source_param) (type_element:t): bool =
+let module_contains_input_parameter_exn (source_param : Program_tree.Ast.source_param) (type_element:t): bool =
   match type_element with
   | MixinDecl m -> module_contains_input_parameter_i_exn source_param (List.length m.mixin_ini_module) (type_element)
   | _ -> failwith "TypeElement.module_contains_input_parameter_exn can be called only on MixinDeclaration"
 
 let calc_abstract_methods (method_env:Types.EnvTypes.method_environment) (prev_abstract_methods:Program_tree.Ast.method_declaration list) (type_element:t) : Program_tree.Ast.method_declaration list = 
-	let get_method_name = function
-		| AbstractMethod a -> a.abstract_method_name
-		| OverrideMethod o -> o.override_method_name
-		| NewMethod n -> n.new_method_name
-	in
-	let is_abstract = function
-		| AbstractMethod _ -> true
-		| _ -> false
-	in
-	let method_decl_to_override method_decl = match method_decl with
-		| OverrideMethod o -> o
-		| _ -> failwith "Only for Override method"	
-	in
 	let get_source_method (override_m_decl : override_method): new_method = 
 		Declarations.EnvGDeclMaker.MethodEnvironment.get_mixin_exn override_m_decl.override_method_mixin_overridden method_env
 		|> Declarations.EnvGDeclMaker.GlobalDeclararion.get_mixin_exn 
 		|> fun m -> 
-			List.map (function
-				| NewMethod new_method -> new_method
-				| _ -> failwith "Only using on new_methods") 
+			List.map (MethodDeclaration.get_new_method) 
 			m.mixin_new_methods
 		|> fun m -> List.find (fun n_m -> n_m.new_method_name = override_m_decl.override_method_name) m
 	in
@@ -117,14 +141,24 @@ let calc_abstract_methods (method_env:Types.EnvTypes.method_environment) (prev_a
 		List.filter 
 			(fun abstract_mehtod -> 
 				List.exists 
-					(fun m -> (((method_decl_to_override m) |> get_source_method).new_method_name = (get_method_name abstract_mehtod)) |> not) 
+					(fun m -> (((MethodDeclaration.get_override_method m) |> get_source_method).new_method_name = (MethodDeclaration.get_method_name abstract_mehtod)) |> not) 
 					mixin.mixin_override_methods) 
 			prev_abstract_methods
 		)
-		|> (@) (List.filter is_abstract mixin.mixin_new_methods)
-  | _ -> failwith "TypeElement.calc_abstract_methods can be called only on MixinDeclaration"
+		|> (@) (List.filter MethodDeclaration.is_abstract_method mixin.mixin_new_methods)
+	| _ -> failwith "TypeElement.calc_abstract_methods can be called only on MixinDeclaration"
 
-
-
+	let get_method_offset name (type_element:t)= 
+		match type_element with
+		| MixinDecl m -> List.find_index (fun el -> (MethodDeclaration.get_method_name el) = name) m.mixin_new_methods
+						 |> Option.value ~default:(failwith ("Method not found! " ^ name))
+		| _ -> failwith "TypeElement.get_method_offset can be called only on MixinDeclaration"  
+	
+	let get_new_method name (type_element:t)=
+		match type_element with
+		| MixinDecl m -> List.find_opt (fun el -> (MethodDeclaration.get_method_name el) = name) m.mixin_new_methods
+						 |> Option.value ~default:(failwith ("Method not found! " ^ name))
+		| _ -> failwith "TypeElement.get_method can be called only on MixinDeclaration"  
+	
 end
 	

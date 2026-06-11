@@ -35,7 +35,7 @@ module type TypeElementsSig = sig
 	val check_is_subtype_of_exn : Types.EnvTypes.environment -> t -> t -> TypeError.t -> unit
 	val is_isomorphic_to : Types.EnvTypes.environment -> t -> t -> bool
 	val module_contains_input_parameter_exn : Types.EnvTypes.environment -> Program_tree.Ast.source_param -> t -> bool
-	val calc_abstract_methods : Types.EnvTypes.method_environment -> t -> Program_tree.Ast.new_method list
+	val calc_abstract_methods : Types.EnvTypes.method_environment -> t -> Program_tree.Ast.method_declaration list
 	val set_poly_params_from : Types.TypeElements.PolyApplicationValues.t -> t -> t
 	val mixin_exists_in_prefix : int -> Types.TypeElement.t -> t -> bool
 	val check_if_base_mixin_exist : (module MixinEXPRSig) -> Types.EnvTypes.method_environment -> t -> unit

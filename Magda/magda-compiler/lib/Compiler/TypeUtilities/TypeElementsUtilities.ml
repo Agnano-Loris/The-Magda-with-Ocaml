@@ -80,7 +80,7 @@ let rec module_contains_input_parameter_exn (env:EnvTypes.environment) (source_i
     List.exists check_function_exn type_elements.types
 
 let calc_abstract_methods (method_environment : EnvTypes.method_environment) (type_elements:t) = 
-    let res : Program_tree.Ast.new_method list = [] in
+    let res : Program_tree.Ast.method_declaration list = [] in
     let fold_func acc (type_element:TypeElement.t) = match type_element with
     | MixinDecl _ -> TypeElementImpl.calc_abstract_methods method_environment acc type_element
     | _ -> acc in
