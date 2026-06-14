@@ -19,3 +19,5 @@ val to_string : t -> string
 @param magda_type the Magda type to convert
 @returns the string rapresentation of [magda_type]
 *)
+
+val string_to_magdatype : string -> t

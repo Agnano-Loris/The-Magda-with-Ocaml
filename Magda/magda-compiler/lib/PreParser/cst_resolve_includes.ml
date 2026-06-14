@@ -27,6 +27,8 @@ let rec resolve_inner (checked: StringSet.t) (cst: Cst.program) : StringSet.t * 
     [DeclarationInclude] is resolved by parsing the included file and
     recursively resolving its declarations; files already in [checked]
     are skipped, producing an empty program.
+
+    This function is not defined in the module interface.
 *)
 and resolve_aux checked = function
 | Cst.DeclarationMixin d -> (checked, DeclarationMixin d)
