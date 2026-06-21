@@ -32,4 +32,4 @@ end
 
 module Environment : EnvSig.ENV = EnvFunctors.CEnvironment.Make(GlobalDeclararion) 
 
-module MethodEnvironment : EnvSig.METHOD_ENV = EnvFunctors.CMethodEnvironment.Make(GlobalDeclararion)(Environment)
+module MethodEnvironment : EnvSig.METHOD_ENV = EnvFunctors.CMethodEnvironment.Make(Environment)

@@ -16,6 +16,6 @@ and instr_environment = {
     current_inimodule: ini_module_decl option
 }
 and inimodule_environment = {
-	environment: environment;
+	method_environment: method_environment;
 	module_number: int
 }

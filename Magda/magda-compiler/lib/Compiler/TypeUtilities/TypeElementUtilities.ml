@@ -9,9 +9,9 @@ module Make (TypeElements : ModuleSignatures.TypeElementSig.TypeElementsSig) : M
 	  type t = method_declaration
 
 	  let get_method_name = function
-			| AbstractMethod a -> a.abstract_method_name
-			| OverrideMethod o -> o.override_method_name
-			| NewMethod n -> n.new_method_name
+        | AbstractMethod a -> a.abstract_method_name
+        | OverrideMethod o -> o.override_method_name
+        | NewMethod n -> n.new_method_name
 		let is_abstract_method = function
 		| AbstractMethod _ -> true
 		| _ -> false

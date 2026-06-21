@@ -38,9 +38,11 @@ end
 
 module type INIMODULE_ENV = sig
     type t = inimodule_environment
+    val empty : t
     val new_inimodule_environment : global_declaration list -> mixin_decl -> int
 
-    (* FROM ENV *)
+    (* FROM METHOD_ENV *)
+    val get_type_element_exn : string -> t -> Types.TypeElement.t
     val get_mixin_exn : string -> t -> global_declaration
 	val get_declaration_exn : string -> t -> global_declaration
 end

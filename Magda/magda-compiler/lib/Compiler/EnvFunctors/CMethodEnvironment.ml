@@ -1,6 +1,6 @@
 open Program_tree.Ast
 open ModuleSignatures
-module Make (GlobalDeclaration : DeclSignatures.GLOBAL_DECL)(Env : EnvSig.ENV) : EnvSig.METHOD_ENV = struct
+module Make (Env : EnvSig.ENV) : EnvSig.METHOD_ENV = struct
 	module Environment = Env
 	type t = Types.EnvTypes.method_environment
 
