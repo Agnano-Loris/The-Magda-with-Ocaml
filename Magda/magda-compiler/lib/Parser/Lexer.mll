@@ -11,7 +11,8 @@
 
 rule token = parse
     (*** Skip whitespace ***)
-    | [' ' '\n' '\t' '\r']+ { token lexbuf }
+    | [' ' '\t' '\r']+ { token lexbuf }
+    | '\n' { Lexing.new_line lexbuf; token lexbuf }
 
     (*** Comments ***)
     | "//" { single_line_comment lexbuf }
@@ -99,7 +100,7 @@ rule token = parse
 
 
 and single_line_comment = parse
-    | '\n' { token lexbuf }
+    | '\n' { Lexing.new_line lexbuf; token lexbuf }
     | '\r' { token lexbuf }
     | eof { EOF }
     | _ { single_line_comment lexbuf }
@@ -109,12 +110,14 @@ and multi_line_comment depth = parse
     | "*/" { if depth = 1 then token lexbuf 
             else multi_line_comment (depth - 1) lexbuf }
     | eof { failwith "Error: Unterminated multi-line comment" }
+    | '\n' { Lexing.new_line lexbuf; multi_line_comment depth lexbuf }
     | _ { multi_line_comment depth lexbuf }
 
 and native_instruction = parse
     | "\\%" { Buffer.add_char token_buffer '%'; native_instruction lexbuf }
     | '%' { NATIVEINSTRUCTION (Buffer.contents token_buffer) }
     | eof { failwith "Error: Expected '%' as native instruction terminator" }
+    | '\n' as c { Lexing.new_line lexbuf; Buffer.add_char token_buffer c; native_instruction lexbuf }
     | _ as c { Buffer.add_char token_buffer c; native_instruction lexbuf }
 
 
