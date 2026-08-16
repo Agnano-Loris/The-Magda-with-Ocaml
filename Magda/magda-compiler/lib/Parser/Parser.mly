@@ -1,6 +1,22 @@
 %{
+
+  (** Menhir grammar for the Magda language.
+      Produce a {!Cst.program}, a semantically neutral representation of the source syntax.
+      The grammar accepts a superset of semantically valid programs:
+      any base_expression can be followed by suffixes (e.g. true.A.b),
+      and any expression can appear as a standalone instruction (e.g. 5;).
+      Semantic constraints are enforced by downstream passes.
+
+      Known conflicts:
+      - shift/Reduce on DOT in suffix: Menhir, after DOT ID,  always shifts to consume more tokens rather than reducing immediately.
+        This may produce a semantically incorrect grouping, which should be corrected during name resolution in another module. 
+  *)
   open Utils.Cst
 
+(** [expression_to_lvalue expr] converts an expression parsed on the
+     left side of [:=] into a {!Cst.l_value}.
+     Raises [Failure] if the expression is not a valid l_value. 
+*)
   let expression_to_lvalue = function
   | ExprSuffix(ThisExpr, SpecificFieldSelect(m, f)) -> MixinField(m, f)
   | ExprSuffix(ThisExpr, DirectFieldSelect(f)) -> DirectField(f)
@@ -108,6 +124,11 @@ instructions_pre_super = pre;
 super_call = super;
 instructions_post_super = post } }
 
+(* Collects pre-super instructions and the super call in an ini module body.
+   Resolves the SUPER shift/reduce conflict: both options shift SUPER, deferring the decision to the next token;
+   LBRACKET for the module super call, LPAREN for a super method call inside an instruction.
+   Guarantees exactly one super call per ini module body. 
+*)
 ini_pre_and_super_instructions: 
 | SUPER super = delimited(LBRACKET, separated_list(COMMA, init_param) , RBRACKET) SEMICOLON { ([], super) }
 | instr = instruction rest = ini_pre_and_super_instructions { let (pre, super) = rest in ( instr :: pre , super ) }
@@ -127,6 +148,10 @@ mixin_concat:
 instruction:
 | i = instruction_body SEMICOLON { i }
 
+(* The body of an instruction, before the terminating semicolon.
+   Assignment is separate from expression as statement by the presence of [:=];
+   the left side is parsed as an expression and converted to l_value by expression_to_lvalue.
+*)
 instruction_body:
 | exprlvalue = expression ASSIGN expr = expression { Assignment(expression_to_lvalue exprlvalue, expr) }
 | expr = expression { ExprInstruction expr }
@@ -135,6 +160,10 @@ instruction_body:
 | WHILE LPAREN cond = expression RPAREN instrs = list(instruction) END { WhileLoop (cond, instrs) }
 | IF LPAREN cond = expression RPAREN tinstr = list(instruction) finstr=option(preceded(ELSE, list(instruction))) END { IfCond (cond, tinstr, Option.value ~default:[] finstr) }
 
+(* An expression is a base_expression optionally followed by binary operators.
+   The left operand recurses on expression and the right is a base_expression, making binary operators left-associative.
+   Suffixes bind tighter since they are defined inside base_expression. 
+*)
 expression:
 | e = base_expression { e }
 | e = expression op = binop b = base_expression { BinaryOp(op, e, b) }
@@ -167,6 +196,11 @@ binop:
 | GT { Gt }
 | NEQ { Neq }
 
+(* A DOT initiated suffix for field access or method call.
+   The DOT shift/reduce conflict causes Menhir to group greedily:
+   [this.A.b] is always parsed as SpecificFieldSelect("A", "b"), 
+   regardless of whether A is a mixin name or a field name.
+*)
 suffix:
 | DOT i1 = ID DOT i2 = ID param = delimited(LPAREN,separated_list(COMMA, expression),RPAREN) { SpecificMethodCall (i1, i2, param) }
 | DOT i = ID param = delimited(LPAREN,separated_list(COMMA, expression),RPAREN) { DirectMethodCall (i, param) }
