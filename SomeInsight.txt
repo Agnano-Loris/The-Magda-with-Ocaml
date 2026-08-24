@@ -1,0 +1,4 @@
+In parse.mly
+
+The grammar has no separate l_value rule because [THIS DOT] would conflict between l_value and expression;
+instead the left side is parsed as an expression and converted here.

@@ -18,3 +18,13 @@ let to_string = function
   | Object -> "Object"
   | Void -> "void"
   | MixinType name -> name
+
+let string_to_magdatype = function
+  | "Integer" -> Integer
+  | "Float" -> Float
+  | "Boolean" -> Bool
+  | "Byte" -> Byte
+  | "String" -> StringType
+  | "Object" -> Object
+  | "void" -> Void
+  | name -> MixinType name

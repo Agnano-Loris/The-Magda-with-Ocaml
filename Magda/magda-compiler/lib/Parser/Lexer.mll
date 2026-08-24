@@ -1,14 +1,18 @@
 (*** Lexer for the Magda language ***)
+{
+    open Parser
+    (*** Buffer for strings and native instructions ***)
+    let token_buffer = Buffer.create 64
+}
 
-(*** Buffer for strings and native instructions ***)
-let token_buffer = Buffer.create 64
 
 
 (*** Token definitions ***)
 
 rule token = parse
     (*** Skip whitespace ***)
-    | [' ' '\n' '\t' '\r']+ { token lexbuf }
+    | [' ' '\t' '\r']+ { token lexbuf }
+    | '\n' { Lexing.new_line lexbuf; token lexbuf }
 
     (*** Comments ***)
     | "//" { single_line_comment lexbuf }
@@ -73,7 +77,7 @@ rule token = parse
             native_instruction lexbuf
         }
 
-    |  ["a" - "z" "A" - "Z" "_"] (["a" - "z" "A" - "Z" "0" - "9" "_"])* as id { ID id }
+    |  ['a' - 'z' 'A' - 'Z' '_'] (['a' - 'z' 'A' - 'Z' '0' - '9' '_'])* as id { ID id }
 
     (* The '"' token is used for string literals. Unlike java
        we dont need to escape characters.
@@ -85,8 +89,8 @@ rule token = parse
             string_literal lexbuf
         }
     | "0x" ['0' - '9' 'a' - 'f' 'A' - 'F']+ as byte { BYTE_LITERAL byte }
-    | ['0' - '9']+ '.' ['0' - '9']+ as nfloat { FLOAT_LITERAL float_of_string nfloat }
-    | ['0' - '9']+ as nint { INTEGER_LITERAL int_of_string nint }
+    | ['0' - '9']+ '.' ['0' - '9']+ as nfloat { FLOAT_LITERAL (float_of_string nfloat) }
+    | ['0' - '9']+ as nint { INTEGER_LITERAL (int_of_string nint) }
 
     (*** End of file ***)    
     | eof { EOF }
@@ -96,7 +100,7 @@ rule token = parse
 
 
 and single_line_comment = parse
-    | '\n' { token lexbuf }
+    | '\n' { Lexing.new_line lexbuf; token lexbuf }
     | '\r' { token lexbuf }
     | eof { EOF }
     | _ { single_line_comment lexbuf }
@@ -106,12 +110,14 @@ and multi_line_comment depth = parse
     | "*/" { if depth = 1 then token lexbuf 
             else multi_line_comment (depth - 1) lexbuf }
     | eof { failwith "Error: Unterminated multi-line comment" }
+    | '\n' { Lexing.new_line lexbuf; multi_line_comment depth lexbuf }
     | _ { multi_line_comment depth lexbuf }
 
 and native_instruction = parse
     | "\\%" { Buffer.add_char token_buffer '%'; native_instruction lexbuf }
     | '%' { NATIVEINSTRUCTION (Buffer.contents token_buffer) }
     | eof { failwith "Error: Expected '%' as native instruction terminator" }
+    | '\n' as c { Lexing.new_line lexbuf; Buffer.add_char token_buffer c; native_instruction lexbuf }
     | _ as c { Buffer.add_char token_buffer c; native_instruction lexbuf }
 
 
