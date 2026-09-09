@@ -1,9 +1,9 @@
 type span = Lexing.position * Lexing.position
 (*type code_ctx = CodeContext of (int * string) list  -- da spostare in un modulo e farlo magari in futuro, questione di rendering opzionale*)
 
-type phase = GenericError | ParsePhase | ContextPhase | ResolutionPhase | TypePhase | InternalError (** Generic ed internal vanno poi spostati in kind of error in futuro*) 
+type phase = GenericPhase | ParsePhase | ContextPhase | ResolutionPhase | TypePhase (* GenericError ed internalError vanno poi spostati in kind of error in futuro possibile*) 
 
-type magda_error = { (** aggiungere kind: kind option in futuro? per errori specifici*)
+type magda_error = { (* aggiungere kind: kind option in futuro? per errori specifici*)
   phase    : phase;
   message : string;
   span    : span option;
@@ -24,3 +24,10 @@ let string_of_span ((start_pos, _):span) =
   let open Lexing in
   let file = if start_pos.pos_fname = "" then "<unknown>" else start_pos.pos_fname in
   Printf.sprintf "%s, row %d, column %d" file start_pos.pos_lnum (start_pos.pos_cnum - start_pos.pos_bol + 1)
+
+let string_of_phase = function 
+| GenericPhase -> "Generic phase"
+| ParsePhase -> "Parser phase"
+| ContextPhase -> "Context phase"
+| ResolutionPhase -> "Resolution phase"
+| TypePhase -> "Type phase"
