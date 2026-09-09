@@ -13,7 +13,8 @@ and resolved_global_declaration =
 | DeclarationInclude of string * resolved_program
 
 
-val resolve_includes : Utils.Cst.program -> string -> resolved_program
-(** [resolve_includes cst filename] resolves all include declarations in [cst], starting from [filename].
+val resolve_includes : string -> Utils.Cst.program -> string -> resolved_program
+(** [resolve_includes root cst root_file_path] resolves all include declarations in [cst].
+    [root] represent every relative include path; [root_file_path] is the path of the root file.
     Cyclic and duplicate includes are silently skipped.
 *)

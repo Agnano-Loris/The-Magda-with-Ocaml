@@ -12,40 +12,48 @@ and resolved_global_declaration =
 | DeclarationLet of Cst.let_declaration (** Wrap of let_declaration*)
 | DeclarationInclude of string * resolved_program (** Contains the filename and the resolved program of the included file*)
 
-(** [resolve_inner checked cst] is used by [resolve_includes] to apply the ausiliary function [resolve_aux]
+(** [anchor root fname] concat a relative include path [fname] to the project [root];
+    an already absolute [fname] is returned unchanged.
+*)
+let anchor (root : string) (fname : string) : string =
+  if Filename.is_relative fname then Filename.concat root fname
+  else fname
+
+(** [resolve_inner root checked cst] is used by [resolve_includes] to apply the ausiliary function [resolve_aux]
     to all the global declarations contained in [cst]; [checked] is an accumulator representing a Set of string 
     of the filenames visited. 
 
     This function is not defined in the module interface.
 *)
-let rec resolve_inner (checked: StringSet.t) (cst: Cst.program) : StringSet.t * resolved_program =
-  List.fold_left_map resolve_aux checked cst
+let rec resolve_inner (root: string) (checked: StringSet.t) (cst: Cst.program) : StringSet.t * resolved_program =
+  List.fold_left_map (resolve_aux root) checked cst
 
 
-(** [resolve_aux checked decl] resolves a single global declaration.
+(** [resolve_aux root checked decl] resolves a single global declaration.
     [DeclarationMixin] and [DeclarationLet] are wrapped unchanged.
-    [DeclarationInclude] is resolved by parsing the included file and
-    recursively resolving its declarations; files already in [checked]
-    are skipped, producing an empty program.
+    [DeclarationInclude] is resolved by by anchoring its path to [root], 
+    parsing the included file and recursively resolving its declarations;
+    files already in [checked] are skipped, producing an empty program.
 
     This function is not defined in the module interface.
 *)
-and resolve_aux checked = function
+and resolve_aux root checked = function
 | Cst.DeclarationMixin d -> (checked, DeclarationMixin d)
 | Cst.DeclarationLet l -> (checked, DeclarationLet l)
 | Cst.DeclarationInclude fname -> 
-  if (StringSet.mem fname checked)  then 
+  let resolved_path = anchor root fname in
+  if (StringSet.mem resolved_path checked)  then 
     (checked ,DeclarationInclude (fname, []))
   else
-    let checked = StringSet.add fname checked in
-    let include_cst = parse_file fname in
-    let (checked, resolved) = resolve_inner checked include_cst in
+    let checked = StringSet.add resolved_path checked in
+    let include_cst = parse_file resolved_path in
+    let (checked, resolved) = resolve_inner root checked include_cst in
       (checked, DeclarationInclude (fname, resolved))
 
 
 
-(** Creates a [StringSet] initially containing only the [filename], then pass it to [resolve_inner] with a {! Cst.program} and return the resolved program*)      
-let resolve_includes (cst: Cst.program) (filename: string) : resolved_program = 
-  let checked = StringSet.singleton filename in
-  let (_, resolved) = resolve_inner checked  cst in
+(** Creates a [StringSet] initially containing only the [root_file_path], then pass it to [resolve_inner] with a {! Cst.program} and the [root], and return the resolved program*)      
+let resolve_includes (root: string) (cst: Cst.program) (root_file_path: string) : resolved_program = 
+  let checked = StringSet.singleton root_file_path in
+  let (_, resolved) = resolve_inner root checked cst in
   resolved
