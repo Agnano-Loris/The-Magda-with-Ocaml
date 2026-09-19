@@ -1,4 +1,4 @@
-(** Sum type [binop] has been made so the binary operations in [expression] are less verbose *)
+(*(** Sum type [binop] has been made so the binary operations in [expression] are less verbose *)
 type binop = Add | Div | Eq | Leq | Less | Mul | Neq | StrongEq | Sub
 
 
@@ -530,3 +530,4 @@ and method_declaration =
 (** The [program] is a list of [global_declaration]s*)
 and program = global_declaration list
 
+*)
