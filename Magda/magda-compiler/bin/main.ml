@@ -19,8 +19,9 @@ let () =
     let initial_path = Filename.concat root (program_relative_path file) in 
     let cst = Parse.parse_file initial_path in
     let resolved = Cst_resolve_includes.resolve_includes root cst initial_path in
-    let _ctx = Cst_to_context.context resolved in
-    print_endline "Ok"
+    let ctx = Cst_to_context.context resolved in
+    let snapshot_ctx = PreParserStructures.ProgramContext.to_string ctx in
+    print_endline snapshot_ctx
   with Errors.Magda_error e->
     (match e.span with
      | Some span ->
