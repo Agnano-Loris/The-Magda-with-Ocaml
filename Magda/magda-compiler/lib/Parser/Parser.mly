@@ -12,16 +12,17 @@
         This may produce a semantically incorrect grouping, which should be corrected during name resolution in another module. 
   *)
   open Utils.Cst
+  open Utils.Errors
 
 (** [expression_to_lvalue expr] converts an expression parsed on the
      left side of [:=] into a {!Cst.l_value}.
-     Raises [Failure] if the expression is not a valid l_value. 
+     Raises [Magda_error] if the expression is not a valid l_value. 
 *)
   let expression_to_lvalue = function
   | ExprSuffix(ThisExpr, SpecificFieldSelect(m, f)) -> MixinField(m, f)
   | ExprSuffix(ThisExpr, DirectFieldSelect(f)) -> DirectField(f)
-  | IdExpr(v) -> Variable(v)
-  | _ -> failwith "Parse error: invalid lvalue"
+  | IdExpr(v) -> Variable(v) 
+  | _ -> magda_raise ParsePhase "Invalid assignment target"
 %}
 
 (** TOKEN DECLARATION *)
@@ -54,8 +55,6 @@
 %token <int> INTEGER_LITERAL 
 %token <string> STRING_LITERAL
 
-(*da fare, precedenza e associatività se serve, da vedere*)
-
 %start <program> program
 
 %%
@@ -75,7 +74,7 @@ let_declaration:
 | LET i = ID EQUALS expr = mixin_expression { (i, expr) }
 
 mixin_declaration:
-| MIXIN nome = ID poly=loption(delimited(LT, separated_nonempty_list(SEMICOLON, polymorphism_param), GT)) OF parent = mixin_expr_or_void EQUALS members=list(terminated(other_declaration, SEMICOLON)) END
+| MIXIN nome = ID poly=loption(delimited(LT, separated_nonempty_list(SEMICOLON, polymorphism_param), GT)) OF parent = mixin_expr_or_void EQUALS members=list(terminated(located_other_declaration, SEMICOLON)) END
  {(nome, poly, parent, members)}
 
 polymorphism_param: 
@@ -84,6 +83,9 @@ polymorphism_param:
 mixin_expr_or_void:
 | VOID { MixinVoid }
 | m = mixin_expression { MixinExpr m }
+
+located_other_declaration:
+| o = other_declaration { { value = o; loc = $loc } }
 
 other_declaration: 
 | name = ID COLON mixtype = mixin_expression { FieldDeclaration (name , mixtype) }
@@ -153,7 +155,7 @@ instruction:
    the left side is parsed as an expression and converted to l_value by expression_to_lvalue.
 *)
 instruction_body:
-| exprlvalue = expression ASSIGN expr = expression { Assignment(expression_to_lvalue exprlvalue, expr) }
+| exprlvalue = expression ASSIGN expr = expression { adorn_error_with_span $loc(exprlvalue) (fun () -> Assignment (expression_to_lvalue exprlvalue, expr)) }
 | expr = expression { ExprInstruction expr }
 | RETURN expr = expression { Return expr }
 | n = NATIVEINSTRUCTION { NativeInstruction n }

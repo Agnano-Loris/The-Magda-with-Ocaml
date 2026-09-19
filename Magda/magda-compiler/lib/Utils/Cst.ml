@@ -6,6 +6,11 @@
     any semantic interpretation.
 *)
 
+(** A CST node paired with its source location inside a Magda file.
+    The location is captured at parse time and attached to errors raised by later phases
+*)
+type 'a located = { value : 'a; loc : Errors.span }
+
 (** The left side of an assignment:
     - [MixinField]: [this.MixinName.fieldName],
     - [DirectField]: [this.fieldName],
@@ -111,7 +116,7 @@ type mixin_expr_or_void =
     It declares fields, methods and initialization modules, and inherits those of its parent mixin (or [void] if it has no parent).
     Fields: name, polymorphism parameters, parent, member declarations. 
 *)
-type mixin_declaration = string * polymorphism_param list * mixin_expr_or_void * other_declaration list
+type mixin_declaration = string * polymorphism_param list * mixin_expr_or_void * other_declaration located list
 
 (** A polymorphism parameter: [T <= UpperBound]. 
     The string is the parameter name, the {!mixin_expression} is
