@@ -1,0 +1,43 @@
+type t = Program_tree.Ast.override_method
+
+let print (o_m_declaration:t) = 
+	Utils.GenCode.print_code ("override method " ^ o_m_declaration.override_method_name ^ " . " ^ o_m_declaration.override_method_mixin_overridden);
+	(*MB.print o_m_declaration.override_method_body;*)
+	Utils.GenCode.print_code "end;"
+
+(* Generic method  - ex IMethodDeclaration 
+module type METHOD_DECL = sig
+	type t
+	val get_formal_parameters: t -> Program_tree.Ast.parameter_decl
+	val get_result_type : Types.EnvTypes.method_environment -> t -> Types.TypeElement.t list
+	val gen_code : Utils.CGenCodeHelper.TempCounter.t option -> Types.EnvTypes.method_environment -> t -> unit
+	val check_types : t -> unit 
+	val set_mixin : Program_tree.Ast.mixin_decl -> t
+	val get_mixin : t -> Program_tree.Ast.mixin_decl
+	val print : t -> unit
+end
+
+(* Method interface for new and signature for abstract method declarations - sig for - ex INewMethodDeclaration, CAbstractMethodDeclaration *)
+module type METHOD_DECL_INTERFACE = sig
+	type t
+	include METHOD_DECL with type t := t
+	val method_name : t -> string
+	val mixin_name : t -> string
+end
+
+(* New method declaration - ex CNewMethodDeclaration *)
+module type NEW_METHOD_DECL = sig
+    type t
+    include METHOD_DECL_INTERFACE with type t := t
+	val build_env : Types.EnvTypes.method_environment -> t -> Types.EnvTypes.instr_environment
+end
+
+(* Override method declaration - ex COverrideMethodDeclaration*)
+module type OVERRIDE_M_DECL = functor (N_M_DECL : METHOD_DECL_INTERFACE) -> sig
+	type t
+	include METHOD_DECL with type t := t
+	val build_env : Types.EnvTypes.method_environment -> t -> Types.EnvTypes.method_environment
+	val get_source_method : Types.EnvTypes.method_environment -> t -> N_M_DECL.t
+end
+
+*)
