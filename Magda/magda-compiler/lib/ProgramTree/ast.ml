@@ -601,8 +601,11 @@ and method_declaration =
 and global_declaration =
   | MixinDecl of mixin_decl
   | LetDecl of let_decl
-  | PolymorphismDecl of polymorphism_param (* THIS SHOULD NEVER BE A CASE BUT WE NEED THIS FOR GlobalDeclaration.ml 
-   BEPPE VESSICCHIO *)
+  (* |PolymorphismDecl of polymorphism_param (* THIS SHOULD NEVER BE A CASE BUT WE NEED THIS FOR GlobalDeclaration.ml 
+   BEPPE VESSICCHIO *) 
+
+   RIP BEPPE VESSICCHIO -> Leftover from previous implementation.
+   *)
 
 (*** Program ***)
 (** The [program] is a list of [global_declaration]s*)
