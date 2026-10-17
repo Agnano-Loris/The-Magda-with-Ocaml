@@ -15,6 +15,8 @@ type t = {
 	*)
 	
 	inimodules_params : StringSet.t; (** A [StringSet.t] containing all the inimodules params names, used to check if there are duplicate params in the inimodules *)
+      
+    inimodules_count : int;  (** Number of ini modules added so far, used to name them "initialize n" *)
 
 }
 
@@ -25,7 +27,9 @@ let empty () : t =
 	methods_context = StringMap.empty;
 	fields = StringMap.empty;
 	inimodules_namespace = StringMap.empty;
-	inimodules_params = StringSet.empty
+	inimodules_params = StringSet.empty;
+    inimodules_count = 0
+
   }
 
 let add_method name context mixin_context =
@@ -73,7 +77,7 @@ let add_inimodule params method_context mixin_context =
         let key = match params with x :: _ -> x | [] -> "" in
         let inimodules_namespace = StringMap.add key namespace mixin_context.inimodules_namespace in
         let methods_context = StringMap.add namespace method_context mixin_context.methods_context in
-        Ok { mixin_context with inimodules_namespace;methods_context;inimodules_params}
+        Ok { mixin_context with inimodules_namespace;methods_context;inimodules_params; inimodules_count = mixin_context.inimodules_count + 1 }
 
 
 let contains_method method_name mixin_context = StringMap.mem method_name mixin_context.methods_context
