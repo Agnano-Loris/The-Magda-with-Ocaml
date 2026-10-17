@@ -10,6 +10,10 @@ type t
 val empty : unit -> t
 (** [empty] returns an empty mixin_context.*)
 
+val inimodule_name : int -> string
+(** [inimodule_name index] is the name under which the ini module in position [index] (from 0, in source order)
+    is registered among the methods of its mixin: ["initialize index"]. *)
+
 val add_method : string -> MethodContext.t -> t -> t
 (** [add_method name context mixin_context] returns a new [mixin_context], 
     with the [name] and the [context] of the method added to the [mixin_context]. *)

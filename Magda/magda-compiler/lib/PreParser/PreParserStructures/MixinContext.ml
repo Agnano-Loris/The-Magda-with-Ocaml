@@ -32,6 +32,9 @@ let empty () : t =
 
   }
 
+let inimodule_name index = "initialize " ^ string_of_int index
+
+
 let add_method name context mixin_context =
 	let methods_context = StringMap.add name context mixin_context.methods_context in
 	{mixin_context with methods_context}
@@ -60,7 +63,7 @@ let rec check_duplicates params inimodules_params =
         | true -> Error x
         | false -> StringSet.add x inimodules_params |> check_duplicates xs;;
 
-(** Calls [check_duplicates] to check for duplicate params, and to 
+(** DA AGGIORNARE, Calls [check_duplicates] to check for duplicate params, and to 
     update the [inimodules_params] Set.
     If a duplicate was found returns [Error e] where e is the duplicated parameter.
 
@@ -73,7 +76,7 @@ let add_inimodule params method_context mixin_context =
     match check_duplicates params mixin_context.inimodules_params with
     | Error e -> Error e
     | Ok inimodules_params -> 
-        let namespace = "initialize " ^ string_of_int (StringMap.cardinal mixin_context.inimodules_namespace) in
+        let namespace = inimodule_name mixin_context.inimodules_count in
         let key = match params with x :: _ -> x | [] -> "" in
         let inimodules_namespace = StringMap.add key namespace mixin_context.inimodules_namespace in
         let methods_context = StringMap.add namespace method_context mixin_context.methods_context in
