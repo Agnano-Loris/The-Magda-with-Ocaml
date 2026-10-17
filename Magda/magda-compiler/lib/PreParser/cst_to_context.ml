@@ -77,7 +77,7 @@ MixinContext.add_method metname methCont mixCont
     - [NewMethodDeclaration]: delegates to [new_meth_decl]
     - [IniModuleDeclaration]: builds an empty {!MethodContext.t} with input parameters and the containing mixin as return type,
       then registers it via {!MixinContext.add_inimodule}; 
-      raises a [Failure] on duplicate parameters across ini modules
+      raises a [Magda_error] with [ContextPhase] on duplicate parameters across ini modules
 *)
 let other_decl d current_mixin mixContext = match d with
 | Cst.FieldDeclaration (name, expr) -> let ftype = mixin_expr_head_type expr in
@@ -97,7 +97,7 @@ let methCont = ini_module_body body methCont in
 let result = MixinContext.add_inimodule param_names methCont mixContext in 
 (match result with
 | Ok mixCtx-> mixCtx
-| Error err -> failwith ("Input parameter " ^ current_mixin ^ "." ^ err ^ " is declared in two different modules -> Line:")) (** Ricorda la gestione degli errori*)
+| Error err -> Errors.magda_raise Errors.ContextPhase ("Input parameter " ^ current_mixin ^ "." ^ err ^ " is declared in two different modules")) 
 
 (** [add_linked_mixin parent mixContext] adds the parent mixin(s) from the [of] clause:
     ["void"] for [MixinVoid], or make [mixin_expr_ctx] handle the case of a full mixin expression. 
@@ -115,7 +115,9 @@ let mix_decl (a:Cst.mixin_declaration) (ctx: ProgramContext.t) =
   let res = MixinContext.empty () in 
   let (name, _, parent, members) = a in 
   let res = add_linked_mixin parent res in
-  let res = List.fold_left (fun res odecl -> other_decl odecl name res) res members in
+  let res = List.fold_left 
+  (fun res ({ value; loc } : Cst.other_declaration Cst.located) -> 
+    Errors.adorn_error_with_span loc (fun () -> other_decl value name res)) res members in
   ProgramContext.add_mixin name res ctx 
 
 (** [global_decl decl ctx] processes a single {!resolved_global_declaration}:
@@ -128,7 +130,12 @@ let rec global_decl a (ctx: ProgramContext.t) : ProgramContext.t = match a with
 | DeclarationLet _ -> ctx
 | DeclarationInclude (_fname, included_program) -> List.fold_left (fun ctx decl -> global_decl decl ctx) ctx included_program
 
-(** [context resolved_program] create an empty instance of a {!ProgramContext.t} that is used
-    as accumulator during the informations extraction of each [resolved_global_declaration] through the function [global_decl]
-*)
-let context (p:resolved_program) : ProgramContext.t = List.fold_left (fun ctx decl -> global_decl decl ctx) (ProgramContext.empty ())  p
+(** [context resolved_program] folds [global_decl] over [resolved_program] and returns the
+    populated {!ProgramContext.t}, after checking that the base mixins contain no cycles.
+    Raises [Magda_error] with [ContextPhase] if a cycle is found, so every returned context
+    is acyclic, as required by the queries that walk the linked mixins. *)
+let context (p : resolved_program) : ProgramContext.t =
+  let ctx = List.fold_left (fun ctx decl -> global_decl decl ctx) (ProgramContext.empty ()) p in
+  if ProgramContext.check_for_cycles ctx then
+    Errors.magda_raise Errors.ContextPhase "The program contains cyclical mixins"
+  else ctx

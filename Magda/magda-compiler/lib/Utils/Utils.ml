@@ -4,4 +4,4 @@ module MagdaType = MagdaType
 module CGenCodeHelper = CGenCodeHelper
 module GenCode = GenCode
 module Cst = Cst
-module Error = Error
+module Errors = Errors

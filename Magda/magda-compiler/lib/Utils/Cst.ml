@@ -6,6 +6,11 @@
     any semantic interpretation.
 *)
 
+(** A CST node paired with its source location inside a Magda file.
+    The location is captured at parse time and attached to errors raised by later phases
+*)
+type 'a located =  'a Errors.located = { value : 'a; loc : Errors.span }
+
 (** The left side of an assignment:
     - [MixinField]: [this.MixinName.fieldName],
     - [DirectField]: [this.fieldName],
@@ -30,8 +35,8 @@ type instruction =
 | ExprInstruction of expression
 | Return of expression
 | NativeInstruction of string
-| WhileLoop of expression * instruction list 
-| IfCond of expression * instruction list * instruction list
+| WhileLoop of expression * instruction located list 
+| IfCond of expression * instruction located list * instruction located list
 
 (** An expression in Magda:
     - [ThisExpr] = [this], reference to the current object
@@ -108,10 +113,11 @@ type mixin_expr_or_void =
 
 (** A mixin declaration: [mixin Name <polyParams> of Parent = members end].
     The mixin is the only construct in Magda, there are no classes.
-    It declares fields, methods and initialization modules, and inherits those of its parent mixin (or [void] if it has no parent).
+    It declares fields, methods and initialization modules, and require
+    those of its parent mixin (or [void] if it has no parent).
     Fields: name, polymorphism parameters, parent, member declarations. 
 *)
-type mixin_declaration = string * polymorphism_param list * mixin_expr_or_void * other_declaration list
+type mixin_declaration = string * polymorphism_param list * mixin_expr_or_void * other_declaration located list
 
 (** A polymorphism parameter: [T <= UpperBound]. 
     The string is the parameter name, the {!mixin_expression} is
@@ -146,7 +152,7 @@ and parameter_decl = string * mixin_expression
 *)
 and method_body = {
 met_local_vars : local_variable_declaration list;
-instructions : instruction list
+instructions : instruction located list
 }
 
 (** A local variable declaration: [varName : Type;].
@@ -186,9 +192,9 @@ and output_init_param = string * string
 *)
 and ini_module_body = {
 ini_local_vars : local_variable_declaration list;
-instructions_pre_super : instruction list;
-super_call : init_param list;
-instructions_post_super : instruction list
+instructions_pre_super : instruction located list;
+super_call : init_param list located;
+instructions_post_super : instruction located list
 }
 
 (** Let declaration type, binds a name to a mixin expression, allowing it to be used as a shorthand;
@@ -199,7 +205,7 @@ type let_declaration = string * mixin_expression
 (** Include declaration type, represents the inclusion of a Magda library into the code.
     [string] indicate the path of the included file ([include "path/to/the/file.magda";]).
 *)
-type include_declaration = string
+type include_declaration = string located
 
 
 (** Global declaration type, the top-level part in a Magda source file.
