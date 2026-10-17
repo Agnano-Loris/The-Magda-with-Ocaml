@@ -1,7 +1,9 @@
 type span = Lexing.position * Lexing.position
 (*type code_ctx = CodeContext of (int * string) list  -- da spostare in un modulo e farlo magari in futuro, questione di rendering opzionale*)
 
-type phase = GenericPhase | ParsePhase | ContextPhase | ResolutionPhase | TypePhase (* GenericError ed internalError vanno poi spostati in kind of error in futuro possibile*) 
+type 'a located = { value : 'a; loc : span }
+
+type phase = GenericPhase | LexPhase |ParsePhase | ContextPhase | ResolutionPhase | TypePhase (* GenericError ed internalError vanno poi spostati in kind of error in futuro possibile*) 
 
 type magda_error = { (* aggiungere kind: kind option in futuro? per errori specifici*)
   phase    : phase;
@@ -27,6 +29,7 @@ let string_of_span ((start_pos, _):span) =
 
 let string_of_phase = function 
 | GenericPhase -> "Generic phase"
+| LexPhase -> "Lexer phase"
 | ParsePhase -> "Parser phase"
 | ContextPhase -> "Context phase"
 | ResolutionPhase -> "Resolution phase"

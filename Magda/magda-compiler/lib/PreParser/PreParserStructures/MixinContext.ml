@@ -70,7 +70,8 @@ let add_inimodule params method_context mixin_context =
     | Error e -> Error e
     | Ok inimodules_params -> 
         let namespace = "initialize " ^ string_of_int (StringMap.cardinal mixin_context.inimodules_namespace) in
-        let inimodules_namespace = StringMap.add (List.hd params) namespace mixin_context.inimodules_namespace in
+        let key = match params with x :: _ -> x | [] -> "" in
+        let inimodules_namespace = StringMap.add key namespace mixin_context.inimodules_namespace in
         let methods_context = StringMap.add namespace method_context mixin_context.methods_context in
         Ok { mixin_context with inimodules_namespace;methods_context;inimodules_params}
 

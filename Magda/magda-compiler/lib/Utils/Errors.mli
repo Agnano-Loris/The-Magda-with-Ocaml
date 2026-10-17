@@ -1,6 +1,8 @@
 type span = Lexing.position * Lexing.position
 
-type phase = GenericPhase | ParsePhase | ContextPhase | ResolutionPhase | TypePhase
+type 'a located = { value : 'a; loc : span }
+
+type phase = GenericPhase | LexPhase | ParsePhase | ContextPhase | ResolutionPhase | TypePhase
 
 type magda_error = {
   phase    : phase;

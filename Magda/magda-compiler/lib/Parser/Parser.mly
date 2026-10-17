@@ -55,6 +55,9 @@
 %token <int> INTEGER_LITERAL 
 %token <string> STRING_LITERAL
 
+%nonassoc below_DOT
+%nonassoc DOT
+
 %start <program> program
 
 %%
@@ -68,7 +71,7 @@ global_declaration:
 | d = include_declaration { DeclarationInclude d }
 
 include_declaration:
-| INCLUDE s = STRING_LITERAL SEMICOLON { s }
+| INCLUDE s = STRING_LITERAL SEMICOLON { { value = s; loc = $loc } }
 
 let_declaration:
 | LET i = ID EQUALS expr = mixin_expression { (i, expr) }
@@ -132,7 +135,7 @@ instructions_post_super = post } }
    Guarantees exactly one super call per ini module body. 
 *)
 ini_pre_and_super_instructions: 
-| SUPER super = delimited(LBRACKET, separated_list(COMMA, init_param) , RBRACKET) SEMICOLON { ([], super) }
+| SUPER super = delimited(LBRACKET, separated_list(COMMA, init_param) , RBRACKET) SEMICOLON { ([], { value = super; loc = $loc }) }
 | instr = instruction rest = ini_pre_and_super_instructions { let (pre, super) = rest in ( instr :: pre , super ) }
 
 init_param:
@@ -148,7 +151,7 @@ mixin_concat:
 | LPAREN e = mixin_expression RPAREN { ElemRoundBracket e }
 
 instruction:
-| i = instruction_body SEMICOLON { i }
+| i = instruction_body SEMICOLON { { value = i; loc = $loc } }
 
 (* The body of an instruction, before the terminating semicolon.
    Assignment is separate from expression as statement by the presence of [:=];
@@ -207,4 +210,4 @@ suffix:
 | DOT i1 = ID DOT i2 = ID param = delimited(LPAREN,separated_list(COMMA, expression),RPAREN) { SpecificMethodCall (i1, i2, param) }
 | DOT i = ID param = delimited(LPAREN,separated_list(COMMA, expression),RPAREN) { DirectMethodCall (i, param) }
 | DOT i1 = ID DOT i2 = ID { SpecificFieldSelect (i1, i2) }
-| DOT i = ID { DirectFieldSelect i }
+| DOT i = ID %prec below_DOT { DirectFieldSelect i }

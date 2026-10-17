@@ -4,6 +4,7 @@
 open Utils
 open Magda_parser.Parse
 
+
 (** Type containing the program with all include clauses resolved into a tree structure*)
 type resolved_program = resolved_global_declaration list
 
@@ -40,13 +41,13 @@ let rec resolve_inner (root: string) (checked: StringSet.t) (cst: Cst.program) :
 and resolve_aux root checked = function
 | Cst.DeclarationMixin d -> (checked, DeclarationMixin d)
 | Cst.DeclarationLet l -> (checked, DeclarationLet l)
-| Cst.DeclarationInclude fname -> 
+| Cst.DeclarationInclude { Cst.value = fname; loc } -> 
   let resolved_path = anchor root fname in
   if (StringSet.mem resolved_path checked)  then 
     (checked ,DeclarationInclude (fname, []))
   else
     let checked = StringSet.add resolved_path checked in
-    let include_cst = parse_file resolved_path in
+    let include_cst = Errors.adorn_error_with_span loc (fun () -> parse_file resolved_path) in
     let (checked, resolved) = resolve_inner root checked include_cst in
       (checked, DeclarationInclude (fname, resolved))
 

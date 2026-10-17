@@ -77,7 +77,7 @@ MixinContext.add_method metname methCont mixCont
     - [NewMethodDeclaration]: delegates to [new_meth_decl]
     - [IniModuleDeclaration]: builds an empty {!MethodContext.t} with input parameters and the containing mixin as return type,
       then registers it via {!MixinContext.add_inimodule}; 
-      raises a [Magda_error] on duplicate parameters across ini modules
+      raises a [Magda_error] with [ContextPhase] on duplicate parameters across ini modules
 *)
 let other_decl d current_mixin mixContext = match d with
 | Cst.FieldDeclaration (name, expr) -> let ftype = mixin_expr_head_type expr in
@@ -130,7 +130,12 @@ let rec global_decl a (ctx: ProgramContext.t) : ProgramContext.t = match a with
 | DeclarationLet _ -> ctx
 | DeclarationInclude (_fname, included_program) -> List.fold_left (fun ctx decl -> global_decl decl ctx) ctx included_program
 
-(** [context resolved_program] create an empty instance of a {!ProgramContext.t} that is used
-    as accumulator during the informations extraction of each [resolved_global_declaration] through the function [global_decl]
-*)
-let context (p:resolved_program) : ProgramContext.t = List.fold_left (fun ctx decl -> global_decl decl ctx) (ProgramContext.empty ())  p
+(** [context resolved_program] folds [global_decl] over [resolved_program] and returns the
+    populated {!ProgramContext.t}, after checking that the base mixins contain no cycles.
+    Raises [Magda_error] with [ContextPhase] if a cycle is found, so every returned context
+    is acyclic, as required by the queries that walk the linked mixins. *)
+let context (p : resolved_program) : ProgramContext.t =
+  let ctx = List.fold_left (fun ctx decl -> global_decl decl ctx) (ProgramContext.empty ()) p in
+  if ProgramContext.check_for_cycles ctx then
+    Errors.magda_raise Errors.ContextPhase "The program contains cyclical mixins"
+  else ctx

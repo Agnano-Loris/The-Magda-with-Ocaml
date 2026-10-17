@@ -1,7 +1,7 @@
 (** Builds the {!ProgramContext.t} from a resolved CST.
 
     The main function walks the program and extracts the structure of names:
-    which mixins exist, which fields and methods they declare, which parameters they take, and from whom they inherit.
+    which mixins exist, which fields and methods they declare, which parameters they take, and which base mixins they require.
     Everything inside method and ini module bodies (instructions,
     expressions, super calls) is ignored.
 *)

@@ -1,8 +1,15 @@
 (*** Lexer for the Magda language ***)
 {
     open Parser
+    open Utils.Errors
     (*** Buffer for strings and native instructions ***)
     let token_buffer = Buffer.create 64
+
+    let lex_error_at start lexbuf msg =
+        magda_raise_at (start, Lexing.lexeme_end_p lexbuf) LexPhase msg
+
+    let lex_error lexbuf msg =
+        lex_error_at (Lexing.lexeme_start_p lexbuf) lexbuf msg
 }
 
 
@@ -16,7 +23,7 @@ rule token = parse
 
     (*** Comments ***)
     | "//" { single_line_comment lexbuf }
-    | "/*" { multi_line_comment 1 lexbuf }
+    | "/*" { multi_line_comment (Lexing.lexeme_start_p lexbuf) 1 lexbuf }
 
     (*** Keywords ***)
     | "include" { INCLUDE }
@@ -74,7 +81,7 @@ rule token = parse
     | '%' 
         {  
             Buffer.clear token_buffer;
-            native_instruction lexbuf
+            native_instruction (Lexing.lexeme_start_p lexbuf) lexbuf
         }
 
     |  ['a' - 'z' 'A' - 'Z' '_'] (['a' - 'z' 'A' - 'Z' '0' - '9' '_'])* as id { ID id }
@@ -86,17 +93,29 @@ rule token = parse
     | '"'
         {
             Buffer.clear token_buffer;
-            string_literal lexbuf
+            string_literal (Lexing.lexeme_start_p lexbuf) lexbuf
         }
-    | "0x" ['0' - '9' 'a' - 'f' 'A' - 'F']+ as byte { BYTE_LITERAL byte }
-    | ['0' - '9']+ '.' ['0' - '9']+ as nfloat { FLOAT_LITERAL (float_of_string nfloat) }
-    | ['0' - '9']+ as nint { INTEGER_LITERAL (int_of_string nint) }
+    | "0x" ['0' - '9' 'a' - 'f' 'A' - 'F']+ as byte {
+            match int_of_string_opt byte with
+            | Some n when n >= 0 && n <= 0x7F -> BYTE_LITERAL byte
+            | _ -> lex_error lexbuf ("Byte literal out of range (max 0x7F): " ^ byte)
+        }
+    | ['0' - '9']+ '.' ['0' - '9']+ as nfloat {   
+        let f = float_of_string nfloat in
+        if Float.is_finite (Int32.float_of_bits (Int32.bits_of_float f))
+        then FLOAT_LITERAL f
+        else lex_error lexbuf ("Float literal out of range: " ^ nfloat) }
+    | ['0' - '9']+ as nint {
+            match int_of_string_opt nint with
+            | Some n when n <= Int32.to_int Int32.max_int -> INTEGER_LITERAL n
+            | _ -> lex_error lexbuf ("Integer literal out of range (max 2147483647): " ^ nint)
+        }
 
     (*** End of file ***)    
     | eof { EOF }
     
     (*** Catch-all for unrecognized characters ***)
-    | _ as unk_ch { failwith ("Error: Unrecognized character: '" ^ String.make 1 unk_ch ^ "'" ) }
+    | _ as unk_ch { lex_error lexbuf (Printf.sprintf "Unrecognized character %C" unk_ch)  }
 
 
 and single_line_comment = parse
@@ -105,27 +124,27 @@ and single_line_comment = parse
     | eof { EOF }
     | _ { single_line_comment lexbuf }
 
-and multi_line_comment depth = parse
-    | "/*" { multi_line_comment (depth + 1) lexbuf }
+and multi_line_comment start depth = parse
+    | "/*" { multi_line_comment start (depth + 1) lexbuf }
     | "*/" { if depth = 1 then token lexbuf 
-            else multi_line_comment (depth - 1) lexbuf }
-    | eof { failwith "Error: Unterminated multi-line comment" }
-    | '\n' { Lexing.new_line lexbuf; multi_line_comment depth lexbuf }
-    | _ { multi_line_comment depth lexbuf }
+            else multi_line_comment start (depth - 1) lexbuf }
+    | eof { lex_error_at start lexbuf "Unterminated multi-line comment" }
+    | '\n' { Lexing.new_line lexbuf; multi_line_comment start depth lexbuf }
+    | _ { multi_line_comment start depth lexbuf }
 
-and native_instruction = parse
-    | "\\%" { Buffer.add_char token_buffer '%'; native_instruction lexbuf }
+and native_instruction start = parse
+    | "\\%" { Buffer.add_char token_buffer '%'; native_instruction start lexbuf }
     | '%' { NATIVEINSTRUCTION (Buffer.contents token_buffer) }
-    | eof { failwith "Error: Expected '%' as native instruction terminator" }
-    | '\n' as c { Lexing.new_line lexbuf; Buffer.add_char token_buffer c; native_instruction lexbuf }
-    | _ as c { Buffer.add_char token_buffer c; native_instruction lexbuf }
+    | eof {lex_error_at start lexbuf "Unterminated native instruction: expected '%'" }
+    | '\n' as c { Lexing.new_line lexbuf; Buffer.add_char token_buffer c; native_instruction start lexbuf }
+    | _ as c { Buffer.add_char token_buffer c; native_instruction start lexbuf }
 
 
-and string_literal = parse
+and string_literal start = parse
 
     (*  All characters except '"', '\\', '\n', and '\r'. These cases will be used in the second guard
         as escape characters *)
-    | [^ '"' '\\' '\n' '\r' ] as ch { Buffer.add_char token_buffer ch; string_literal lexbuf }
+    | [^ '"' '\\' '\n' '\r' ] as ch { Buffer.add_char token_buffer ch; string_literal start lexbuf }
 
     (*  Escape characters *)
     | '\\' (['n' 't' 'b' 'r' 'f' '\\' '\'' '"'] as escape_ch)
@@ -142,7 +161,7 @@ and string_literal = parse
             | _    -> escape_ch
         in
         Buffer.add_char token_buffer escaped_char;
-        string_literal lexbuf
+        string_literal start lexbuf
         }
 
     (* Octals *)
@@ -153,8 +172,9 @@ and string_literal = parse
             {
                 let octal_value = int_of_string ("0o" ^ oct) in
                 Buffer.add_char token_buffer (Char.chr octal_value);
-                string_literal lexbuf
+                string_literal start lexbuf
             }
+    | '\\' { lex_error lexbuf "Invalid escape sequence in string literal" }
 
     (* End of string literal *)
     | '"' { STRING_LITERAL (Buffer.contents token_buffer) }
@@ -162,8 +182,7 @@ and string_literal = parse
     (*** Errors ***)
 
     (* Not ending string literals with '"' *)
-    | eof { failwith "Error: Cannot end string literal with eof" }
+    | eof { lex_error_at start lexbuf "Unterminated string literal: end of file" }
 
     (*  Not ending string literals with '"' and using newline or carriage return instead *)
-    | '\n' { failwith "Error: Cannot end string literal with newline" }
-    | '\r' { failwith "Error: Cannot end string literal with carriage return" }
+    | ['\n' '\r'] { lex_error_at start lexbuf "Unterminated string literal: end of line" }
