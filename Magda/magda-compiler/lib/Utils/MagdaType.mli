@@ -11,6 +11,7 @@ type t =
   | Object                (** Base object type *)
   | Void                  (** Void return type *)
   | MixinType of string   (** User-defined mixin type *)
+  | Composite of string list
   
 
 val to_string : t -> string
@@ -21,3 +22,5 @@ val to_string : t -> string
 *)
 
 val string_to_magdatype : string -> t
+
+val names : t -> string list

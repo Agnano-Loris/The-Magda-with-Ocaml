@@ -7,6 +7,7 @@ type t =
   | Object
   | Void
   | MixinType of string
+  | Composite of string list
 
 
 let to_string = function
@@ -18,6 +19,7 @@ let to_string = function
   | Object -> "Object"
   | Void -> "void"
   | MixinType name -> name
+  | Composite names -> String.concat ", " names
 
 let string_to_magdatype = function
   | "Integer" -> Integer
@@ -28,3 +30,8 @@ let string_to_magdatype = function
   | "Object" -> Object
   | "void" -> Void
   | name -> MixinType name
+
+  (** [names t] returns the mixin names [t] refers to: one for a simple type, all of them for a composite type. *)
+ let names = function
+  | Composite names -> names
+  | t -> [to_string t] 

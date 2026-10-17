@@ -3,34 +3,35 @@ open Cst_resolve_includes
 
 open PreParserStructures
 
-(** [mixin_expr_root_id_name mexpr] extracts the root identifier name from a {!Cst.mixin_expression}.
-    Returns only the head name: [A, B] returns ["A"]. 
-*)
-let rec mixin_expr_root_id_name = function
-| Cst.MixinExprComposition (name, _) -> name
-| Cst.RoundBracketMixinExpr inner -> mixin_expr_root_id_name inner
+let rec mixin_expr_names = function
+  | Cst.MixinExprComposition (name, rest) ->
+      name :: List.concat_map (function
+        | Cst.ElemId id -> [id]
+        | Cst.ElemHOApp _ -> []                    (* ignored, as for the base mixins *)
+        | Cst.ElemRoundBracket e -> mixin_expr_names e) rest
+  | Cst.RoundBracketMixinExpr inner -> mixin_expr_names inner
 
-(** [mixin_expr_head_type mexpr] extracts the head name from a {!Cst.mixin_expression}
-    and converts it to a {!MagdaType.t} via {!MagdaType.string_to_magdatype}. 
-*)
-let mixin_expr_head_type mexpr = MagdaType.string_to_magdatype (mixin_expr_root_id_name mexpr)
+let mixin_expr_type mexpr =
+  match mixin_expr_names mexpr with
+  | [name] -> MagdaType.string_to_magdatype name   (* simple type: as today *)
+  | names -> MagdaType.Composite names
 
 (** [extract_mixin_or_void_type mev] converts a {!Cst.mixin_expr_or_void} to a {!MagdaType.t}:
-    [MixinVoid] becomes [Void], a mixin expression is handled by [mixin_expr_head_type]. 
+    [MixinVoid] becomes [Void], a mixin expression is handled by [mixin_expr_type]. 
 *)
 let extract_mixin_or_void_type = function 
 | Cst.MixinVoid -> MagdaType.Void
-| Cst.MixinExpr m -> mixin_expr_head_type m
+| Cst.MixinExpr m -> mixin_expr_type m
 
 (** [param_decl (name, mixtype) methCont] adds a single formal parameter to [methCont] with its head type. *)
 let param_decl ((name, mixtype): Cst.parameter_decl) methCont =
-   MethodContext.add_param name (mixin_expr_head_type mixtype) methCont
+   MethodContext.add_param name (mixin_expr_type mixtype) methCont
 
 (** [add_local_vars local_vars methCont] helper function that folds over [local_vars],
     adding each variable and its head type to [methCont].
 *)
 let add_local_vars (local_vars: Cst.local_variable_declaration list) methCont = 
-  List.fold_left (fun methCont (name,mixtype) -> MethodContext.add_variable name (mixin_expr_head_type mixtype) methCont) methCont local_vars
+  List.fold_left (fun methCont (name,mixtype) -> MethodContext.add_variable name (mixin_expr_type mixtype) methCont) methCont local_vars
 
 (** [meth_body body methCont] adds the local variables, handled by [add_local_vars], from a method body to [methCont].
     The instructions are ignored. 
@@ -80,7 +81,7 @@ MixinContext.add_method metname methCont mixCont
       raises a [Magda_error] with [ContextPhase] on duplicate parameters across ini modules
 *)
 let other_decl d current_mixin mixContext = match d with
-| Cst.FieldDeclaration (name, expr) -> let ftype = mixin_expr_head_type expr in
+| Cst.FieldDeclaration (name, expr) -> let ftype = mixin_expr_type expr in
 MixinContext.add_field name ftype mixContext
 | Cst.OverrideMethodDeclaration (rtype, mixname, name, param, body) -> let methCont = MethodContext.empty () in
 let restype = extract_mixin_or_void_type rtype in
@@ -91,7 +92,7 @@ MixinContext.add_method (mixname ^ "." ^ name) methCont mixContext
 | Cst.NewMethodDeclaration o -> new_meth_decl o mixContext
 | Cst.IniModuleDeclaration (_, _, input, _, body)-> let methCont = MethodContext.empty () in
 let param_names = List.map fst input in
-let methCont = List.fold_left (fun mc (name, expr) -> MethodContext.add_param name (mixin_expr_head_type expr) mc) methCont input in
+let methCont = List.fold_left (fun mc (name, expr) -> MethodContext.add_param name (mixin_expr_type expr) mc) methCont input in
 let methCont = MethodContext.set_return_type (Some(MagdaType.string_to_magdatype current_mixin)) methCont in
 let methCont = ini_module_body body methCont in
 let result = MixinContext.add_inimodule param_names methCont mixContext in 
