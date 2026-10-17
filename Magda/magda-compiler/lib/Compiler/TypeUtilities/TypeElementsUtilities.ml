@@ -70,7 +70,7 @@ let is_isomorphic_to env (type_elements_1:t) (type_elements_2:t) : bool =
     let is_subtype_of = is_subtype_of env in
     is_subtype_of type_elements_1 type_elements_2 && is_subtype_of type_elements_2 type_elements_1
 
-let rec module_contains_input_parameter_exn (env:EnvTypes.environment) (source_init_parameter : Program_tree.Ast.source_param) (type_elements:t) =
+let rec module_contains_input_parameter_exn (env:EnvTypes.environment) (source_init_parameter : Program_tree.Ast.input_param) (type_elements:t) =
     let module_contains_input_parameter_exn = module_contains_input_parameter_exn in
     let check_function_exn (type_element:TypeElement.t) = match type_element with
     | PolymorphismDecl _ -> module_contains_input_parameter_exn env source_init_parameter ((*Temporary*) new_type_el false) (*TypeElementImpl.get_bounding_type env type_element*)

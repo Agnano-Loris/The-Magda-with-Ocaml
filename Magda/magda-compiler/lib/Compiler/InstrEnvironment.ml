@@ -21,15 +21,15 @@ end
 
 
 module I : ModuleSignatures.EnvSig.INSTR_ENV = struct
-  type t = Types.EnvTypes.instr_environment
-  let new_instr_environment (global_declarations : global_declaration list) (mixin_decl:mixin_decl) (variable_decl:variable_decl) (parameter_decl:parameter_decl) ?(current_method_or_inimodule) :t = failwith("Not necessary")
-  let find_param_or_variable_type (name:string) (instr_environment:t) = failwith("Not necessary")
-  let get_variable_offset (name:string) (instr_environment:t) = failwith("Not necessary")
-  let get_parameter_offset (name:string) (instr_environment:t) = failwith("Not necessary")
-  let expand_variables_in_native (name:string) (instr_environment:t) = failwith("Not necessary")
-  let get_type_element (name:string) (instr_environment:t) = failwith("Not necessary")
-  let get_declaration_exn (name:string) (instr_environment:t) = failwith("Not necessary")
-  let get_mixin_exn (name:string) (instr_environment:t) = failwith("Not necessary")
+  type t = Types.EnvTypes.instr_environment (*TO DO: RIPRISTINARE A PRIMA*)
+  let [@warning "-16"] new_instr_environment (_UNUSED_VARIABLE_FIX_global_declarations : global_declaration list) (_UNUSED_VARIABLE_FIX_mixin_decl:mixin_decl) (_UNUSED_VARIABLE_FIX_variable_decl:variable_decl) (_UNUSED_VARIABLE_FIX_parameter_decl:parameter_decl) ?current_method_or_inimodule: _ :t = failwith("Not necessary")
+  let find_param_or_variable_type (_UNUSED_VARIABLE_FIX_name:string) (_UNUSED_VARIABLE_FIX_instr_environment:t) = failwith("Not necessary")
+  let get_variable_offset (_UNUSED_VARIABLE_FIX_name:string) (_UNUSED_VARIABLE_FIX_instr_environment:t) = failwith("Not necessary")
+  let get_parameter_offset (_UNUSED_VARIABLE_FIX_name:string) (_UNUSED_VARIABLE_FIX_instr_environment:t) = failwith("Not necessary")
+  let expand_variables_in_native (_UNUSED_VARIABLE_FIX_name:string) (_UNUSED_VARIABLE_FIX_instr_environment:t) = failwith("Not necessary")
+  let get_type_element (_UNUSED_VARIABLE_FIX_name:string) (_UNUSED_VARIABLE_FIX_instr_environment:t) = failwith("Not necessary")
+  let get_declaration_exn (_UNUSED_VARIABLE_FIX_name:string) (_UNUSED_VARIABLE_FIX_instr_environment:t) = failwith("Not necessary")
+  let get_mixin_exn (_UNUSED_VARIABLE_FIX_name:string) (_UNUSED_VARIABLE_FIX_instr_environment:t) = failwith("Not necessary")
 end
 
 type t = Types.EnvTypes.instr_environment

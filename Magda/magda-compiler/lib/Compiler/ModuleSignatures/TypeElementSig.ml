@@ -12,8 +12,8 @@ module type S = sig
 	val code_for_mixin : t -> string
 	val gen_code_for_mixin_expr : t -> unit
 	val get_bounding_type : (module MIXIN_EXPR_SIG) -> Types.EnvTypes.environment -> t -> Types.TypeElements.t
-	val module_contains_input_parameter_exn : Program_tree.Ast.source_param -> t -> bool
-	val module_contains_input_parameter_i_exn : Program_tree.Ast.source_param -> int -> t -> bool
+	val module_contains_input_parameter_exn : Program_tree.Ast.input_param -> t -> bool
+	val module_contains_input_parameter_i_exn : Program_tree.Ast.input_param -> int -> t -> bool
 	val calc_abstract_methods: Types.EnvTypes.method_environment -> Program_tree.Ast.new_method list -> t -> Program_tree.Ast.new_method list
 end
 
@@ -34,7 +34,7 @@ module type TypeElementsSig = sig
 	val is_subtype_of : Types.EnvTypes.environment -> t -> t -> bool
 	val check_is_subtype_of_exn : Types.EnvTypes.environment -> t -> t -> TypeError.t -> unit
 	val is_isomorphic_to : Types.EnvTypes.environment -> t -> t -> bool
-	val module_contains_input_parameter_exn : Types.EnvTypes.environment -> Program_tree.Ast.source_param -> t -> bool
+	val module_contains_input_parameter_exn : Types.EnvTypes.environment -> Program_tree.Ast.input_param -> t -> bool
 	val calc_abstract_methods : Types.EnvTypes.method_environment -> t -> Program_tree.Ast.new_method list
 	val set_poly_params_from : Types.TypeElements.PolyApplicationValues.t -> t -> t
 	val mixin_exists_in_prefix : int -> Types.TypeElement.t -> t -> bool

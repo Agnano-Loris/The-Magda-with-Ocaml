@@ -12,10 +12,12 @@ module Make (TypeElements : ModuleSignatures.TypeElementSig.TypeElementsSig) : M
 	let is_mixin_decl = function
 	| MixinDecl _ -> true
 	| _ -> false
+	[@@warning "-32"]
 
 	let is_poli_param_decl = function
 	| PolymorphismDecl _ -> true
-	| _ -> false  
+	| _ -> false 
+	[@@warning "-32"] 
 
 	let get_name = function
 		| MixinDecl m -> m.mixin_name
@@ -25,7 +27,7 @@ module Make (TypeElements : ModuleSignatures.TypeElementSig.TypeElementsSig) : M
 	let rec get_applications (module MixinEXPR : MIXIN_EXPR_SIG) method_env = function
 	| MixinDecl _ -> []
 	| PolymorphismDecl p -> 
-		let type_elements = MixinEXPR.get_type_exn method_env p.base.bound in
+		let type_elements = MixinEXPR.get_type_exn method_env p.base.poly_bound in
 		let appl_list = List.map (get_applications (module MixinEXPR) method_env) type_elements.types in
 		List.fold_left List.append type_elements.poly_app_val appl_list
 
@@ -34,7 +36,7 @@ module Make (TypeElements : ModuleSignatures.TypeElementSig.TypeElementsSig) : M
 	| PolymorphismDecl p ->
 		let code_string = p.base.poly_name ^ "<=" in
 		Utils.GenCode.print_code code_string;
-		MixinEXPR.print p.base.bound;
+		MixinEXPR.print p.base.poly_bound;
 		Utils.GenCode.print_code ";"
 
 	let code_for_mixin = function
@@ -52,9 +54,11 @@ module Make (TypeElements : ModuleSignatures.TypeElementSig.TypeElementsSig) : M
 	| MixinDecl _ -> failwith "TypeElement.code_for_mixin not yet implemented for MixinDecl"
 	| PolymorphismDecl p -> 
 	let method_env = MethodEnvironment.new_method_environment env (Option.get p.container) in
-	MixinEXPR.get_type_exn (method_env) p.base.bound
+	MixinEXPR.get_type_exn (method_env) p.base.poly_bound
 
-	let get_type_exn (_ : Types.EnvTypes.method_environment) _ =  failwith "NotImplemented" (*
+	let get_type_exn (_ : Types.EnvTypes.method_environment) _ =  failwith "NotImplemented" 
+	[@@warning "-32"]
+	(*
 		let type_found = Types.TypeElement.TypeElementMap.find_opt type_element method_env.environment.calculated_types in
 		if Option.is_some type_found then (Option.get type_found, method_env) 
 		else 
@@ -90,8 +94,8 @@ module Make (TypeElements : ModuleSignatures.TypeElementSig.TypeElementsSig) : M
 		}
 	*)
 	let get_native_type (_ : Types.EnvTypes.method_environment) (_:t):Types.TypeElements.t = failwith "Not Implemented"
-	let module_contains_input_parameter_exn (_:Program_tree.Ast.source_param) (_:t):bool = failwith "Not Impl"
-	let module_contains_input_parameter_i_exn (_:Program_tree.Ast.source_param) (_:int) (_:t):bool = failwith "Not Impl"
+	let module_contains_input_parameter_exn (_:Program_tree.Ast.input_param) (_:t):bool = failwith "Not Impl"
+	let module_contains_input_parameter_i_exn (_:Program_tree.Ast.input_param) (_:int) (_:t):bool = failwith "Not Impl"
 	let calc_abstract_methods (_:Types.EnvTypes.method_environment) (_:Program_tree.Ast.new_method list) (_:t):Program_tree.Ast.new_method list = failwith "Not impl"
 end
 	
