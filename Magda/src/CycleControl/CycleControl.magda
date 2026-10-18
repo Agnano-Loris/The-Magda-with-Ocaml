@@ -1,0 +1,12 @@
+// Stesso ciclo A -> B -> A, ma il mixin esterno si chiama Z.
+// "Z" finisce nel bucket 10, dopo "A" (1) e "B" (2):
+// checkForCycles parte da A, trova il ciclo e si ferma.
+
+mixin Z of A =
+end;
+
+mixin A of B =
+end;
+
+mixin B of A =
+end;

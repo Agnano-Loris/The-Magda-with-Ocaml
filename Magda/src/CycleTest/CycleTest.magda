@@ -1,0 +1,13 @@
+// Ciclo che NON contiene il primo mixin visitato dal Java.
+// P sta fuori dal ciclo A -> B -> A.
+// Nella HashMap del Java (16 bucket) "P" finisce nel bucket 0, "A" nell'1, "B" nel 2:
+// checkForCycles parte da P e cerca un cammino che torni a P.
+
+mixin P of A =
+end;
+
+mixin A of B =
+end;
+
+mixin B of A =
+end;

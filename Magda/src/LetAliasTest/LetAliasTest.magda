@@ -1,0 +1,95 @@
+// ============================================================
+// LetAliasTest.magda - tipi composti scritti direttamente
+// oppure attraverso un alias let
+//
+// Si compila una prova alla volta: lasciare attivo un solo
+// blocco "PROVA" nel mainProgram e commentare gli altri.
+//
+// ATTENZIONE: copiare qui sopra gli stessi "include" di
+// HelloWorld.magda (servono Integer e String di Magdalib).
+// ============================================================
+include "Magdalib/String.magda";
+include "Magdalib/Boolean.magda";
+include "Magdalib/Object.magda";
+include "Magdalib/Integer.magda";
+include "Magdalib/Comparable.magda";
+include "Magdalib/ByteVector.magda";
+include "Magdalib/Vector.magda";
+include "Magdalib/Byte.magda";
+include "Magdalib/Float.magda";
+
+mixin Stream of Object =
+  new void write(data : String)
+  begin
+    data.String.print();
+    "\r\n".String.print();
+  end;
+end;
+
+mixin Buffered of Stream =
+  size : Integer;
+
+  new void setSize(n : Integer)
+  begin
+    this.Buffered.size := n;
+  end;
+
+  new void show()
+  begin
+    this.Buffered.size.Integer.print();
+    "\r\n".String.print();
+  end;
+end;
+
+// L'alias: un solo identificatore per il tipo composto.
+let SB = Stream, Buffered;
+
+mixin MainClass of Object =
+  new Object mainProgram()
+    // Le dichiarazioni vanno attivate insieme alla prova che le usa.
+
+    // PROVA 1 - tipo composto scritto direttamente, in una variabile locale.
+    // s : Stream, Buffered;
+
+    // PROVE 2 e 3 - tipo composto attraverso l'alias.
+    //s : SB;
+
+    // PROVA 4 - controllo: tipo semplice, accesso abbreviato.
+    b : Buffered;
+  begin
+    // PROVA 1 - atteso: compilatore pre-2025 compila, stampa 8 e x;
+    //           compilatore 2025 -> ParseException del PreParser sulla virgola
+    // s := new Stream, Buffered[];
+    // s.Buffered.setSize(8);
+    // s.Buffered.show();
+    // s.Stream.write("x");
+
+    // PROVA 2 - alias, accesso QUALIFICATO.
+    //           atteso: compila con entrambi, stampa 8 e x
+    //s := new Stream, Buffered[];
+    //s.Buffered.setSize(8);
+    //s.Buffered.show();
+    //s.Stream.write("x");
+
+    // PROVA 3 - alias, accesso ABBREVIATO (solo compilatore 2025:
+    //           prima del 2025 l'accesso abbreviato non esiste).
+    //           atteso: errore "No method named setSize for mixin of type SB",
+    //           perche' il PreParser non registra gli alias nell'indice
+    // s := new Stream, Buffered[];
+    // s.setSize(8);
+    // s.show();
+
+    // PROVA 4 - controllo per la 3: stesso accesso abbreviato su un tipo
+    //           semplice (solo compilatore 2025).
+    //           atteso: compila, stampa 8
+     b := new Stream, Buffered[];
+     b.setSize(8);
+     b.show();
+     (10-3).Integer.print();
+  end;
+end;
+
+// Solo per il compilatore PRECEDENTE al 2025, che non ha MainClass
+// ma le "main instructions" in fondo al file: togliere il commento.
+// Con il compilatore 2025 va lasciata commentata (errore di sintassi).
+// (new MainClass[]).MainClass.mainProgram();

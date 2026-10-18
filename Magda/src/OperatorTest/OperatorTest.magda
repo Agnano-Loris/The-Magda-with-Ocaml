@@ -1,0 +1,110 @@
+// ============================================================
+// OperatorTest.magda - prove sugli operatori aritmetici
+// Regola dedotta dal codice (CBinaryExpressionAdd):
+//     a + b  ==>  a.T.add(b)   con T = GetTypeString() di b
+//
+// Si compila una prova alla volta: lasciare attiva una sola
+// riga "PROVA" nel mainProgram e commentare le altre.
+//
+// ATTENZIONE: copiare qui sopra gli stessi "include" di
+// HelloWorld.magda (servono Integer e String di Magdalib).
+// ============================================================
+include "Magdalib/String.magda";
+include "Magdalib/Boolean.magda";
+include "Magdalib/Object.magda";
+include "Magdalib/Integer.magda";
+include "Magdalib/Comparable.magda";
+include "Magdalib/ByteVector.magda";
+include "Magdalib/Vector.magda";
+include "Magdalib/Byte.magda";
+include "Magdalib/Float.magda";
+
+// Un mixin utente con un proprio "add": usare solo mixin utente
+// evita di dipendere dalle firme di Float in Magdalib.
+mixin Vec of Object =
+  x : Integer;
+
+  new void set(n : Integer)
+  begin
+    this.Vec.x := n;
+  end;
+
+  new Integer getX()
+  begin
+    return this.Vec.x;
+  end;
+
+  // Dentro add niente operatori, per non mescolare le prove.
+  new Vec add(other : Vec)
+    r : Vec;
+  begin
+    r := new Vec[];
+    r.Vec.set(this.Vec.getX().Integer.add(other.Vec.getX()));
+    return r;
+  end;
+
+  new void show()
+  begin
+    this.Vec.x.Integer.print();
+    "\r\n".String.print();
+  end;
+end;
+
+// Sottotipo di Vec che NON introduce add.
+mixin ColorVec of Vec =
+  new void hello()
+  begin
+    "ColorVec\r\n".String.print();
+  end;
+end;
+
+mixin MainClass of Object =
+  new Object mainProgram()
+    v1 : Vec;
+    v2 : Vec;
+    v3 : Vec;
+    c1 : ColorVec;
+    c2 : ColorVec;
+  begin
+    v1 := new Vec[];
+    v1.Vec.set(1);
+    v2 := new Vec[];
+    v2.Vec.set(2);
+    c1 := new Vec, ColorVec[];
+    c1.Vec.set(10);
+    c2 := new Vec, ColorVec[];
+    c2.Vec.set(20);
+
+    // PROVA 1 - overloading su un mixin utente.
+    //   v1.Vec.add(v2)                 atteso: compila, stampa 3 risultato: OK
+    //v3 := v1 + v2;
+
+    // PROVA 2a - controllo: operazione annidata a SINISTRA.
+    //   (v1 + v2).Vec.add(v1)          atteso: compila, stampa 4 risultato: OK
+    //v3 := (v1 + v2) + v1;
+
+    // PROVA 2b - operazione annidata a DESTRA (punto A).
+    //   v1.Integer.add(v2 + v1)        atteso: errore di tipo,
+    //   perche' un'espressione binaria ha sempre typeString "Integer"
+    // Risultato: Exception in thread "main" Magda.Compiler.CTypeError: Target object type (Object, Vec) doesn't contain Integer layer  at line:89 in file OperatorTest.magda
+    // v3 := v1 + (v2 + v1);
+
+    // PROVA 3a - controllo: sottotipo a SINISTRA.
+    //   c1.Vec.add(v1)                 atteso: compila, stampa 11 risultato: OK
+    // v3 := c1 + v1;
+
+    // PROVA 3b - sottotipo a DESTRA (punto B).
+    //   v1.ColorVec.add(c1)            atteso: errore, il tipo di v1
+    //   non contiene lo strato ColorVec
+    // risultato: Exception in thread "main" Magda.Compiler.CTypeError: Target object type (Object, Vec) doesn't contain ColorVec layer  at line:99 in file OperatorTest.magda
+    // v3 := v1 + c1;
+
+    // PROVA 3c - sottotipo su entrambi i lati (punto B, il caso netto).
+    //   c1.ColorVec.add(c2)            atteso: errore (o eccezione),
+    //   ColorVec non introduce add; la regola uniforme darebbe c1.Vec.add(c2)
+    // Risultato: Exception in thread "main" java.lang.Error: Method not found! add
+     v3 := c1 + c2;
+
+    v3.Vec.show();
+  end;
+end;

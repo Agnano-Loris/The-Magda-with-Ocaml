@@ -1,0 +1,85 @@
+// ============================================================
+// SuffixTest.magda - catene di suffissi con accessi abbreviati
+//
+// Si compila una prova alla volta: lasciare attiva una sola
+// riga "PROVA" nel metodo App.run e commentare le altre.
+//
+// ATTENZIONE: copiare qui sopra gli stessi "include" di
+// HelloWorld.magda (servono String di Magdalib).
+// ============================================================
+include "Magdalib/library.magda";
+
+mixin Stream of Object =
+  new void write(data : String)
+  begin
+    data.String.print();
+    "\r\n".String.print();
+  end;
+end;
+
+// Logger ha un campo di tipo Stream.
+mixin Logger of Object =
+  out : Stream;
+
+  new void setOut(o : Stream)
+  begin
+    this.Logger.out := o;
+  end;
+end;
+
+// App ha un campo di tipo Logger: this.log.out e' una catena di due campi.
+mixin App of Object =
+  log : Logger;
+
+  new void setLog(l : Logger)
+  begin
+    this.App.log := l;
+  end;
+
+  new void run()
+    s : Stream;
+    l : Logger;
+  begin
+    // PROVA 1 - controllo: tutto qualificato.
+    //   atteso: compila con entrambi i compilatori, stampa "uno"
+    //this.App.log.Logger.out.Stream.write("uno");
+
+    // PROVA 2 - campo, campo, chiamata abbreviata (forma .A.B.m(...)).
+    //   corretto:  this.App.log.Logger.out.Stream.write("due")
+    //   atteso nel compilatore 2025: "mixin out has never been declared"
+    //   (SpecificSelectOrMethodCall: log non e' un mixin, quindi out deve esserlo)
+    //this.log.out.write("due");
+
+    // PROVA 3 - campo, campo, senza chiamata (forma .A.B).
+    //   atteso nel compilatore 2025: SpecificSelect tratta log come mixin. mixin log not found!
+    //   senza controllarlo; errore nel controllo dei tipi o eccezione. Exception in thread "main" java.lang.Error: mixin log not found!
+     //   at Magda.Compiler.CEnvironment.getMixin(CEnvironment.java:32)
+     // s := this.log.out;
+     // s.Stream.write("tre");
+
+    // PROVA 4 - controllo per la 2: catena di due soli passi abbreviati.
+    //   l.out.write(...) ha la forma .A.m(...), che prevede "A campo".
+    //   atteso nel compilatore 2025: compila, stampa "quattro"
+     l := this.App.log;
+     l.out.write("quattro");
+  end;
+end;
+
+mixin MainClass of Object =
+  new Object mainProgram()
+    st : Stream;
+    lg : Logger;
+    app : App;
+  begin
+    st := new Stream[];
+    lg := new Logger[];
+    lg.Logger.setOut(st);
+    app := new App[];
+    app.App.setLog(lg);
+    app.App.run();
+  end;
+end;
+
+// Solo per il compilatore PRECEDENTE al 2025 (main instructions):
+// togliere il commento. Con il compilatore 2025 va lasciata commentata.
+// (new MainClass[]).MainClass.mainProgram();
