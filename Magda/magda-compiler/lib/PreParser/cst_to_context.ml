@@ -90,7 +90,12 @@ let methCont = meth_body body methCont in
 let methCont = MethodContext.set_return_type (Some restype) methCont in
 MixinContext.add_method (mixname ^ "." ^ name) methCont mixContext
 | Cst.NewMethodDeclaration o -> new_meth_decl o mixContext
-| Cst.IniModuleDeclaration (_, _, input, _, body)-> let methCont = MethodContext.empty () in
+| Cst.IniModuleDeclaration (_, header_mixin, input, _, body)-> 
+if header_mixin <> current_mixin then
+    Errors.magda_raise Errors.ContextPhase
+      (Printf.sprintf "The ini module of mixin %s is named %s: it must be named after its enclosing mixin"
+         current_mixin header_mixin);
+let methCont = MethodContext.empty () in
 let param_names = List.map fst input in
 let methCont = List.fold_left (fun mc (name, expr) -> MethodContext.add_param name (mixin_expr_type expr) mc) methCont input in
 let methCont = MethodContext.set_return_type (Some(MagdaType.string_to_magdatype current_mixin)) methCont in
