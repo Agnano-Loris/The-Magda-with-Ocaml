@@ -1,1 +1,2 @@
- opam exec -- dune exec magda-compiler --root Magda/magda-compiler --no-print-director
+@echo off
+opam exec -- dune exec magda-compiler --root Magda/magda-compiler --no-print-directory -- %*
