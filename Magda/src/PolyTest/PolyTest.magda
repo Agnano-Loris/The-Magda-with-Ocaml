@@ -1,0 +1,31 @@
+// Parametro di polimorfismo risolto tramite il bound.
+
+mixin A of void =
+    new void a()
+    begin
+    end;
+end;
+
+mixin C of A =
+    new void c()
+    begin
+    end;
+end;
+
+mixin Box <t <= A> of void =
+    content : t;
+    new t get()
+    begin
+        return this.Box.content;
+    end;
+end;
+
+mixin MainClass of void =
+    new void mainProgram()
+        b : Box, where Box.t := (C);
+    begin
+        b.get().a();      // membro del bound: risolto
+        b.get().C.c();    // qualificato: passa
+        // b.get().c();   // membro della sola istanziazione: errore falso
+    end;
+end;

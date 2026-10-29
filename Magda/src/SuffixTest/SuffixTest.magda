@@ -1,12 +1,6 @@
-// ============================================================
+
 // SuffixTest.magda - catene di suffissi con accessi abbreviati
-//
-// Si compila una prova alla volta: lasciare attiva una sola
-// riga "PROVA" nel metodo App.run e commentare le altre.
-//
-// ATTENZIONE: copiare qui sopra gli stessi "include" di
-// HelloWorld.magda (servono String di Magdalib).
-// ============================================================
+
 include "Magdalib/library.magda";
 
 mixin Stream of Object =
@@ -52,12 +46,12 @@ mixin App of Object =
 
     // PROVA 3 - campo, campo, senza chiamata (forma .A.B).
     //   atteso nel compilatore 2025: SpecificSelect tratta log come mixin. mixin log not found!
-    //   senza controllarlo; errore nel controllo dei tipi o eccezione. Exception in thread "main" java.lang.Error: mixin log not found!
+    //   senza controllarlo; Exception in thread "main" java.lang.Error: mixin log not found!
      //   at Magda.Compiler.CEnvironment.getMixin(CEnvironment.java:32)
      // s := this.log.out;
      // s.Stream.write("tre");
 
-    // PROVA 4 - controllo per la 2: catena di due soli passi abbreviati.
+    // PROVA 4 -  catena di due soli passi abbreviati.
     //   l.out.write(...) ha la forma .A.m(...), che prevede "A campo".
     //   atteso nel compilatore 2025: compila, stampa "quattro"
      l := this.App.log;
@@ -80,6 +74,6 @@ mixin MainClass of Object =
   end;
 end;
 
-// Solo per il compilatore PRECEDENTE al 2025 (main instructions):
+// Solo per il compilatore precedente al 2025 (main instructions):
 // togliere il commento. Con il compilatore 2025 va lasciata commentata.
 // (new MainClass[]).MainClass.mainProgram();

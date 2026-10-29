@@ -1,13 +1,6 @@
-// ============================================================
 // LetAliasTest.magda - tipi composti scritti direttamente
 // oppure attraverso un alias let
-//
-// Si compila una prova alla volta: lasciare attivo un solo
-// blocco "PROVA" nel mainProgram e commentare gli altri.
-//
-// ATTENZIONE: copiare qui sopra gli stessi "include" di
-// HelloWorld.magda (servono Integer e String di Magdalib).
-// ============================================================
+
 include "Magdalib/String.magda";
 include "Magdalib/Boolean.magda";
 include "Magdalib/Object.magda";
@@ -52,10 +45,10 @@ mixin MainClass of Object =
     // s : Stream, Buffered;
 
     // PROVE 2 e 3 - tipo composto attraverso l'alias.
-    //s : SB;
+    s : SB;
 
     // PROVA 4 - controllo: tipo semplice, accesso abbreviato.
-    b : Buffered;
+    //b : Buffered;
   begin
     // PROVA 1 - atteso: compilatore pre-2025 compila, stampa 8 e x;
     //           compilatore 2025 -> ParseException del PreParser sulla virgola
@@ -71,21 +64,16 @@ mixin MainClass of Object =
     //s.Buffered.show();
     //s.Stream.write("x");
 
-    // PROVA 3 - alias, accesso ABBREVIATO (solo compilatore 2025:
-    //           prima del 2025 l'accesso abbreviato non esiste).
-    //           atteso: errore "No method named setSize for mixin of type SB",
-    //           perche' il PreParser non registra gli alias nell'indice
-    // s := new Stream, Buffered[];
-    // s.setSize(8);
-    // s.show();
+    // PROVA 3 - alias, accesso abbreviato 
+     s := new Stream, Buffered[];
+     s.setSize(8);
+     s.show();
 
-    // PROVA 4 - controllo per la 3: stesso accesso abbreviato su un tipo
-    //           semplice (solo compilatore 2025).
-    //           atteso: compila, stampa 8
-     b := new Stream, Buffered[];
-     b.setSize(8);
-     b.show();
-     (10-3).Integer.print();
+    // PROVA 4 - stesso accesso abbreviato su un tipo
+    // b := new Stream, Buffered[];
+    // b.setSize(8);
+    // b.show();
+    // (10-3).Integer.print();
   end;
 end;
 

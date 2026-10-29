@@ -1,0 +1,16 @@
+include "Mixinlib/TestIncludeA.magda";
+include "Mixinlib/TestIncludeB.magda";
+mixin A of void =
+    new void m()
+    begin
+    end;
+end;
+
+mixin MainClass of void =
+    new void mainProgram()
+        x : A;
+    begin
+        x := new A[];
+        x.m();
+    end;
+end;

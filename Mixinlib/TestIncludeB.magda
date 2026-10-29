@@ -1,0 +1,8 @@
+include "Mixinlib/TestIncludeA.magda";
+include "Mixinlib/TestIncludeC.magda";
+
+mixin TestB of void =                      
+  new void m()
+  begin
+  end;
+end;

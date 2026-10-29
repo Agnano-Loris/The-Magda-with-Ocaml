@@ -1,0 +1,17 @@
+// Variabile non dichiarata usata come destinatario di un accesso abbreviato.
+
+mixin A of void =
+    new void m()
+    begin
+    end;
+end;
+
+mixin MainClass of void =
+    new void mainProgram()
+        x : A;
+    begin
+        x := new A[];
+        x.m();
+        y.m();
+    end;
+end;

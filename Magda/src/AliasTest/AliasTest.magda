@@ -1,0 +1,25 @@
+// Alias let usato come tipo di una variabile.
+// Atteso: errore di risoluzione su s.write(null), perche' SB non e' nell'indice.
+
+mixin Stream of void =
+    new void write(data : Stream)
+    begin
+    end;
+end;
+
+mixin BufferedStream of Stream =
+    new void flush()
+    begin
+    end;
+end;
+
+let SB = Stream, BufferedStream;
+
+mixin MainClass of void =
+    new void mainProgram()
+        s : SB;
+    begin
+        s := new SB[];
+        s.write(null);
+    end;
+end;

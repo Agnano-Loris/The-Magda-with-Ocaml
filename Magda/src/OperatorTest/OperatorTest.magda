@@ -1,14 +1,7 @@
-// ============================================================
 // OperatorTest.magda - prove sugli operatori aritmetici
 // Regola dedotta dal codice (CBinaryExpressionAdd):
 //     a + b  ==>  a.T.add(b)   con T = GetTypeString() di b
-//
-// Si compila una prova alla volta: lasciare attiva una sola
-// riga "PROVA" nel mainProgram e commentare le altre.
-//
-// ATTENZIONE: copiare qui sopra gli stessi "include" di
-// HelloWorld.magda (servono Integer e String di Magdalib).
-// ============================================================
+
 include "Magdalib/String.magda";
 include "Magdalib/Boolean.magda";
 include "Magdalib/Object.magda";
@@ -19,8 +12,7 @@ include "Magdalib/Vector.magda";
 include "Magdalib/Byte.magda";
 include "Magdalib/Float.magda";
 
-// Un mixin utente con un proprio "add": usare solo mixin utente
-// evita di dipendere dalle firme di Float in Magdalib.
+// Un mixin utente con un proprio "add"
 mixin Vec of Object =
   x : Integer;
 
@@ -34,7 +26,7 @@ mixin Vec of Object =
     return this.Vec.x;
   end;
 
-  // Dentro add niente operatori, per non mescolare le prove.
+  // Dentro add niente operatori
   new Vec add(other : Vec)
     r : Vec;
   begin
@@ -50,7 +42,7 @@ mixin Vec of Object =
   end;
 end;
 
-// Sottotipo di Vec che NON introduce add.
+// Sottotipo di Vec che non introduce add.
 mixin ColorVec of Vec =
   new void hello()
   begin
@@ -99,9 +91,9 @@ mixin MainClass of Object =
     // risultato: Exception in thread "main" Magda.Compiler.CTypeError: Target object type (Object, Vec) doesn't contain ColorVec layer  at line:99 in file OperatorTest.magda
     // v3 := v1 + c1;
 
-    // PROVA 3c - sottotipo su entrambi i lati (punto B, il caso netto).
+    // PROVA 3c - sottotipo su entrambi i lati.
     //   c1.ColorVec.add(c2)            atteso: errore (o eccezione),
-    //   ColorVec non introduce add; la regola uniforme darebbe c1.Vec.add(c2)
+    //   ColorVec non introduce add;
     // Risultato: Exception in thread "main" java.lang.Error: Method not found! add
      v3 := c1 + c2;
 

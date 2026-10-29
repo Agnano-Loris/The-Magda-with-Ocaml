@@ -1,0 +1,28 @@
+// Tipi composti e precedenza del mixin nominato.
+
+mixin A of void =
+    new void m()
+    begin
+    end;
+    new void onlyA()
+    begin
+    end;
+end;
+
+mixin C of A =
+    new void m()
+    begin
+    end;
+end;
+
+mixin MainClass of void =
+    new void mainProgram()
+        x : C;
+        y : C, A;
+    begin
+        x.m();          // C nomina m: C.m
+        x.onlyA();      // trovato risalendo ai base: A.onlyA
+        y.onlyA();      // A raggiunto da entrambi i componenti, contato una volta
+        //y.m();       // C.m e A.m: ambiguo
+    end;
+end;

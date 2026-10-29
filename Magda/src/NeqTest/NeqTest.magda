@@ -1,0 +1,92 @@
+// ============================================================
+// NeqTest.magda - su quale operando viene chiamato il metodo
+// degli operatori = e !=
+//
+// Dal codice di Parser.jj (BinaryOperatorSuffix):
+//     a = b   ==>  new CBinaryExpressionEqual(left, right)  ==>  a.Object.equals(b)
+//     a != b  ==>  new CBinaryExpressionNeq(right, left)    ==>  b.Object.neq(a)
+// cioe' il destinatario di != sarebbe l'operando DESTRO, quello
+// di = il SINISTRO.
+//
+// Il mixin Tag ridefinisce equals e neq in modo che stampino il
+// nome dell'oggetto su cui vengono chiamati: l'uscita mostra il
+// destinatario senza bisogno di un equals asimmetrico.
+//
+// Si compila una prova alla volta: lasciare attiva una sola
+// riga "PROVA" nel mainProgram e commentare le altre.
+//
+// ATTENZIONE:
+// - copiare qui sopra gli stessi "include" di HelloWorld.magda
+//   (servono Object, Boolean e String di Magdalib);
+// - controllare in Object.magda che equals e neq esistano e che
+//   la firma (tipo del parametro e di ritorno) coincida con quella
+//   degli override qui sotto, altrimenti il controllo dei tipi
+//   rifiuta l'override ("Result type differs" / "Parameter lists
+//   differs"). Se neq non esiste in Object, la PROVA 2 dovrebbe
+//   fallire con "Method not found! neq": anche questo e' un esito.
+// ============================================================
+include "Magdalib/library.magda";
+mixin Tag of Object =
+  name : String;
+
+  new void setName(n : String)
+  begin
+    this.Tag.name := n;
+  end;
+
+  // Stampa il proprio nome mentre viene valutato come operando.
+  new Tag me()
+  begin
+    "valuto ".String.print();
+    this.Tag.name.String.print();
+    "\r\n".String.print();
+    return this;
+  end;
+
+  override Boolean Object.equals(other : Object)
+  begin
+    "equals chiamato su ".String.print();
+    this.Tag.name.String.print();
+    "\r\n".String.print();
+    return true;
+  end;
+
+  override Boolean Object.neq(other : Object)
+  begin
+    "neq chiamato su ".String.print();
+    this.Tag.name.String.print();
+    "\r\n".String.print();
+    return false;
+  end;
+end;
+
+mixin MainClass of Object =
+  new Object mainProgram()
+    a : Tag;
+    b : Tag;
+    r : Boolean;
+  begin
+    a := new Tag[];
+    a.Tag.setName("a");
+    b := new Tag[];
+    b.Tag.setName("b");
+
+    // PROVA 1 - controllo: operatore =.
+    //   atteso dal codice: "equals chiamato su a"
+    //r := a = b;
+
+    // PROVA 2 - operatore !=.
+    //   atteso dal codice: "neq chiamato su b" (destinatario scambiato)
+    //   se invece stampa "neq chiamato su a", lo scambio non c'e'
+    // r := a != b;
+
+    // PROVA 3 - ordine di valutazione degli operandi di !=.
+    //   me() stampa "valuto ..." quando l'operando viene valutato.
+    //   Confrontare l'ordine delle righe "valuto" con quello della
+    //   PROVA 4 (=), dove gli operandi non sono scambiati.
+    // r := a.Tag.me() != b.Tag.me();
+
+    // PROVA 4 - controllo per la 3, con l'operatore =.
+     r := a.Tag.me() = b.Tag.me();
+  end;
+end;

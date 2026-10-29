@@ -1,0 +1,22 @@
+// Catena di accessi abbreviati: il compilatore in Java la rifiuta.
+
+mixin Stream of void =
+    new void write(data : Stream)
+    begin
+    end;
+end;
+
+mixin Logger of void =
+    out : Stream;
+end;
+
+mixin MainClass of void =
+    log : Logger;
+    new void mainProgram()
+        s : Stream;
+    begin
+        this.log.out.write(null);
+        s := this.log.out;
+        s.write(null);
+    end;
+end;

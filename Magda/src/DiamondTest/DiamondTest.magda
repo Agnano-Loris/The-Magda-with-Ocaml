@@ -1,0 +1,52 @@
+// DiamondTest: shortcut resolution with a diamond of base mixins.
+// D of B, C; B of A; C of A. The method m is introduced by A and, as a new method, by B.
+//
+// Run one variant at a time
+//   V1  d.m();     expected (deduction): ambiguous, possible mixins A, B
+//   V2  d.B.m();   qualified access: expected to pass
+//   V3  c.m();     c : C, and C does not introduce m: expected c.A.m()
+
+mixin A of void =
+  new void m()
+    x : A;
+  begin
+    x := null;
+  end;
+end;
+
+mixin B of A =
+  new void m()
+    x : B;
+  begin
+    x := null;
+  end;
+end;
+
+mixin C of A =
+  new void n()
+    x : C;
+  begin
+    x := null;
+  end;
+end;
+
+mixin D of B, C =
+  new void k()
+    x : D;
+  begin
+    x := null;
+  end;
+end;
+
+mixin MainClass of void =
+  new void mainProgram()
+    d : D;
+    c : C;
+  begin
+    d := new A, B, C, D [];
+    c := new A, C [];
+    //d.m(); 
+    //d.B.m();
+    c.m();
+  end;
+end;

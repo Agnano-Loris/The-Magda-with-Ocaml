@@ -1,12 +1,38 @@
 include "Magdalib/library.magda";
 
+mixin A of void =
+  required A(x : Integer) initializes ()
+  begin
+    super[];
+  end;
+end;
+
+mixin B of A =
+  required B() initializes (A.x)
+  begin
+    super[A.x := 1];
+  end;
+end;
+
+mixin P of void =
+  x : Integer;
+end;
+
 mixin MainClass of Object = 
   new void mainProgram()
    x:Float;
    y:Integer;  
+   i: Integer;
+   s: String;
   begin
-   y:=2;
-   x:=y.toFloat();
+    i := 0;
+    j := i.P.y;
+    while (i<2)
+      i := i + 1;
+    end;
+    s := "abcd";
+    y:=2;
+    x:=y.toFloat();
   end;
   
 end;

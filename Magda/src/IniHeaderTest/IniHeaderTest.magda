@@ -1,0 +1,38 @@
+// IniHeaderTest: ini module whose header names a mixin
+// different from the one that contains it.
+// Run each variant separately: uncomment one creation in mainProgram at a time.
+include "Magdalib/library.magda";
+
+mixin T of void =
+end;
+
+mixin B of void =
+end;
+
+mixin A of void =
+  f : T;
+
+  // The header says B, but the module is declared inside A.
+  required B(x : T) initializes ()
+  begin
+    this.A.f := x;
+    super[];
+  end;
+end;
+
+mixin MainClass of void =
+  new void mainProgram()
+    t : T;
+    a : A;
+  begin
+    t := new T[];
+
+    // V1: declaration only, no creation (keep both lines below commented).
+
+    // V2: input named after the containing mixin.
+     a := new A[A.x := t];
+
+    // V3: input named after the header.
+     a := new A[B.x := t];
+  end;
+end;

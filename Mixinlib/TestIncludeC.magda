@@ -1,0 +1,5 @@
+mixin TestC of void =                      
+  new void m()
+  begin
+  end;
+end;
