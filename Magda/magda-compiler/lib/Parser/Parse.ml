@@ -10,6 +10,6 @@ let parse_file filename =
     try
       Parser.program Lexer.token lexbuf
     with Parser.Error ->
-      let pos = lexbuf.lex_curr_p in
-      Utils.Errors.magda_raise_at (pos, pos) Utils.Errors.ParsePhase "Syntax error"
+      let span = (Lexing.lexeme_start_p lexbuf, Lexing.lexeme_end_p lexbuf) in
+      Utils.Errors.magda_raise_at span Utils.Errors.ParsePhase "Syntax error"
   )
